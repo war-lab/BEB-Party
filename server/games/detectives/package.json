@@ -1,0 +1,17 @@
+{
+  "name": "@beb/server-detectives",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@beb/shared-core": "workspace:*",
+    "@beb/shared-detectives": "workspace:*"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Worker名。BEB-Raidと同じCloudflareアカウントを共有するため固有名を使う（07_リポジトリとツールチェーン.md）
+  "name": "beb-party",
+  "main": "src/index.ts",
+  // ADR-0002: 変更するPRでは理由を書く
+  "compatibility_date": "2026-08-13",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "../../client/app/dist",
+    "binding": "ASSETS"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "ROOM_DO",
+        "class_name": "RoomDO"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      // 無料プランはSQLiteバックエンドのみ利用可（ADR-0002）。旧来のマイグレーションキーは使わない
+      "new_sqlite_classes": ["RoomDO"]
+    }
+  ],
+  "ratelimits": [
+    {
+      // POST /api/rooms: 5回/60秒（01_サーバ.md レート制限の表）
+      "name": "API_ROOMS_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 5, "period": 60 }
+    },
+    {
+      // GET /room/:code/ws: 60回/60秒（01_サーバ.md レート制限の表）
+      "name": "WS_RATE_LIMITER",
+      "namespace_id": "1002",
+      "simple": { "limit": 60, "period": 60 }
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

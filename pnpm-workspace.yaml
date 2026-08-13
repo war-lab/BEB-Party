@@ -1,0 +1,20 @@
+packages:
+  - shared/core
+  - shared/games/detectives
+  - server/core
+  - server/games/detectives
+  - client/core
+  - client/games/detectives
+  - client/app
+  - tools
+allowBuilds:
+  esbuild: true
+  workerd: true
+minimumReleaseAgeExclude:
+  - '@cloudflare/vitest-pool-workers@0.21.2'
+  - '@cloudflare/workers-types@5.20260813.1'
+  - eslint-plugin-svelte@3.23.0
+  - globals@17.11.0
+  - miniflare@5.20260811.0-alpha
+  - svelte@5.56.9
+  - wrangler@4.122.0

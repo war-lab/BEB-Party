@@ -30,14 +30,15 @@
 
 ## コマンド
 
-実体はM0のPR0で作る。定義は [docs/基本設計/07_リポジトリとツールチェーン.md](docs/基本設計/07_リポジトリとツールチェーン.md)。
+定義は [docs/基本設計/07_リポジトリとツールチェーン.md](docs/基本設計/07_リポジトリとツールチェーン.md)。
 
 | コマンド | 用途 |
 | --- | --- |
 | `pnpm dev` | client(Vite) + server(wrangler dev) を同時起動 |
-| `pnpm test` | 全ワークスペースのユニットテスト |
-| `pnpm validate:content` | 事件データの整合性検証 |
-| `pnpm check` | lint + 型チェック |
+| `pnpm check` | 全パッケージのESLintと`tsc --noEmit` |
+| `pnpm test` | 全パッケージのvitest |
+| `pnpm validate:content` | 事件データの整合性検証（`tools`のCLI） |
+| `pnpm e2e` | Playwright（テスト本体はPR4） |
 
 ## Definition of Done
 
