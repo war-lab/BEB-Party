@@ -47,6 +47,8 @@ export default tseslint.config(
       "**/playwright-report/**",
       "**/*.tsbuildinfo",
       "client/public/fonts/**",
+      // wrangler typesによる生成物。手編集しない
+      "server/core/worker-configuration.d.ts",
     ],
   },
   js.configs.recommended,
@@ -85,13 +87,13 @@ export default tseslint.config(
       globals: { ...globals.node },
     },
   },
-  // server/core/（registry.ts以外）
+  // server/core/（registry.ts、テストコード以外）
   // 検査1: @beb/*-detectivesのimportはregistry.tsだけ（静的・動的とも。不変条件4、ADR-0009）
   // 検査3: 'detectives'リテラル禁止
   // 検査4: ws.accept()禁止（ADR-0002、CLAUDE.md不変条件6）
   {
     files: ["server/core/src/**/*.ts"],
-    ignores: ["server/core/src/registry.ts"],
+    ignores: ["server/core/src/registry.ts", "server/core/src/**/*.test.ts", "server/core/src/test-support/**"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -107,13 +109,33 @@ export default tseslint.config(
       "no-restricted-syntax": ["error", noDynamicDetectivesImport, noDetectivesLiteral, noWsAccept],
     },
   },
-  // server/games/*（server/core以外のserver/配下）
+  // server/games/*（server/core・テストコード以外のserver/配下）
   // 検査3: 'detectives'リテラル禁止 / 検査4: ws.accept()禁止
   {
     files: ["server/**/*.ts"],
-    ignores: ["server/core/src/**/*.ts"],
+    ignores: ["server/core/src/**/*.ts", "server/**/*.test.ts", "server/**/test-support/**"],
     rules: {
       "no-restricted-syntax": ["error", noDetectivesLiteral, noWsAccept],
+    },
+  },
+  // server/**のテストコード: ws.accept()禁止はDurable Object側の実装(Hibernation API)の話であり、
+  // テストヘルパーがクライアント側WebSocketPairで呼ぶ.accept()とは無関係のため対象外とする。
+  // detectivesリテラル・動的import禁止はテストコードにも適用する
+  {
+    files: ["server/**/*.test.ts", "server/**/test-support/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@beb/*-detectives"],
+              message: "server/core/ でゲームモジュールをimportできるのはregistry.tsだけ（不変条件4、ADR-0009）",
+            },
+          ],
+        },
+      ],
+      "no-restricted-syntax": ["error", noDynamicDetectivesImport, noDetectivesLiteral],
     },
   },
   // shared/core/ client/core/: ゲームモジュールをimportしない（検査2、静的・動的とも）+ 検査3 + 検査5
