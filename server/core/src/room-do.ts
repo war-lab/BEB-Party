@@ -1,6 +1,8 @@
 import { DurableObject } from "cloudflare:workers";
 import {
   ERROR_CODES,
+  HEARTBEAT_PING,
+  HEARTBEAT_PONG,
   PROTOCOL_VERSION,
   parseClientMessage,
   type ActionMessage,
@@ -14,17 +16,36 @@ import {
   type StateMessage,
 } from "@beb/shared-core";
 import { registry } from "./registry";
-import { emptySecretsState, toPublicRoom, type InternalRoomState, type SecretsState } from "./state";
+import {
+  emptySecretsState,
+  toPublicRoom,
+  type AlarmsState,
+  type InternalRoomState,
+  type SecretsState,
+} from "./state";
 import { generatePlayerId, generateReconnectToken, generateSeed } from "./ids";
 
-// ソケット⇔プレイヤーの対応。serializeAttachmentで保持し、インメモリのMapに依存しない（不変条件6）
-type Attachment = { playerId: string } | { spectator: true };
+// ソケット⇔プレイヤーの対応。serializeAttachmentで保持し、インメモリのMapに依存しない（不変条件6）。
+// connectedAtは、一度もハートビートを送っていない接続(getWebSocketAutoResponseTimestampがnull)を
+// 死活判定するためのフォールバック起点として使う
+type Attachment = { playerId: string; connectedAt: number } | { spectator: true };
 
 const SPECTATOR_LIMIT = 2;
+
+// 90秒(ハートビート間隔25秒の3倍を超える値)より古い自動応答は切断済みとみなす（基本設計/01_サーバ.md、ADR-0013）
+const HEARTBEAT_DEAD_THRESHOLD_MS = 90_000;
+// 最終アクセスから2時間で部屋を破棄する（基本設計/01_サーバ.md）
+const ROOM_EXPIRE_MS = 2 * 60 * 60 * 1000;
 
 // RoomDO: 部屋 = 1インスタンス。ゲームのルールを判定せず、GameModuleが返すGameTransitionを
 // 反映する係に徹する（ADR-0009、基本設計/01_サーバ.md）
 export class RoomDO extends DurableObject<Env> {
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env);
+    // ハートビートの固定文字列はshared/coreの定数をそのまま使う（オブジェクトから組み立てない、ADR-0013）
+    this.ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair(HEARTBEAT_PING, HEARTBEAT_PONG));
+  }
+
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
 
@@ -48,6 +69,7 @@ export class RoomDO extends DurableObject<Env> {
     const room: InternalRoomState = { code: body.code, lifecycle: "lobby", players: [] };
     await this.ctx.storage.put("room", room);
     await this.ctx.storage.put("secrets", emptySecretsState());
+    await this.updateAlarm(room);
     return Response.json({ code: body.code });
   }
 
@@ -64,6 +86,9 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   async webSocketMessage(ws: WebSocket, raw: ArrayBuffer | string): Promise<void> {
+    // 別の理由でDOが起きたときにまとめて死活判定を行う（ADR-0013）
+    await this.detectDeadSockets();
+
     if (typeof raw !== "string") {
       return;
     }
@@ -106,8 +131,30 @@ export class RoomDO extends DurableObject<Env> {
     const player = room.players.find((p) => p.id === playerId);
     if (player) {
       player.connected = false;
+      this.reassignHostIfNeeded(room);
       await this.ctx.storage.put("room", room);
+      await this.updateAlarm(room);
       this.broadcastState(room);
+    }
+  }
+
+  async alarm(): Promise<void> {
+    // 別の理由でDOが起きたときにまとめて死活判定を行う（ADR-0013）
+    await this.detectDeadSockets();
+
+    const alarms = await this.ctx.storage.get<AlarmsState>("alarms");
+    if (!alarms) {
+      return; // 部屋が既に破棄されている
+    }
+
+    const now = Date.now();
+    if (now >= alarms.expireAt) {
+      await this.destroyRoom();
+      return;
+    }
+
+    if (alarms.stageDeadline !== undefined && now >= alarms.stageDeadline) {
+      await this.dispatchDeadline();
     }
   }
 
@@ -151,11 +198,13 @@ export class RoomDO extends DurableObject<Env> {
     };
     room.players.push(player);
     secrets.reconnectTokens[playerId] = reconnectToken;
+    this.reassignHostIfNeeded(room);
 
     await this.ctx.storage.put("room", room);
     await this.ctx.storage.put("secrets", secrets);
+    await this.updateAlarm(room);
 
-    ws.serializeAttachment({ playerId } satisfies Attachment);
+    ws.serializeAttachment({ playerId, connectedAt: Date.now() } satisfies Attachment);
     this.send(ws, { v: PROTOCOL_VERSION, type: "joined", playerId, reconnectToken });
     this.broadcastState(room);
   }
@@ -168,9 +217,11 @@ export class RoomDO extends DurableObject<Env> {
     reconnectToken: string,
   ): Promise<void> {
     player.connected = true;
+    this.reassignHostIfNeeded(room);
     await this.ctx.storage.put("room", room);
+    await this.updateAlarm(room);
 
-    ws.serializeAttachment({ playerId: player.id } satisfies Attachment);
+    ws.serializeAttachment({ playerId: player.id, connectedAt: Date.now() } satisfies Attachment);
     this.send(ws, { v: PROTOCOL_VERSION, type: "joined", playerId: player.id, reconnectToken });
     this.broadcastState(room);
 
@@ -215,6 +266,7 @@ export class RoomDO extends DurableObject<Env> {
     room.contentId = undefined;
     room.settings = undefined;
     await this.ctx.storage.put("room", room);
+    await this.updateAlarm(room);
     this.broadcastState(room);
   }
 
@@ -238,6 +290,7 @@ export class RoomDO extends DurableObject<Env> {
     room.contentId = message.contentId;
     room.settings = message.settings;
     await this.ctx.storage.put("room", room);
+    await this.updateAlarm(room);
     this.broadcastState(room);
   }
 
@@ -277,6 +330,7 @@ export class RoomDO extends DurableObject<Env> {
 
     await this.ctx.storage.put("room", room);
     await this.ctx.storage.put("secrets", secrets);
+    await this.updateAlarm(room);
 
     this.sendSecretsToConnectedPlayers(room, startResult.secrets);
     this.broadcastState(room);
@@ -334,8 +388,109 @@ export class RoomDO extends DurableObject<Env> {
     const secrets = await this.getSecrets();
     secrets.playerSecrets = {};
     await this.ctx.storage.put("secrets", secrets);
+    await this.updateAlarm(nextRoom);
 
     this.broadcastState(nextRoom);
+  }
+
+  // --- 時間駆動処理（アラーム多重化・死活判定・部屋のGC。基本設計/01_サーバ.md、ADR-0013） ---
+
+  private async dispatchDeadline(): Promise<void> {
+    const room = await this.getRoom();
+    if (room.lifecycle !== "playing" || !room.gameId) {
+      // 締切に達したが既に状態が進んでいた（他経路で先に遷移した等）。何もしない
+      await this.updateAlarm(room);
+      return;
+    }
+    const gameModule = registry[room.gameId];
+    if (!gameModule) {
+      await this.updateAlarm(room);
+      return;
+    }
+    const transition = gameModule.onDeadline({ room: toPublicRoom(room), publicState: room.gameState });
+    if (transition.reject) {
+      // onDeadlineは強制遷移が前提であり、rejectは通常返らない。返った場合はアラームだけ再設定する
+      await this.updateAlarm(room);
+      return;
+    }
+    await this.applyTransition(room, transition);
+  }
+
+  private async destroyRoom(): Promise<void> {
+    for (const socket of this.ctx.getWebSockets()) {
+      socket.close(1000, "room_expired");
+    }
+    await this.ctx.storage.deleteAll();
+  }
+
+  // ハートビートの最終自動応答時刻が90秒より古いソケットをconnected: falseにする（ADR-0013）
+  private async detectDeadSockets(): Promise<void> {
+    const room = await this.ctx.storage.get<InternalRoomState>("room");
+    if (!room) {
+      return;
+    }
+    const now = Date.now();
+    let changed = false;
+    const staleSockets: WebSocket[] = [];
+
+    for (const socket of this.ctx.getWebSockets()) {
+      const attachment = this.deserializeAttachment(socket);
+      if (!attachment || !("playerId" in attachment)) {
+        continue; // 観戦ソケットは対象外
+      }
+      const playerId = attachment.playerId;
+      // 一度もハートビートを送っていない接続はgetWebSocketAutoResponseTimestampがnullを返すため、
+      // 接続時刻(connectedAt)を起点にする。webSocketClose/Errorが発火しない無応答切断を捕捉するため
+      const lastResponse = this.ctx.getWebSocketAutoResponseTimestamp(socket);
+      const lastActivity = lastResponse !== null ? lastResponse.getTime() : attachment.connectedAt;
+      if (now - lastActivity > HEARTBEAT_DEAD_THRESHOLD_MS) {
+        const player = room.players.find((p) => p.id === playerId);
+        if (player?.connected) {
+          player.connected = false;
+          changed = true;
+        }
+        staleSockets.push(socket);
+      }
+    }
+
+    if (changed) {
+      this.reassignHostIfNeeded(room);
+      await this.ctx.storage.put("room", room);
+      // 閉じる前に最終状態を配信する（閉じたソケットは配信対象から外れるため）
+      this.broadcastState(room);
+    }
+
+    for (const socket of staleSockets) {
+      socket.close(1000, "heartbeat_timeout");
+    }
+  }
+
+  // ホストが切断中なら、接続中の最古参加者へ自動移譲する。元ホストが復帰しても権限は戻さない。
+  // 接続中の参加者が0人なら移譲先が見つからず、保留のまま次の接続を待つ（基本設計/01_サーバ.md）
+  private reassignHostIfNeeded(room: InternalRoomState): void {
+    const currentHost = room.players.find((p) => p.isHost);
+    if (currentHost?.connected) {
+      return;
+    }
+    const nextHost = room.players.find((p) => p.connected);
+    if (!nextHost) {
+      return;
+    }
+    for (const player of room.players) {
+      player.isHost = false;
+    }
+    nextHost.isHost = true;
+  }
+
+  // アラームをmin(stageDeadline, expireAt)で再設定する。expireAtは最終アクセスのたびに現在+2時間で更新する
+  private async updateAlarm(room: InternalRoomState): Promise<void> {
+    const alarms: AlarmsState = {
+      stageDeadline: room.deadline,
+      expireAt: Date.now() + ROOM_EXPIRE_MS,
+    };
+    await this.ctx.storage.put("alarms", alarms);
+    const next = alarms.stageDeadline !== undefined ? Math.min(alarms.stageDeadline, alarms.expireAt) : alarms.expireAt;
+    await this.ctx.storage.setAlarm(next);
   }
 
   // --- GameTransitionの反映（storage書き込み→secret→state→resultの順） ---
@@ -366,6 +521,7 @@ export class RoomDO extends DurableObject<Env> {
     }
 
     await this.ctx.storage.put("room", room);
+    await this.updateAlarm(room);
 
     if (newSecrets) {
       this.sendSecretsToConnectedPlayers(room, newSecrets);

@@ -17,6 +17,12 @@ export function emptySecretsState(): SecretsState {
   return { reconnectTokens: {}, playerSecrets: {} };
 }
 
+// アラーム多重化用。DOアラームは1本しか持てないためmin(stageDeadline, expireAt)で管理する
+export interface AlarmsState {
+  stageDeadline?: number;
+  expireAt: number;
+}
+
 // state配信用に公開Room型へ射影する（settingsを除く）
 export function toPublicRoom(state: InternalRoomState): Room {
   const { settings: _settings, ...room } = state;
