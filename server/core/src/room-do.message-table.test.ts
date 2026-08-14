@@ -145,4 +145,21 @@ describe("メッセージ処理表: 表にない組み合わせはerror", () => 
     const [state] = await spectateRecv;
     expect(state).not.toHaveProperty("contentId");
   });
+
+  it("プロトコルバージョン不一致のjoin/spectateはunsupported_versionで拒否される（03_プロトコル.md）", async () => {
+    const code = uniqueRoomCode("mt-unsupported-version");
+    const stub = await createRoom(code);
+
+    const joinAttempt = await openSocket(stub);
+    const joinRecv = collectMessages(joinAttempt, 1);
+    sendMessage(joinAttempt, { v: 999, type: "join", name: "Host", level: 3 });
+    const [joinError] = await joinRecv;
+    expect(joinError).toMatchObject({ type: "error", code: "unsupported_version" });
+
+    const spectateAttempt = await openSocket(stub);
+    const spectateRecv = collectMessages(spectateAttempt, 1);
+    sendMessage(spectateAttempt, { v: 999, type: "spectate" });
+    const [spectateError] = await spectateRecv;
+    expect(spectateError).toMatchObject({ type: "error", code: "unsupported_version" });
+  });
 });

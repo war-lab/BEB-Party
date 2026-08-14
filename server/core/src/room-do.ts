@@ -104,6 +104,13 @@ export class RoomDO extends DurableObject<Env> {
       return;
     }
 
+    if (message.v !== PROTOCOL_VERSION && (message.type === "join" || message.type === "spectate")) {
+      // 非対応バージョンのjoin/spectateを拒否する（基本設計/03_プロトコル.md）。
+      // クライアントは再接続を続けずlocation.reload()する
+      this.sendError(ws, ERROR_CODES.UNSUPPORTED_VERSION, "unsupported protocol version");
+      return;
+    }
+
     switch (message.type) {
       case "join":
         return this.handleJoin(ws, message);
