@@ -30,14 +30,20 @@ async function collectUiText() {
 
 async function walk(dir) {
   let text = "";
-  const entries = await readdir(dir, { withFileTypes: true });
+  // readdirの返す順序はOS・ファイルシステムに依存し、Linux(CI)とWindows(開発機)で異なりうる。
+  // 名前でソートして走査順を固定する(文字集合自体は同じでも、抽出時の連結順序が変わると
+  // 生成されるサブセットのバイト列が変わってしまうことをCIで実測したため)
+  const entries = (await readdir(dir, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name));
   for (const entry of entries) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       if (entry.name === "node_modules") continue;
       text += await walk(full);
     } else if (/\.(svelte|ts)$/.test(entry.name) && !entry.name.endsWith(".test.ts")) {
-      text += readFileSync(full, "utf8");
+      // 改行コード(CRLF/LF)の差を吸収する。Windows(開発機)はgitのcore.autocrlfでCRLFに
+      // 変換されうるが、Linux(CI)はLFのまま読まれるため、\rの有無で抽出文字集合が
+      // 実際にずれ、生成物のバイト列が変わってしまうことを実測した
+      text += readFileSync(full, "utf8").replace(/\r/g, "");
     }
   }
   return text;
@@ -50,9 +56,11 @@ function collectContentJapanese() {
   }
   const fields = ["ja", "hintJa", "meaningJa", "briefingJa"];
   let text = "";
-  const files = readdirSync(contentDir).filter((f) => f.endsWith(".json"));
+  const files = readdirSync(contentDir)
+    .filter((f) => f.endsWith(".json"))
+    .sort();
   for (const file of files) {
-    const data = JSON.parse(readFileSync(path.join(contentDir, file), "utf8"));
+    const data = JSON.parse(readFileSync(path.join(contentDir, file), "utf8").replace(/\r\n/g, "\n"));
     text += extractFields(data, fields);
   }
   return text;
@@ -80,7 +88,11 @@ async function main() {
 
   const uiText = await collectUiText();
   const contentText = collectContentJapanese();
-  const text = BASE_CHARS + uiText + contentText;
+  // 文字の集合をソート・重複排除して正規化する。ディレクトリ走査順をソートしても
+  // ファイル内容の連結順序までは揃わないため、最終的な文字集合自体を正規形にすることで
+  // 生成物のバイト列をプラットフォーム非依存にする(CIのLinuxと開発機のWindowsで
+  // 異なるバイト列が生成され、差分チェックが誤って失敗することを実測したため)
+  const text = Array.from(new Set(BASE_CHARS + uiText + contentText)).sort().join("");
 
   const fonts = [
     {
