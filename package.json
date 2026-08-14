@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "pnpm --filter @beb/client-app run build && pnpm --parallel --filter @beb/client-app --filter @beb/server-core run dev",
-    "check": "eslint . && pnpm -r run check",
+    "check": "eslint . && tsc --noEmit && pnpm -r run check",
     "test": "pnpm -r run test",
     "validate:content": "pnpm --filter @beb/tools run validate:content",
     "e2e": "playwright test"

@@ -38,7 +38,7 @@
 | `pnpm check` | 全パッケージのESLintと`tsc --noEmit` |
 | `pnpm test` | 全パッケージのvitest |
 | `pnpm validate:content` | 事件データの整合性検証（`tools`のCLI） |
-| `pnpm e2e` | Playwright（テスト本体はPR4） |
+| `pnpm e2e` | Playwright（M0完了条件の自動検証） |
 
 ## Definition of Done
 

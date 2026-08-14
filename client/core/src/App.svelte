@@ -32,15 +32,16 @@
   }
 
   // マウント時にURL(/room/:code)を読み、リロード・タブ復帰でもロビーへ自動復帰する。
-  // reconnectTokenがsessionStorageにあれば、サーバは名前・レベルの送信値を無視して既存プレイヤーとして扱う
-  $effect(() => {
-    const match = /^\/room\/([A-Z0-9]{4})$/.exec(location.pathname);
-    if (match?.[1]) {
-      const restoredCode = match[1];
-      code = restoredCode;
-      connect(restoredCode, "", 1);
-    }
-  });
+  // reconnectTokenがsessionStorageにあれば、サーバは名前・レベルの送信値を無視して既存プレイヤーとして扱う。
+  // $effectは追跡対象の$stateを読まないため、Svelteのスケジューラが後続のflushで再実行することがあり
+  // (enterRoom→history.pushState後に実際に再実行され、connect()が二重に呼ばれることを実測した)、
+  // 「マウント時に1回だけ」という意図には$effectではなくスクリプトトップレベルの一度きりの実行を使う
+  const initialMatch = /^\/room\/([A-Z0-9]{4})$/.exec(location.pathname);
+  if (initialMatch?.[1]) {
+    const restoredCode = initialMatch[1];
+    code = restoredCode;
+    connect(restoredCode, "", 1);
+  }
 
   $effect(() => {
     const room = serverState.room;
