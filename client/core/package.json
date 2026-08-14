@@ -4,13 +4,22 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./tokens.css": "./src/tokens.css"
   },
   "scripts": {
-    "check": "tsc --noEmit",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@beb/shared-core": "workspace:*"
+    "@beb/shared-core": "workspace:*",
+    "svelte": "5.56.9",
+    "uqr": "0.1.3"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "7.3.0",
+    "jsdom": "30.0.1",
+    "svelte-check": "4.7.5",
+    "vite": "8.2.1"
   }
 }

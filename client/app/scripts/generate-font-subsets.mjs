@@ -1,0 +1,116 @@
+// フォントのグリフサブセット生成。入力はclient/のUI固定文言とcontent/detectives/*.jsonの
+// 日本語フィールドの和とする（基本設計/04_事件データと検証.md）。CIのビルド工程に組み込む。
+// 出力(client/public/fonts/*.subset.woff2)はコミットし、CIで再生成との差分チェックを行う
+// （事件追加PRでの再生成忘れを検知するため）
+import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, readdirSync } from "node:fs";
+import { readdir } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import subsetFont from "subset-font";
+
+const rootDir = fileURLToPath(new URL("../../..", import.meta.url));
+const outputDir = path.join(rootDir, "client", "public", "fonts");
+
+// ASCIIの印字可能文字は常に含める（未使用のUI文言に依存しない土台として）
+const BASE_CHARS = Array.from({ length: 0x7e - 0x20 + 1 }, (_, i) => String.fromCharCode(0x20 + i)).join("");
+
+async function collectUiText() {
+  const targets = [
+    path.join(rootDir, "client", "core", "src"),
+    path.join(rootDir, "client", "app", "src"),
+    path.join(rootDir, "client", "games"),
+  ];
+  let text = "";
+  for (const dir of targets) {
+    if (!existsSync(dir)) continue;
+    text += await walk(dir);
+  }
+  return text;
+}
+
+async function walk(dir) {
+  let text = "";
+  const entries = await readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name === "node_modules") continue;
+      text += await walk(full);
+    } else if (/\.(svelte|ts)$/.test(entry.name) && !entry.name.endsWith(".test.ts")) {
+      text += readFileSync(full, "utf8");
+    }
+  }
+  return text;
+}
+
+function collectContentJapanese() {
+  const contentDir = path.join(rootDir, "content", "detectives");
+  if (!existsSync(contentDir)) {
+    return "";
+  }
+  const fields = ["ja", "hintJa", "meaningJa", "briefingJa"];
+  let text = "";
+  const files = readdirSync(contentDir).filter((f) => f.endsWith(".json"));
+  for (const file of files) {
+    const data = JSON.parse(readFileSync(path.join(contentDir, file), "utf8"));
+    text += extractFields(data, fields);
+  }
+  return text;
+}
+
+function extractFields(value, fields) {
+  if (typeof value === "string") return "";
+  if (Array.isArray(value)) return value.map((v) => extractFields(v, fields)).join("");
+  if (value && typeof value === "object") {
+    let text = "";
+    for (const [key, v] of Object.entries(value)) {
+      if (fields.includes(key) && typeof v === "string") {
+        text += v;
+      } else {
+        text += extractFields(v, fields);
+      }
+    }
+    return text;
+  }
+  return "";
+}
+
+async function main() {
+  mkdirSync(outputDir, { recursive: true });
+
+  const uiText = await collectUiText();
+  const contentText = collectContentJapanese();
+  const text = BASE_CHARS + uiText + contentText;
+
+  const fonts = [
+    {
+      name: "DelaGothicOne-Regular",
+      source: path.join(rootDir, "client", "app", "fonts-source", "dela-gothic-one", "DelaGothicOne-Regular.ttf"),
+      licenseDir: path.join(rootDir, "client", "app", "fonts-source", "dela-gothic-one"),
+    },
+    {
+      name: "MPLUSRounded1c-Regular",
+      source: path.join(rootDir, "client", "app", "fonts-source", "m-plus-rounded-1c", "MPLUSRounded1c-Regular.ttf"),
+      licenseDir: path.join(rootDir, "client", "app", "fonts-source", "m-plus-rounded-1c"),
+    },
+    {
+      name: "MPLUSRounded1c-Bold",
+      source: path.join(rootDir, "client", "app", "fonts-source", "m-plus-rounded-1c", "MPLUSRounded1c-Bold.ttf"),
+      licenseDir: path.join(rootDir, "client", "app", "fonts-source", "m-plus-rounded-1c"),
+    },
+  ];
+
+  for (const font of fonts) {
+    const buffer = readFileSync(font.source);
+    const subsetBuffer = await subsetFont(buffer, text, { targetFormat: "woff2" });
+    const outputPath = path.join(outputDir, `${font.name}.subset.woff2`);
+    writeFileSync(outputPath, subsetBuffer);
+    console.log(`generated ${outputPath} (${subsetBuffer.length} bytes)`);
+
+    const licenseSrc = path.join(font.licenseDir, "OFL.txt");
+    const licenseDest = path.join(outputDir, `${path.basename(font.licenseDir)}.OFL.txt`);
+    copyFileSync(licenseSrc, licenseDest);
+  }
+}
+
+await main();

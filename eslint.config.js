@@ -66,7 +66,9 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.svelte"],
+    // eslint-plugin-svelteはrunesを使う.svelte.ts/.svelte.jsモジュール（ADR-0010）にもsvelteParserを
+    // 適用する。script部分をTSとして解釈させるにはparserOptions.parserの委譲が.svelteファイルと同様に必要
+    files: ["**/*.svelte", "**/*.svelte.ts", "**/*.svelte.js"],
     languageOptions: {
       parser: svelteParser,
       parserOptions: {
@@ -83,6 +85,13 @@ export default tseslint.config(
   },
   {
     files: ["server/**/*.ts", "tools/**/*.ts"],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+  },
+  {
+    // ビルド時にNode.jsで実行するスクリプト（フォントサブセット生成等）
+    files: ["**/scripts/**/*.mjs", "**/scripts/**/*.ts"],
     languageOptions: {
       globals: { ...globals.node },
     },

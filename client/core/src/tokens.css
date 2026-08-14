@@ -1,0 +1,55 @@
+/* デザイントークン。色・形状・モーションはここに一元定義する（ビジュアルデザイン.md）。
+   ゲームモジュールはこのトークンを参照するだけで、独自の色値をハードコードしない */
+
+/* サブセット済みフォント。生成はclient/app/scripts/generate-font-subsets.mjsが行う。
+   パスはclient/public/(ViteのpublicDir)から配信される絶対パス */
+@font-face {
+  font-family: "Dela Gothic One";
+  src: url("/fonts/DelaGothicOne-Regular.subset.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "M PLUS Rounded 1c";
+  src: url("/fonts/MPLUSRounded1c-Regular.subset.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "M PLUS Rounded 1c";
+  src: url("/fonts/MPLUSRounded1c-Bold.subset.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  /* カラー */
+  --ground: #0d142e;
+  --sky: #4ec9ff;
+  --panel: #f7f8fd;
+  --red: #ff3d3d;
+  --blue: #2e7cf6;
+  --yellow: #ffc400;
+  --ink: #161b33;
+
+  /* タイポグラフィ */
+  --font-heading: "Dela Gothic One", sans-serif;
+  --font-body: "M PLUS Rounded 1c", sans-serif;
+
+  /* 形状・エフェクト */
+  --skew-angle: -8deg;
+  --radius-button: 999px;
+  --radius-card: 20px;
+  --shadow-hard: 0 6px 0 rgba(0, 0, 0, 0.25);
+  --outline-width: 3px;
+
+  /* モーション */
+  --motion-duration: 200ms;
+  --motion-easing: cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration: 0ms;
+  }
+}

@@ -35,15 +35,10 @@ jobs:
       - run: pnpm validate:content
 
       - name: フォントサブセットの再生成と差分チェック
-        # M0時点ではフォントサブセット生成パイプライン自体が未実装（PR3で実装）。
-        # 事件追加PRで再生成を忘れる経路を最初から塞ぐため、ジョブ自体はM0から有効にしておく
-        # （07_リポジトリとツールチェーン.md）。実体が無い間はスキップを明示して成功させる
+        # 生成物(client/public/fonts/*.subset.woff2)はコミットする。事件追加PRで再生成を
+        # 忘れると差分が残り、このステップが失敗する（04_事件データと検証.md、07）
         run: |
-          if [ ! -f "scripts/regenerate-font-subsets.sh" ]; then
-            echo "::notice::フォントサブセット生成パイプライン未実装のためスキップする（PR3で実装）"
-            exit 0
-          fi
-          scripts/regenerate-font-subsets.sh
+          pnpm --filter @beb/client-app run fonts:generate
           git diff --exit-code -- client/public/fonts
 
       - name: wrangler.jsonc文字列検査（new_classesの不在）

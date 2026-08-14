@@ -1,8 +1,9 @@
 <script lang="ts">
-  // M3でclient-coreのホーム画面に置き換える。M0はプレースホルダのみ
-  let placeholder = $state("BEB Party");
+  import type { Component } from "svelte";
+  import { App as ClientCoreApp } from "@beb/client-core";
+
+  // M0時点では収録ゲームが無いため空のテーブル。ゲームを追加したらここに1行足す（基本設計/05）
+  const gameScreens: Record<string, () => Promise<{ default: Component }>> = {};
 </script>
 
-<main>
-  <p>{placeholder}</p>
-</main>
+<ClientCoreApp {gameScreens} />

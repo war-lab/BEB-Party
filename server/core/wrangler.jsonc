@@ -8,7 +8,10 @@
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "../../client/app/dist",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    // 既定では拡張子を持たないパス(/room/:code等)がWorkerより先にアセット側の自動ルーティングに
+    // 処理され、html_handlingのリダイレクトでSPAフォールバックが効かない。常にWorkerを先に通す
+    "run_worker_first": true
   },
   "durable_objects": {
     "bindings": [
