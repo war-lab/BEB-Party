@@ -53,6 +53,12 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   ...svelte.configs.recommended,
   {
+    // 分割代入で不要なキーを捨てる際の慣用的な命名（例: `const { v: _v, ...rest } = raw`）を許可する
+    rules: {
+      "@typescript-eslint/no-unused-vars": ["error", { varsIgnorePattern: "^_", argsIgnorePattern: "^_" }],
+    },
+  },
+  {
     languageOptions: {
       globals: { ...globals.es2024 },
     },
