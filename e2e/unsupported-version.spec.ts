@@ -36,11 +36,17 @@ test("unsupported_version never causes more than one join per connection (no rec
   // モックは常にunsupported_versionを返し続けるため、その都度location.reload()で
   // ページ自体が繰り返しリロードされる。ここではその複数回のリロードを許容したうえで、
   // 「どの接続でもjoinは1回だけ」であることだけを検証する
-  await expect.poll(() => joinsPerConnection.length, { timeout: 10_000 }).toBeGreaterThan(0);
+  // 1本以上の接続でjoinが観測されるまで待つ（この経路を実際に通ったことの確認）
+  await expect.poll(() => joinsPerConnection.filter((count) => count > 0).length, { timeout: 15_000 }).toBeGreaterThan(
+    0,
+  );
   await page.waitForTimeout(1000);
 
-  expect(joinsPerConnection.length).toBeGreaterThan(0);
+  // 検証したい不変条件は「1本の接続でjoinが2回以上送られない」ことである。
+  // 「必ず1回」ではなく「2回以上でない」を見るのは、判定の瞬間に開いたばかりの接続が
+  // まだjoinを送っていない（カウント0の）状態でありうるためで、CIの遅い環境で実際に踏んだ。
+  // 0は再接続ループの証拠にならないため、この不変条件には含めない
   for (const count of joinsPerConnection) {
-    expect(count).toBe(1);
+    expect(count).toBeLessThanOrEqual(1);
   }
 });
