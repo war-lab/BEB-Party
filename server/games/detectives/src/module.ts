@@ -7,6 +7,7 @@ import {
   CONSTRAINTS,
   ERROR_CODES,
   INVESTIGATION_SECONDS,
+  RANDOM_CASE_ID,
   STAGES,
   STAGE_DEADLINE_SECONDS,
   questionTemplatesFor,
@@ -23,9 +24,9 @@ import {
   type Variant,
 } from "@beb/shared-detectives";
 import { assignCast, pickCulpritVariant, type CastMember } from "./casting";
-import { CASES, findCase, summarize } from "./cases";
+import { CASES, RANDOM_CASE_SUMMARY, findCase, summarize } from "./cases";
 import { derive5p, has5p } from "./derive-5p";
-import { createRandom } from "./rng";
+import { createRandom, pickOne } from "./rng";
 import { validateContent } from "./validate-content";
 
 /**
@@ -95,6 +96,23 @@ function resolveCase(caseId: string): Case {
     throw new Error(`未登録の事件id: ${caseId}`);
   }
   return target;
+}
+
+/**
+ * 「おまかせ」が選ばれていれば、注入されたシードで事件を抽選する。
+ *
+ * 抽選をクライアントではなくここで行うのは、開始するまで誰も事件を知らない状態を作るためと、
+ * 同じシードから同じ回を再現できるようにするためである（基本設計/05の呼び出し規約）。
+ */
+function selectCase(contentId: string, random: () => number): Case {
+  if (contentId !== RANDOM_CASE_ID) {
+    return resolveCase(contentId);
+  }
+  const picked = pickOne(CASES, random);
+  if (picked === undefined) {
+    throw new Error("収録されている事件が1件もない");
+  }
+  return picked;
 }
 
 /** 秘密状態から、そのゲームで使っている事件・版・バリアントを復元する */
@@ -325,14 +343,15 @@ export const detectivesModule: GameModule<
   title: "ENGLISH DETECTIVES",
   playerCount: [5, 6],
 
-  listContents: (): ContentSummary[] => CASES.map(summarize),
+  // 「おまかせ」を先頭に置く。ロビーの既定選択にするため（基本設計/02）
+  listContents: (): ContentSummary[] => [RANDOM_CASE_SUMMARY, ...CASES.map(summarize)],
 
   validateSettings,
 
   start: ({ players, contentId, settings, seed }) => {
-    const base = resolveCase(contentId);
-    const { target, variant: playerCountVariant } = expandForPlayers(base, players.length);
     const random = createRandom(seed);
+    const base = selectCase(contentId, random);
+    const { target, variant: playerCountVariant } = expandForPlayers(base, players.length);
 
     const cast = assignCast(players, target.characters, random);
     const variant = pickCulpritVariant(cast, target.variants, random);

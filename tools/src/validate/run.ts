@@ -17,6 +17,33 @@ export interface RunResult {
   lines: string[];
 }
 
+/**
+ * 単一のJSONファイルだけを検証する。事件を書いている途中の確認に使う。
+ *
+ * CIが見るのは `runValidation` の側であり、こちらは執筆時の補助に限る。
+ */
+export function runValidationOnFile(filePath: string, validate: GameValidator["validate"]): RunResult {
+  if (!existsSync(filePath)) {
+    return { exitCode: 1, lines: [`[ERROR] ファイルが見つからない: ${filePath}`] };
+  }
+  let content: unknown;
+  try {
+    content = JSON.parse(readFileSync(filePath, "utf8"));
+  } catch (error) {
+    return { exitCode: 1, lines: [`[ERROR] ${filePath} をJSONとして読めない: ${String(error)}`] };
+  }
+
+  const report = validate(content);
+  const lines = report.findings.map((finding) => formatFinding(finding));
+  const name = basename(filePath);
+  if (report.errorCount > 0) {
+    lines.push(`[ERROR] ${name}: ${report.errorCount}件のエラー、${report.warningCount}件の警告`);
+    return { exitCode: 1, lines };
+  }
+  lines.push(`[PASS] ${name}: ${report.warningCount}件の警告`);
+  return { exitCode: 0, lines };
+}
+
 /** ゲームごとに content ディレクトリを走査して検証する */
 export function runValidation(repoRoot: string, validators: GameValidator[]): RunResult {
   const lines: string[] = [];

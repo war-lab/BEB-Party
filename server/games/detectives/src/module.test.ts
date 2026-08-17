@@ -1,7 +1,13 @@
 // DETECTIVESのGameModuleは純粋関数のため、Durable Objectなしで全項目をテストする（基本設計/08）
 import { describe, expect, it } from "vitest";
 import type { Level, Player, Room } from "@beb/shared-core";
-import { STAGES, type DetectivesPublic, type DetectivesResult, type DetectivesSecret } from "@beb/shared-detectives";
+import {
+  RANDOM_CASE_ID,
+  STAGES,
+  type DetectivesPublic,
+  type DetectivesResult,
+  type DetectivesSecret,
+} from "@beb/shared-detectives";
 import { CASES } from "./cases";
 import { detectivesModule, type DetectivesGameSecret } from "./module";
 
@@ -170,6 +176,39 @@ describe("start: 配役と秘密情報", () => {
   it("捜査時間は設定を反映し、未指定なら既定値になる", () => {
     expect(start(SIX).publicState.investigationSeconds).toBe(600);
     expect(start(SIX, SEED, { investigationSeconds: 900 }).publicState.investigationSeconds).toBe(900);
+  });
+});
+
+describe("start: おまかせ（ランダム）", () => {
+  function startRandom(seed: number): { caseId: string; publicState: DetectivesPublic } {
+    const players = makePlayers(SIX);
+    const result = detectivesModule.start({ players, contentId: RANDOM_CASE_ID, settings: undefined, seed });
+    return {
+      caseId: (result.gameSecret as DetectivesGameSecret).caseId,
+      publicState: result.publicState,
+    };
+  }
+
+  it("収録されている事件のどれかが選ばれ、擬似idは残らない", () => {
+    const ids = CASES.map((entry) => entry.id);
+    for (const seed of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
+      const { caseId, publicState } = startRandom(seed);
+      expect(ids).toContain(caseId);
+      expect(publicState.caseId).toBe(caseId);
+      expect(publicState.caseId).not.toBe(RANDOM_CASE_ID);
+    }
+  });
+
+  it("同じseedからは同じ事件が選ばれる", () => {
+    expect(startRandom(42).caseId).toBe(startRandom(42).caseId);
+  });
+
+  it("収録が2件以上あれば、seedによって違う事件が選ばれる", () => {
+    if (CASES.length < 2) {
+      return;
+    }
+    const picked = new Set(Array.from({ length: 40 }, (_, index) => startRandom(index + 1).caseId));
+    expect(picked.size).toBeGreaterThan(1);
   });
 });
 
@@ -568,7 +607,13 @@ describe("listContents / validateSettings", () => {
     expect(serialized).not.toContain("facts");
     expect(serialized).not.toContain("variants");
     expect(serialized).not.toContain("reveal");
-    expect(contents[0]).toMatchObject({ id: CASE_ID, playerCount: [5, 6] });
+    expect(contents.some((content) => content.id === CASE_ID)).toBe(true);
+  });
+
+  it("先頭に「おまかせ」を置く（ロビーの既定選択にするため）", () => {
+    const contents = detectivesModule.listContents();
+    expect(contents[0]?.id).toBe(RANDOM_CASE_ID);
+    expect(contents.filter((content) => content.id === RANDOM_CASE_ID)).toHaveLength(1);
   });
 
   // 受入条件13

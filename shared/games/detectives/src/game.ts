@@ -25,6 +25,15 @@ export interface CaseSummary extends ContentSummary {
   briefingJa: string;
 }
 
+/**
+ * 「おまかせ」を表す擬似的なコンテンツid。
+ *
+ * これが選ばれた場合、実際の事件は `start` で共通コアが注入したシードから抽選する。
+ * ロビーで事件名を選ばずに始められるようにするためと、
+ * 開始するまで誰も事件を知らない状態を作るためである。
+ */
+export const RANDOM_CASE_ID = "random";
+
 // --- 秘密情報 ---
 
 /** 本人にだけ配られる証言カード。1枚が1つのfactに対応する */

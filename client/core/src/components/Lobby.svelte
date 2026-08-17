@@ -49,6 +49,14 @@
     sendCommon({ type: "configure", contentId: id, settings: { investigationSeconds } });
   }
 
+  // ゲームを選んだ直後は先頭のコンテンツ（おまかせ）を既定にする。
+  // ホストが事件を選ばなくても始められるようにするため。別のものを選べば上書きされる
+  $effect(() => {
+    if (isHost && room?.gameId && room.contentId === undefined && contents.length > 0) {
+      configure(contents[0]!.id);
+    }
+  });
+
   function start(): void {
     sendCommon({ type: "start" });
   }
