@@ -67,10 +67,10 @@
     background: linear-gradient(160deg, var(--red) 0 50%, var(--blue) 50% 100%);
     color: white;
     font-family: var(--font-body);
-    padding: 1rem;
+    padding: 1rem 1rem calc(1rem + var(--footer-clearance));
   }
   h1 {
-    font-family: var(--font-heading);
+    font-family: var(--font-display);
   }
   .suspects {
     list-style: none;
@@ -108,6 +108,7 @@
     border-radius: var(--radius-button);
     padding: 0.75rem 2rem;
     font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
     box-shadow: var(--shadow-hard);
   }
   .primary:disabled {
@@ -116,5 +117,6 @@
   }
   .done {
     font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
   }
 </style>

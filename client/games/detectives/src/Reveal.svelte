@@ -117,11 +117,14 @@
     background: var(--ground);
     color: var(--panel);
     font-family: var(--font-body);
-    padding: 1rem;
+    padding: 1rem 1rem calc(1rem + var(--footer-clearance));
   }
-  h1,
+  h1 {
+    font-family: var(--font-display);
+  }
   h2 {
     font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
   }
   .outcome {
     font-size: 2rem;
@@ -181,6 +184,7 @@
     border-radius: var(--radius-button);
     padding: 0.75rem 2rem;
     font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
     box-shadow: var(--shadow-hard);
   }
   .secondary {
@@ -190,5 +194,6 @@
     border-radius: var(--radius-button);
     padding: 0.75rem 1.5rem;
     font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
   }
 </style>

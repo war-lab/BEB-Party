@@ -93,21 +93,30 @@
 {/if}
 
 <style>
+  /* 画面下端に固定する。各画面はcalc(... + var(--footer-clearance))で余白を空け、
+     主要ボタンと重ならないようにしている */
   .license-footer {
     position: fixed;
     bottom: 0;
     right: 0;
-    padding: 0.25rem 0.5rem;
+    padding: 0.4rem 0.6rem;
     z-index: 900;
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
   .license-link {
-    background: none;
-    border: none;
+    /* 背景色が画面ごとに違うため、リンク側に下地を持たせて可読性を保つ */
+    background: rgba(247, 248, 253, 0.92);
+    border: 1px solid rgba(22, 27, 51, 0.25);
+    border-radius: var(--radius-button, 999px);
     color: var(--ink, #161b33);
-    text-decoration: underline;
-    font-size: 0.75rem;
+    padding: 0.2rem 0.7rem;
+    font-family: var(--font-heading, sans-serif);
+    font-size: 0.72rem;
     cursor: pointer;
+  }
+  .license-link:hover,
+  .license-link:focus-visible {
+    background: var(--panel, #f7f8fd);
   }
 </style>

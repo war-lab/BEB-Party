@@ -32,9 +32,17 @@
   --yellow: #ffc400;
   --ink: #161b33;
 
-  /* タイポグラフィ */
-  --font-heading: "Dela Gothic One", sans-serif;
+  /* タイポグラフィ
+     Dela Gothic Oneは超極太のため、1rem前後の漢字が塊になって読めない（実測）。
+     大きく出す見出しだけに使い、小見出し・ボタン・バッジは本文書体のboldにする。
+     使い分けの規則はビジュアルデザイン.mdを正とする */
+  --font-display: "Dela Gothic One", sans-serif;
+  --font-heading: "M PLUS Rounded 1c", sans-serif;
   --font-body: "M PLUS Rounded 1c", sans-serif;
+  --font-heading-weight: 700;
+
+  /* 画面下端の固定フッター（遊び方・ライセンス）と重ならないための余白 */
+  --footer-clearance: 3.25rem;
 
   /* 形状・エフェクト */
   --skew-angle: -8deg;

@@ -100,7 +100,7 @@
     background: var(--panel);
     color: var(--ink);
     border-radius: var(--radius-card);
-    padding: 1rem 1.25rem 2rem;
+    padding: 1rem 1.25rem calc(1rem + var(--footer-clearance));
   }
   header {
     display: flex;
@@ -114,6 +114,7 @@
   h1,
   h2 {
     font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
   }
   h1 {
     font-size: 1.5rem;
@@ -130,6 +131,7 @@
     border-radius: var(--radius-button);
     padding: 0.4rem 1rem;
     font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
   }
   ul {
     padding-left: 1.2rem;
@@ -147,6 +149,7 @@
     border-radius: var(--radius-button);
     padding: 0.3rem 0.9rem;
     font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
   }
   .game-tabs button.selected {
     background: var(--ink);

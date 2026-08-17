@@ -76,6 +76,7 @@
 <style>
   h3 {
     font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
     font-size: 1rem;
     margin: 1.25rem 0 0.4rem;
   }

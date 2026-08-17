@@ -80,18 +80,19 @@
     background: var(--sky);
     color: var(--ink);
     font-family: var(--font-body);
-    padding: 1rem;
+    padding: 1rem 1rem calc(1rem + var(--footer-clearance));
   }
   header {
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
-  h1,
-  h2 {
-    font-family: var(--font-heading);
+  h1 {
+    font-family: var(--font-display);
   }
   h2 {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
     font-size: 1rem;
   }
   .role-button {
@@ -101,6 +102,7 @@
     border-radius: var(--radius-button);
     padding: 0.4rem 1rem;
     font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
   }
   .constraints ul,
   .templates ul {
@@ -130,6 +132,7 @@
     border-radius: var(--radius-button);
     padding: 0.75rem 2rem;
     font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
     box-shadow: var(--shadow-hard);
   }
 </style>

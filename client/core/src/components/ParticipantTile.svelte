@@ -50,7 +50,8 @@
     border-radius: var(--radius-button);
     padding: 0.1rem 0.5rem;
     font-size: 0.7rem;
-    font-family: var(--font-heading);
+    /* ラテン文字のみのバッジなので表示書体のままでよい */
+    font-family: var(--font-display);
   }
   .disconnected-badge {
     display: block;

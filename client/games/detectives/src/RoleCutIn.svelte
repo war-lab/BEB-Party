@@ -78,6 +78,7 @@
   }
   .cover-title {
     font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
     font-size: 1.5rem;
     margin: 0;
   }
@@ -117,7 +118,7 @@
     font-weight: 700;
   }
   .role {
-    font-family: var(--font-heading);
+    font-family: var(--font-display);
     font-size: 3rem;
     margin: 0;
     transform: skewY(var(--skew-angle));
@@ -133,6 +134,7 @@
     border-radius: var(--radius-button);
     padding: 0.75rem 2rem;
     font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
     box-shadow: var(--shadow-hard);
   }
 </style>

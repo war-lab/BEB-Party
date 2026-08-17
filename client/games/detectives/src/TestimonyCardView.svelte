@@ -40,6 +40,7 @@
     margin: 0 0 0.5rem;
     color: var(--red);
     font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
     font-size: 0.9rem;
   }
   /* 英文が主。18px以上・高コントラスト（ビジュアルデザイン.md） */

@@ -12,6 +12,7 @@
 <style>
   .unknown {
     min-height: 100vh;
+    padding-bottom: var(--footer-clearance);
     display: flex;
     align-items: center;
     justify-content: center;

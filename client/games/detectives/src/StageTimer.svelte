@@ -42,7 +42,9 @@
     z-index: 10;
     background: var(--yellow);
     color: var(--ink);
-    font-family: var(--font-heading);
+    /* 数字主体の短い文字列であり、表示書体でも潰れない */
+    font-family: var(--font-display);
+    font-size: 1.1rem;
     text-align: center;
     padding: 0.5rem;
   }

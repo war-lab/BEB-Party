@@ -86,10 +86,11 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    padding: 2rem 1rem;
+    /* 下端は固定フッター（遊び方・ライセンス）の分を空ける */
+    padding: 2rem 1rem calc(1rem + var(--footer-clearance));
   }
   h1 {
-    font-family: var(--font-heading);
+    font-family: var(--font-display);
     transform: skew(var(--skew-angle));
   }
   .primary {
@@ -99,6 +100,7 @@
     border-radius: var(--radius-button);
     padding: 0.75rem 2rem;
     font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
     box-shadow: var(--shadow-hard);
   }
   .join {
