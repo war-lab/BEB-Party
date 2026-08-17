@@ -1,6 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { validateCase } from "@beb/server-detectives";
 import { runValidation, type GameValidator } from "./run";
@@ -56,5 +57,16 @@ describe("runValidation", () => {
     expect(result.exitCode).toBe(1);
     expect(result.lines.join("\n")).toContain("bad_v1");
     expect(result.lines.join("\n")).toContain("schema");
+  });
+
+  it("リポジトリの実データ（content/detectives）が検証を通る", () => {
+    // CLIの成功経路と、収録済みの事件そのものを同時に守る。
+    // 事件を追加してこのテストだけが落ちた場合は、事件データ側を直す（M1 PR7の禁止事項）
+    const realRoot = fileURLToPath(new URL("../../..", import.meta.url));
+    const result = runValidation(realRoot, [
+      { contentPath: "content/detectives", validate: validateCase },
+    ]);
+    expect(result.lines.join("\n")).not.toContain("[ERROR]");
+    expect(result.exitCode).toBe(0);
   });
 });
