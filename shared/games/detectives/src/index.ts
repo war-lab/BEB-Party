@@ -1,4 +1,4 @@
-// 事件データのスキーマ型（正本）。ステージ定数・秘密情報の型はM2で追加する
+// 事件データのスキーマ型（正本）とDETECTIVESのランタイム型・表示文言の定数
 export type {
   Case,
   Character,
@@ -12,3 +12,26 @@ export type {
   Reveal,
   Variant,
 } from "./case";
+
+export {
+  ACTIONS,
+  CONSTRAINTS,
+  ERROR_CODES,
+  INVESTIGATION_SECONDS,
+  QUESTION_TEMPLATES,
+  STAGES,
+  STAGE_DEADLINE_SECONDS,
+  questionTemplatesFor,
+  type ActionName,
+  type CaseSummary,
+  type CastEntry,
+  type ContradictionExplanation,
+  type DetectivesPublic,
+  type DetectivesResult,
+  type DetectivesSecret,
+  type DetectivesSettings,
+  type ErrorCode,
+  type Stage,
+  type TestimonyCard,
+  type VotePayload,
+} from "./game";

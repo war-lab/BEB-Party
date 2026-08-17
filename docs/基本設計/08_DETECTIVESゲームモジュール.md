@@ -40,6 +40,7 @@ interface CastEntry {
 ## 秘密情報（secret.payload）
 
 型は `DetectivesSecret`（[設計.md](../設計.md)）とする。
+`cards` の要素の型 `TestimonyCard` は `shared/games/detectives/src/game.ts` を構造の正本とし、`factId` / `textEn` / `hintJa` / `disclosure` / `isLie` を持つ。
 
 * `start` 時に全員へ1通ずつ送る
 * 再接続時に同じ内容を再送する（共通コアが `secrets` から引く）
@@ -66,6 +67,16 @@ interface CastEntry {
 「証言は英語で読み上げる」を全レベルに課すのは、レベル1〜2を例外にすると日本語ヒントだけで済ませられるためである（[02](./02_クライアント.md)の不変条件）。
 
 `questionTemplates` はレベル1〜2にのみ付与する。内容は `Where were you?` / `What did you see?` / `Who were you with?` / `Are you sure?` の4つとする（[構想v2](../構想v2.md)）。
+
+### 捜査時間の許容範囲
+
+`settings.investigationSeconds` は300秒以上1200秒以下の整数とし、既定値を600秒とする。
+範囲外・非整数・型違いは `validateSettings` が拒否する（[ADR-0012](../adr/0012-ゲーム固有設定の検証をゲームモジュールに委ねる.md)）。
+
+下限を300秒に置くのは、6人が英語で質問し合うには5分未満では足りないためである。
+上限を1200秒に置くのは、これを超えると会話が尽きて待ち時間になるためである。
+
+`settings` を省略した場合と `configure` が一度も来なかった場合は既定値を使う。
 
 ### disclosure の扱い
 
