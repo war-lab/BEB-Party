@@ -1,11 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// テスト本体はPR4で実装する。M0のPR0では骨組みのみ
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
+  // 1テストが最大6つのブラウザコンテキストを開き、それらが1つのwrangler devへ同時接続する。
+  // 既定の並列度(CPU数の半分)ではローカルもCIも飽和し、無関係なテストがタイムアウトする（実測）
+  workers: 2,
   reporter: "html",
   use: {
     baseURL: "http://127.0.0.1:8787",

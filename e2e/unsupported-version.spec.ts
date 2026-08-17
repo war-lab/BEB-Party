@@ -7,6 +7,10 @@
 // 1回しか送られない」という、再接続ループの有無に直結する不変条件を直接検証する。
 // 接続ごとにjoinが2回以上送られていれば、それはリロード前にバックオフ再接続へ入った証拠になる。
 import { test, expect } from "@playwright/test";
+import { clientIpHeaders } from "./support/room";
+
+// 部屋作成はIPごとに5回/60秒。テストごとにIPを分ける（support/room.tsのclientIpHeaders）
+test.use({ extraHTTPHeaders: clientIpHeaders("unsupported-version") });
 
 test("unsupported_version never causes more than one join per connection (no reconnect loop)", async ({
   page,

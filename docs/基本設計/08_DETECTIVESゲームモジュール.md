@@ -108,6 +108,7 @@ interface CastEntry {
 | action | 受理stage | 受理条件 | 違反時のコード |
 | --- | --- | --- | --- |
 | `ready` | briefing | 送信者が参加者 | `invalid_stage` |
+| `endInvestigation` | investigation | 送信者がホスト | `invalid_stage` / `not_host` |
 | `vote` | voting | 送信者が参加者、`targetPlayerId` が自分以外の参加者、未投票 | `invalid_stage` / `invalid_target` / `already_voted` |
 
 これらのコードは共通コアのエラーコード表に含めず、ゲームモジュールが `GameTransition.reject` で返す（[01](./01_サーバ.md)）。
@@ -120,6 +121,15 @@ interface CastEntry {
 二重送信を拒否しても得られるものがなく、通信の再送で画面が止まる経路を作る方が害が大きい。
 
 `readyPlayerIds` に接続中の全員が揃ったら `investigation` へ遷移し、`deadlineSeconds` に捜査時間を設定する。
+
+### endInvestigation
+
+捜査を切り上げて `voting` へ進む。締切秒数は投票の既定値（90秒）とする。
+
+捜査の締切は上限であって下限ではない。会話が尽きた組を残り時間だけ待たせる理由がない。
+
+操作をホストに限るのは、1人の判断で全員の会話を打ち切れないようにするためである。
+ホストが切断していれば権限は自動移譲されているため（[01](./01_サーバ.md)）、この操作が誰も送れない状態にはならない。
 
 ### vote
 

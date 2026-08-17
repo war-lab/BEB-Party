@@ -257,6 +257,22 @@ function handleReady(room: Room, publicState: DetectivesPublic, playerId: string
   };
 }
 
+/**
+ * 捜査を切り上げて投票へ進む。
+ *
+ * 締切は上限であって下限ではない。会話が尽きた組を残り時間だけ待たせない（08）。
+ * 早める操作をホストに限るのは、1人の判断で全員の会話を打ち切れないようにするためである。
+ */
+function handleEndInvestigation(room: Room, playerId: string): Transition {
+  if (room.stage !== STAGES.investigation || !isParticipant(room, playerId)) {
+    return { reject: { code: ERROR_CODES.invalidStage } };
+  }
+  if (room.players.find((player) => player.id === playerId)?.isHost !== true) {
+    return { reject: { code: ERROR_CODES.notHost } };
+  }
+  return { stage: STAGES.voting, deadlineSeconds: STAGE_DEADLINE_SECONDS.voting };
+}
+
 function handleVote(
   room: Room,
   publicState: DetectivesPublic,
@@ -359,6 +375,8 @@ export const detectivesModule: GameModule<
     switch (action) {
       case ACTIONS.ready:
         return handleReady(room, publicState, playerId);
+      case ACTIONS.endInvestigation:
+        return handleEndInvestigation(room, playerId);
       case ACTIONS.vote:
         return handleVote(room, publicState, gameSecret, playerId, payload);
       default:

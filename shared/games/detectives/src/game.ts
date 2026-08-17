@@ -100,6 +100,8 @@ export interface DetectivesResult {
 export const ACTIONS = {
   ready: "ready",
   vote: "vote",
+  /** 捜査を切り上げて投票へ進む。ホストのみ */
+  endInvestigation: "endInvestigation",
 } as const;
 
 export type ActionName = (typeof ACTIONS)[keyof typeof ACTIONS];
@@ -117,6 +119,8 @@ export const ERROR_CODES = {
   invalidStage: "invalid_stage",
   invalidTarget: "invalid_target",
   alreadyVoted: "already_voted",
+  /** ホスト限定のactionを参加者が送った場合。共通コアのnot_hostと同じ文字列を使う */
+  notHost: "not_host",
 } as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];

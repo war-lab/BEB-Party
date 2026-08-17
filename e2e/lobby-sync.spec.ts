@@ -1,9 +1,12 @@
 // 受入条件1: 6つのブラウザコンテキストを同時接続し、全員のロビーに6人が表示される
 // (M0完了条件そのもの。docs/実装計画/M0.md)
 import { test, expect } from "@playwright/test";
+import { clientIpHeaders } from "./support/room";
 
 test("6 browser contexts sync to the same lobby state", async ({ browser, baseURL }) => {
-  const contexts = await Promise.all(Array.from({ length: 6 }, () => browser.newContext()));
+  // 部屋作成はIPごとに5回/60秒。テストごとにIPを分ける（support/room.tsのclientIpHeaders）
+  const extraHTTPHeaders = clientIpHeaders(test.info().title);
+  const contexts = await Promise.all(Array.from({ length: 6 }, () => browser.newContext({ extraHTTPHeaders })));
   const pages = await Promise.all(contexts.map((ctx) => ctx.newPage()));
 
   try {

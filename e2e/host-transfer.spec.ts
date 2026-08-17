@@ -1,11 +1,13 @@
 // 受入条件2: ホストが切断すると、残り5人の画面で次の参加者にホスト表示が移る
 import { test, expect } from "@playwright/test";
+import { clientIpHeaders } from "./support/room";
 
 test("host disconnect transfers host badge to the next participant on all remaining screens", async ({
   browser,
   baseURL,
 }) => {
-  const contexts = await Promise.all(Array.from({ length: 6 }, () => browser.newContext()));
+  const extraHTTPHeaders = clientIpHeaders(test.info().title);
+  const contexts = await Promise.all(Array.from({ length: 6 }, () => browser.newContext({ extraHTTPHeaders })));
   const pages = await Promise.all(contexts.map((ctx) => ctx.newPage()));
 
   try {

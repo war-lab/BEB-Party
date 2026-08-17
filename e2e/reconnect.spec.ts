@@ -1,10 +1,14 @@
-// 受入条件3(適応): WebSocketを切断してもスナップショットが維持されたまま自動復帰する。
+// ロビー状態での再接続。WebSocketを切断してもスナップショットが維持されたまま自動復帰する。
 //
-// 元の受入条件は「捜査相当のステージ(スタブ)中」を想定しているが、M0のregistry.tsは
-// 空テーブルという不変条件があり(基本設計/07、PR2a)、クライアント側からlifecycle: playing
-// へ到達する手段がM0には無い。ロビー状態(lifecycle: lobby)で同じ再接続経路を検証することで
-// 代替する（本セッションでの合意事項）。
+// M0時点ではregistry.tsが空テーブルでlifecycle: playingへ到達できなかったため、この
+// ロビー版だけを置いていた。捜査ステージ中の再接続はM2で
+// detectives-playthrough.spec.tsが検証する。両方を残すのは、ゲーム選択前の経路も
+// 実際に使われるためである。
 import { test, expect, type WebSocketRoute } from "@playwright/test";
+import { clientIpHeaders } from "./support/room";
+
+// 部屋作成はIPごとに5回/60秒。テストごとにIPを分ける（support/room.tsのclientIpHeaders）
+test.use({ extraHTTPHeaders: clientIpHeaders("reconnect-lobby") });
 
 test("disconnecting the WebSocket keeps the last snapshot and recovers automatically", async ({
   page,

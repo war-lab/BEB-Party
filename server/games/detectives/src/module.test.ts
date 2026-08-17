@@ -253,6 +253,50 @@ describe("handleAction: ready", () => {
   });
 });
 
+describe("handleAction: endInvestigation", () => {
+  it("ホストは捜査を切り上げて投票へ進める", () => {
+    const { players, publicState, gameSecret } = start(SIX);
+    const transition = detectivesModule.handleAction({
+      room: makeRoom(players, STAGES.investigation),
+      publicState,
+      gameSecret,
+      playerId: "p1",
+      action: "endInvestigation",
+      payload: {},
+    });
+    expect(transition.reject).toBeUndefined();
+    expect(transition.stage).toBe(STAGES.voting);
+    expect(transition.deadlineSeconds).toBe(90);
+  });
+
+  it("ホスト以外はnot_hostで拒否される", () => {
+    const { players, publicState, gameSecret } = start(SIX);
+    const transition = detectivesModule.handleAction({
+      room: makeRoom(players, STAGES.investigation),
+      publicState,
+      gameSecret,
+      playerId: "p2",
+      action: "endInvestigation",
+      payload: {},
+    });
+    expect(transition.reject).toEqual({ code: "not_host" });
+    expect(transition.stage).toBeUndefined();
+  });
+
+  it("investigation以外ではinvalid_stageで拒否される", () => {
+    const { players, publicState, gameSecret } = start(SIX);
+    const transition = detectivesModule.handleAction({
+      room: makeRoom(players, STAGES.briefing),
+      publicState,
+      gameSecret,
+      playerId: "p1",
+      action: "endInvestigation",
+      payload: {},
+    });
+    expect(transition.reject).toEqual({ code: "invalid_stage" });
+  });
+});
+
 describe("handleAction: vote", () => {
   function votingState(): { room: Room; publicState: DetectivesPublic; gameSecret: DetectivesGameSecret } {
     const { players, publicState, gameSecret } = start(SIX);
