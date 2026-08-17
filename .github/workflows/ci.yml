@@ -38,6 +38,13 @@ jobs:
 
       - run: pnpm validate:content
 
+      - name: 事件インデックスの再生成と差分チェック
+        # content/detectives/ の走査結果(server/games/detectives/src/cases.generated.ts)はコミットする。
+        # 事件追加PRで再生成を忘れると、その事件がWorkerのバンドルに入らない（04、01のコンテンツの読み込み）
+        run: |
+          pnpm --filter @beb/server-detectives run generate:cases
+          git diff --exit-code -- server/games/detectives/src/cases.generated.ts
+
       - name: フォントサブセットの再生成と差分チェック
         # 生成物(client/public/fonts/*.subset.woff2)はコミットする。事件追加PRで再生成を
         # 忘れると差分が残り、このステップが失敗する（04_事件データと検証.md、07）

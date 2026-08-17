@@ -8,7 +8,8 @@
   },
   "scripts": {
     "check": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "generate:cases": "node scripts/generate-case-index.mjs"
   },
   "dependencies": {
     "@beb/engine": "workspace:*",

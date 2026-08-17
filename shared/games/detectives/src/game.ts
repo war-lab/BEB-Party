@@ -68,6 +68,14 @@ export interface DetectivesPublic {
   cast: CastEntry[];
   readyPlayerIds: string[];
   votedPlayerIds: string[];
+  /**
+   * 確定した捜査時間。
+   *
+   * ホストがロビーで選んだ公開情報であり、伏せる理由がない。
+   * 公開状態に置くのは、briefingからinvestigationへ遷移するときに
+   * ゲームモジュールがこの値を必要とし、Roomのsettingsが渡されないためである。
+   */
+  investigationSeconds: number;
 }
 
 // --- 結果 ---

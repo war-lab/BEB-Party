@@ -74,8 +74,9 @@ async function handleCreateRoom(request: Request, env: Env): Promise<Response> {
 }
 
 function handleCatalog(): Response {
-  const games: GameSummary[] = Object.values(registry).map((gameModule) => ({
-    id: gameModule.id,
+  // gameIdはregistryのキーを正とする（モジュール側に持たせると二重管理になる）
+  const games: GameSummary[] = Object.entries(registry).map(([gameId, gameModule]) => ({
+    id: gameId,
     title: gameModule.title,
     playerCount: gameModule.playerCount,
     contents: gameModule.listContents(),

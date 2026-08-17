@@ -20,6 +20,7 @@ interface DetectivesPublic {
   cast: CastEntry[];                       // 誰がどのキャラクターか
   readyPlayerIds: string[];                // briefingステージの収集状況
   votedPlayerIds: string[];                // votingステージの収集状況(投票先は含めない)
+  investigationSeconds: number;            // 確定した捜査時間
 }
 
 interface CastEntry {
@@ -36,6 +37,9 @@ interface CastEntry {
 誰が投票を終えたかは進行の表示に必要だが、投票先は `reveal` まで秘密である（[ADR-0003](../adr/0003-サーバ権威と秘密情報の個別送信.md)）。
 
 `briefing.en` を公開状態に置くのは、ロビーのカタログには載せず、ゲーム開始後に全員へ配るためである（[01](./01_サーバ.md)）。
+
+`investigationSeconds` を公開状態に置くのは、`briefing` から `investigation` への遷移で締切秒数が要るのに対し、`handleAction` と `onDeadline` には `Room.settings` が渡らないためである。
+ホストがロビーで選んだ値であり、伏せる理由もない。
 
 ## 秘密情報（secret.payload）
 

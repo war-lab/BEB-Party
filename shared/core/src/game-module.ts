@@ -18,8 +18,8 @@ export interface GameTransition<TPublic, TResult, TGameSecret = unknown> {
   reject?: { code: string };
 }
 
+// gameIdはregistryのキーが正である。モジュール側に持たせると二重管理になるため持たせない
 export interface GameModule<TPublic, TSecret, TResult, TGameSecret = unknown> {
-  id: string;
   title: string;
   playerCount: [number, number];
 
