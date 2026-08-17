@@ -3,7 +3,8 @@
 //
 // 引数にファイルパスを渡すと、そのファイルだけを検証する（執筆時の確認用）。
 // 引数なしのときが本番の挙動であり、CIはこちらを使う。
-import { resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateCase } from "@beb/server-detectives";
 import { runValidation, runValidationOnFile, type GameValidator } from "./validate/run";
@@ -12,9 +13,23 @@ const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 
 const validators: GameValidator[] = [{ contentPath: "content/detectives", validate: validateCase }];
 
+/**
+ * 引数のパスを解決する。
+ *
+ * pnpmのフィルタ実行ではcwdがtoolsパッケージになるため、cwd基準だけだと
+ * リポジトリ相対のパス（content/detectives/xxx.json）が見つからない。cwd → リポジトリルートの順に探す。
+ */
+function resolveTarget(target: string): string {
+  if (isAbsolute(target)) {
+    return target;
+  }
+  const fromCwd = resolve(process.cwd(), target);
+  return existsSync(fromCwd) ? fromCwd : resolve(repoRoot, target);
+}
+
 const target = process.argv[2];
 const result = target
-  ? runValidationOnFile(resolve(process.cwd(), target), validateCase)
+  ? runValidationOnFile(resolveTarget(target), validateCase)
   : runValidation(repoRoot, validators);
 
 for (const line of result.lines) {
