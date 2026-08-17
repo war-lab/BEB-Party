@@ -1,0 +1,342 @@
+{
+  "id": "library_book_v1",
+  "playerCount": [5, 6],
+  "title": "The Missing Photo Book",
+  "briefing": {
+    "ja": "市立図書館の閲覧室から、館外持ち出し禁止の大型写真集が16時から16時30分の間に持ち去られた。その時間に館内にいた6人のうち1人が犯人であり、その人の証言カードには嘘が1枚だけ混ざっている。全員の証言を突き合わせて、誰の話が成り立たないかを見つける。",
+    "en": "A large photo book that is not allowed to leave the library was taken from the reading room between 16:00 and 16:30. One of the six people in the library is the thief, and one card in that person's hand is a lie."
+  },
+  "characters": [
+    { "id": "volunteer", "name": "Sora (student volunteer)", "recommendedLevel": 1, "merge5p": null },
+    { "id": "high_schooler", "name": "Yuna (high school student at a study desk)", "recommendedLevel": 2, "merge5p": null },
+    { "id": "reader", "name": "Kenji (regular reader)", "recommendedLevel": 3, "merge5p": null },
+    { "id": "repairer", "name": "Taku (book repair staff)", "recommendedLevel": 4, "merge5p": null },
+    { "id": "librarian", "name": "Hana (librarian at the counter)", "recommendedLevel": 5, "merge5p": null },
+    { "id": "cleaner", "name": "Emi (cleaning staff)", "recommendedLevel": 3, "merge5p": "repairer" }
+  ],
+  "facts": [
+    {
+      "id": "f_vo_a",
+      "owner": "volunteer",
+      "value": "shelving_books_in_reading_room_from=16:10_to=16:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Shelves. Reading room. 16:10 to 16:20.",
+        "2": "I was shelving books in the reading room from 16:10 to 16:20.",
+        "3": "I was putting books back on the shelves from ten past four until twenty past.",
+        "4": "I was up and down the reading room with the book trolley from ten past to twenty past.",
+        "5": "I am not sure I would have noticed everything, but I was shelving books in the reading room from ten past four until twenty past."
+      },
+      "hintJa": "shelve = 棚に戻す / trolley = 配架用の台車 / put back = 戻す"
+    },
+    {
+      "id": "f_vo_b",
+      "owner": "volunteer",
+      "value": "returns_box_not_opened_before=16:25",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "Returns box. Not opened. Before 16:25.",
+        "2": "The returns box was not opened before 16:25.",
+        "3": "Nobody had opened the returns box before twenty-five past four.",
+        "4": "As far as I know, nobody had been near the returns box by then.",
+        "5": "I cannot speak for the whole afternoon, but I do not think the returns box was opened before twenty-five past four."
+      },
+      "hintJa": "returns box = 返却ポスト / open = 開ける / nobody = 誰も〜ない"
+    },
+    {
+      "id": "f_hs_a",
+      "owner": "high_schooler",
+      "value": "study_desk_view_of_reading_room_until=16:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Study desk. I saw the room. Until 16:20.",
+        "2": "From my study desk I could see the reading room until 16:20.",
+        "3": "I sat at a study desk and could see the reading room until twenty past.",
+        "4": "From where I sat, most of the reading room was in front of me until twenty past.",
+        "5": "I was working on my homework, but from my study desk I could see most of the reading room until twenty past four."
+      },
+      "hintJa": "study desk = 自習席 / see = 見える / most of = 〜の大半"
+    },
+    {
+      "id": "f_hs_b",
+      "owner": "high_schooler",
+      "value": "bag_spread_across_study_desks_until=16:20",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "My bag. Across both desks. Untouched. Until 16:20.",
+        "2": "My bag and books lay untouched across the study desks until 16:20.",
+        "3": "My things were spread over both study desks until twenty past four, and nobody had moved them.",
+        "4": "Anyone sitting down there would have had to move my bag first.",
+        "5": "I am not the tidiest, but my bag and books lay across both study desks until twenty past four, and nothing had been moved."
+      },
+      "hintJa": "bag = かばん / spread = 広げる / move = どかす"
+    },
+    {
+      "id": "f_rd_a",
+      "owner": "reader",
+      "value": "photo_book_on_reading_table_at=16:10",
+      "disclosure": "free",
+      "text": {
+        "1": "Photo book. On the table. At 16:10.",
+        "2": "The photo book was still on the table at 16:10.",
+        "3": "I am sure the big photo book was on that table at ten past four.",
+        "4": "The photo book was certainly still lying there when I looked up at ten past.",
+        "5": "I may be a few minutes out, but the photo book was still on the table at around ten past four."
+      },
+      "hintJa": "photo book = 写真集 / still = まだ / table = 机"
+    },
+    {
+      "id": "f_rd_b",
+      "owner": "reader",
+      "value": "photo_book_gone_from_table_at=16:20",
+      "disclosure": "free",
+      "text": {
+        "1": "The book. Gone. At 16:20.",
+        "2": "The photo book was gone from the table at 16:20.",
+        "3": "When I looked again at twenty past four, the book was not there.",
+        "4": "By twenty past, the space where the book had been was empty.",
+        "5": "I did not see anyone take it, but the photo book had gone from the table by twenty past four."
+      },
+      "hintJa": "gone = なくなっている / look again = もう一度見る / empty = 何も無い"
+    },
+    {
+      "id": "f_rp_a",
+      "owner": "repairer",
+      "value": "repairer_at_stack_door_from=16:05_to=16:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Stack door. Me. 16:05 to 16:20.",
+        "2": "I worked at the stack door from 16:05 to 16:20.",
+        "3": "I was mending the lock on the stack door from five past until twenty past.",
+        "4": "I had my tools out at that door for a good quarter of an hour.",
+        "5": "I did not watch the clock closely, but I was working on the stack door lock from five past until twenty past four."
+      },
+      "hintJa": "stack door = 書庫の扉 / mend = 直す / tools = 工具"
+    },
+    {
+      "id": "f_rp_b",
+      "owner": "repairer",
+      "value": "stack_door_locked_until=16:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Stack door. Locked. Until 16:20.",
+        "2": "The stack door was locked until 16:20.",
+        "3": "The door to the stacks stayed locked until twenty past four.",
+        "4": "If somebody told you they had been in the stacks before twenty past, that door says otherwise.",
+        "5": "I cannot be completely certain to the minute, but the stack door stayed locked until at least twenty past four."
+      },
+      "hintJa": "locked = 鍵がかかっている / stay = 〜のままである / say otherwise = 違うと示す"
+    },
+    {
+      "id": "f_lb_a",
+      "owner": "librarian",
+      "value": "librarian_alone_at_counter_from=16:05_to=16:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Counter. Me alone. 16:05 to 16:20.",
+        "2": "I was alone at the counter from 16:05 to 16:20.",
+        "3": "Nobody stood at the counter with me between five past and twenty past.",
+        "4": "If somebody had come behind the counter, I would have had to make room.",
+        "5": "I would hesitate to call it a quiet afternoon, but I was alone at the counter from five past until twenty past four."
+      },
+      "hintJa": "counter = カウンター / alone = 一人で / make room = 場所を空ける"
+    },
+    {
+      "id": "f_lb_b",
+      "owner": "librarian",
+      "value": "no_book_checked_out_between=16:00_and=16:30",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "No loans. 16:00 to 16:30.",
+        "2": "No book was checked out between 16:00 and 16:30.",
+        "3": "Nobody borrowed a book between four o'clock and half past four.",
+        "4": "Had anyone borrowed a book in that half hour, the loan record would show it.",
+        "5": "I would rather you looked at the record yourself, but it shows no book borrowed between four o'clock and half past."
+      },
+      "hintJa": "check out = 貸出手続きをする / loan record = 貸出記録 / borrow = 借りる"
+    },
+    {
+      "id": "f_cl_a",
+      "owner": "cleaner",
+      "value": "cleaning_cart_blocked_entrance_from=16:10_to=16:15",
+      "disclosure": "free",
+      "text": {
+        "1": "Cart. Entrance. 16:10 to 16:15.",
+        "2": "My cleaning cart blocked the entrance from 16:10 to 16:15.",
+        "3": "My cart stood across the entrance from ten past until a quarter past.",
+        "4": "Nobody could have squeezed past my cart in that doorway for those five minutes.",
+        "5": "I was not counting the minutes, but my cleaning cart stood across the entrance from ten past until a quarter past four."
+      },
+      "hintJa": "cart = 清掃用のカート / block = ふさぐ / entrance = 入口"
+    },
+    {
+      "id": "f_cl_b",
+      "owner": "cleaner",
+      "value": "corridor_floor_wet_until=16:25",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "Corridor floor. Wet. Until 16:25.",
+        "2": "The corridor floor was wet until 16:25.",
+        "3": "I had just mopped the corridor, and it stayed wet until twenty-five past.",
+        "4": "Anyone walking down there would have left prints all over my clean floor.",
+        "5": "It dries slowly at this time of year, so the corridor floor stayed wet until about twenty-five past four."
+      },
+      "hintJa": "corridor = 廊下 / mop = 床を拭く / dry = 乾く"
+    }
+  ],
+  "variants": [
+    {
+      "culprit": "volunteer",
+      "lie": {
+        "replaces": "f_vo_a",
+        "value": "claims_in_stack_room_at=16:15",
+        "text": {
+          "1": "Me. Stack room. At 16:15.",
+          "2": "I was in the stack room at 16:15.",
+          "3": "I went into the stacks at about a quarter past four.",
+          "4": "I had gone through to the stacks by then, so I saw nothing of the room.",
+          "5": "I am hopeless with times, but I had gone into the stack room by about a quarter past four."
+        },
+        "hintJa": "stack room = 書庫 / go into = 中へ入る / hopeless = 苦手である"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_vo_a", "f_rp_b", "f_hs_a", "f_rd_a", "f_lb_a", "f_cl_a"],
+          "requires5p": null,
+          "yields": "volunteer_alibi_broken",
+          "meaningJa": "Soraは16:15に書庫にいたと言うが、Takuは書庫の扉が16:20まで施錠されていたと言っている。Kenjiの16:10の証言で持ち去られた時間帯が絞られ、Yunaの視界とHanaのカウンターとEmiのカートで、その間に閲覧室を離れられた者がいないことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "high_schooler",
+      "lie": {
+        "replaces": "f_hs_a",
+        "value": "claims_out_through_entrance_at=16:10",
+        "text": {
+          "1": "Me. Outside. Through the entrance. From 16:10.",
+          "2": "I went out through the entrance at 16:10.",
+          "3": "I stepped out through the entrance at about ten past four.",
+          "4": "I had gone outside for a while by then, so I saw none of it.",
+          "5": "I did not look at the clock on the way out, but I was outside through the entrance by about ten past four."
+        },
+        "hintJa": "go out = 外へ出る / entrance = 入口 / for a while = しばらくの間"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_hs_a", "f_cl_a", "f_vo_a", "f_rd_a", "f_rp_a", "f_lb_a"],
+          "requires5p": null,
+          "yields": "high_schooler_alibi_broken",
+          "meaningJa": "Yunaは16:10に入口から外へ出たと言うが、Emiの清掃カートが16:10から16:15まで入口を塞いでいた。SoraとKenjiとTakuとHanaの証言で、その時間帯に館内から出る他の経路も使えなかったことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "reader",
+      "lie": {
+        "replaces": "f_rd_a",
+        "value": "claims_at_study_desks_at=16:15",
+        "text": {
+          "1": "Me. Study desks. At 16:15.",
+          "2": "I was at the study desks at 16:15.",
+          "3": "I moved over to the study desks at about a quarter past four.",
+          "4": "I had taken my things over to the desks by then, so I was not at that table.",
+          "5": "I move about a lot when I read, but I had taken my things over to the study desks by around a quarter past four."
+        },
+        "hintJa": "study desks = 自習席 / move over = 移動する / things = 持ち物"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_rd_a", "f_hs_b", "f_vo_a", "f_rp_a", "f_lb_a", "f_cl_a"],
+          "requires5p": null,
+          "yields": "reader_alibi_broken",
+          "meaningJa": "Kenjiは16:15に自習席へ移ったと言うが、Yunaのかばんと本が16:20まで自習席に広げたままで、どかされた跡もない。Soraの配架とTakuの書庫の扉とHanaのカウンターとEmiのカートで、その時間帯に閲覧室から抜けられなかったことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "repairer",
+      "lie": {
+        "replaces": "f_rp_a",
+        "value": "claims_at_counter_at=16:15",
+        "text": {
+          "1": "Me. At the counter. At 16:15.",
+          "2": "I was at the counter at 16:15.",
+          "3": "I was at the counter getting my job sheet signed at a quarter past.",
+          "4": "I was over at the counter with the paperwork, so I was nowhere near the shelves.",
+          "5": "You could ask at the counter, but I believe I was over there getting my job sheet signed at around a quarter past four."
+        },
+        "hintJa": "job sheet = 作業伝票 / sign = 署名する / paperwork = 書類仕事"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_rp_a", "f_lb_a", "f_vo_a", "f_hs_a", "f_rd_b", "f_cl_a"],
+          "requires5p": null,
+          "yields": "repairer_alibi_broken",
+          "meaningJa": "Takuは16:15にカウンターにいたと言うが、Hanaは16:05から16:20まで一人でカウンターに立っていたと言っている。Kenjiが16:20に写真集が無くなっていたと言い、SoraとYunaとEmiの証言で、その直前の閲覧室と入口の様子が分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "librarian",
+      "lie": {
+        "replaces": "f_lb_a",
+        "value": "claims_emptying_returns_box_at=16:15",
+        "text": {
+          "1": "Me. The returns box. At 16:15.",
+          "2": "I was emptying the returns box at 16:15.",
+          "3": "I went out to empty the returns box at about a quarter past four.",
+          "4": "I had stepped out to see to the returns, so I was not at my desk.",
+          "5": "That is my job every afternoon, and I believe I was emptying the returns box at around a quarter past four."
+        },
+        "hintJa": "empty = 中身を取り出す / returns box = 返却ポスト / see to = 対応する"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_lb_a", "f_vo_b", "f_hs_a", "f_rd_a", "f_rp_a", "f_cl_b"],
+          "requires5p": null,
+          "yields": "librarian_alibi_broken",
+          "meaningJa": "Hanaは16:15に返却ポストの中身を取り出したと言うが、Soraは返却ポストが16:25まで開けられていないと言っている。Emiが拭いたばかりの廊下の床が濡れたままだったこと、Yunaの視界、Kenjiの16:10の証言、Takuの書庫の扉の作業で、その時間帯に館外へ出た者がいないことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "cleaner",
+      "lie": {
+        "replaces": "f_cl_a",
+        "value": "claims_checking_out_book_at=16:15",
+        "text": {
+          "1": "Me. Borrowing a book. At 16:15.",
+          "2": "I was checking out a book at 16:15.",
+          "3": "I was borrowing a book at the counter at about a quarter past four.",
+          "4": "I had gone to the counter to take a book home, so I was not cleaning.",
+          "5": "It is not something I do often, but I was borrowing a book at the counter at around a quarter past four."
+        },
+        "hintJa": "borrow = 借りる / check out = 貸出手続きをする / counter = カウンター"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_cl_a", "f_lb_b", "f_vo_a", "f_hs_a", "f_rd_a", "f_rp_a"],
+          "requires5p": null,
+          "yields": "cleaner_alibi_broken",
+          "meaningJa": "Emiは16:15にカウンターで本を借りていたと言うが、Hanaの貸出記録には16:00から16:30の間の貸出が1件もない。Kenjiの16:10の証言、Soraの配架、Yunaの視界、Takuの書庫の扉の作業で、その時間帯の館内の様子が分かる。"
+        }
+      ]
+    }
+  ],
+  "reveal": {
+    "timelineEn": [
+      "16:05 The photo book was open on a table in the reading room.",
+      "16:10 The photo book was still on the table.",
+      "16:15 The photo book was taken from the reading room.",
+      "16:20 The table was empty and the book was gone.",
+      "16:25 The staff searched the reading room and the stacks."
+    ],
+    "keyExpressions": [
+      { "en": "Could you say that again?", "ja": "もう一度言ってもらえますか。" },
+      { "en": "Which desk were you sitting at?", "ja": "どの席に座っていましたか。" },
+      { "en": "As far as I can remember, ...", "ja": "覚えている限りでは…" },
+      { "en": "That does not fit with what she said.", "ja": "それは彼女の話と合いません。" }
+    ]
+  }
+}

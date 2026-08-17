@@ -1,0 +1,342 @@
+{
+  "id": "club_trophy_v1",
+  "playerCount": [5, 6],
+  "title": "The Swapped Trophy",
+  "briefing": {
+    "ja": "大学のサークル部室で、棚に飾ってあった優勝トロフィーが、そっくりの安物レプリカに入れ替えられていた。入れ替えは18時から18時30分の間に起きている。その時間に部室と廊下にいた6人のうち1人が犯人であり、その人の証言カードには嘘が1枚だけ混ざっている。全員の証言を突き合わせて、誰の話が成り立たないかを見つける。",
+    "en": "The club trophy on the shelf was swapped for a cheap replica between 18:00 and 18:30. One of the six people in the club room and the corridor did it, and one card in that person's hand is a lie."
+  },
+  "characters": [
+    { "id": "freshman", "name": "Nao (first-year member)", "recommendedLevel": 1, "merge5p": null },
+    { "id": "manager", "name": "Hina (club manager)", "recommendedLevel": 2, "merge5p": null },
+    { "id": "neighbour", "name": "Riku (from the club next door)", "recommendedLevel": 3, "merge5p": null },
+    { "id": "alumnus", "name": "Jun (former member)", "recommendedLevel": 4, "merge5p": null },
+    { "id": "captain", "name": "Sora (club captain)", "recommendedLevel": 5, "merge5p": null },
+    { "id": "guard", "name": "Mr. Ito (campus guard)", "recommendedLevel": 3, "merge5p": "alumnus" }
+  ],
+  "facts": [
+    {
+      "id": "f_fr_a",
+      "owner": "freshman",
+      "value": "corridor_view_from_club_room_door_until=18:15",
+      "disclosure": "free",
+      "text": {
+        "1": "Club room door. Corridor. Until 18:15.",
+        "2": "From the doorway I could see the corridor until 18:15.",
+        "3": "I stood at the club room door and could see the corridor until about fifteen past.",
+        "4": "From where I stood, I could see anyone who went by in the corridor, at least until a quarter past.",
+        "5": "My mind was half on other things, but from the club room door I could see the corridor until about fifteen minutes past six."
+      },
+      "hintJa": "corridor = 廊下 / doorway = 出入口 / go by = 通り過ぎる"
+    },
+    {
+      "id": "f_fr_b",
+      "owner": "freshman",
+      "value": "nobody_used_stairs_before=18:20",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "Stairs. Nobody used them. Before 18:20.",
+        "2": "Nobody used the stairs before 18:20.",
+        "3": "I did not see anyone go down the stairs before twenty past six.",
+        "4": "Had someone taken the stairs before twenty past, I think I would have noticed.",
+        "5": "I would not put it too strongly, but I do not believe anyone went down the stairs before twenty minutes past six."
+      },
+      "hintJa": "stairs = 階段 / go down = 下りる / notice = 気づく"
+    },
+    {
+      "id": "f_mn_a",
+      "owner": "manager",
+      "value": "trophy_on_shelf_at=18:05",
+      "disclosure": "free",
+      "text": {
+        "1": "Trophy. On the shelf. At 18:05.",
+        "2": "The trophy was still on the shelf at 18:05.",
+        "3": "The trophy was definitely still on that shelf at five past six.",
+        "4": "The trophy was certainly still up there when I glanced at the shelf at five past.",
+        "5": "The minute may be a little out, but the trophy was still on the shelf at around five past six."
+      },
+      "hintJa": "trophy = 優勝カップ / shelf = 棚 / still = まだ"
+    },
+    {
+      "id": "f_mn_b",
+      "owner": "manager",
+      "value": "shelf_left_unwatched_from=18:10",
+      "disclosure": "free",
+      "text": {
+        "1": "The shelf. Nobody watching. From 18:10.",
+        "2": "Nobody was watching the shelf from 18:10.",
+        "3": "From about ten past six, nobody was keeping an eye on the shelf.",
+        "4": "After ten past, nobody in the room had their eyes on that shelf.",
+        "5": "The time is not something I can pin down, but from roughly ten minutes past six nobody was watching the shelf."
+      },
+      "hintJa": "watch = 見張る / keep an eye on = 注意して見る / nobody = 誰も〜ない"
+    },
+    {
+      "id": "f_nb_a",
+      "owner": "neighbour",
+      "value": "next_room_doorway_view_of_corridor_from=18:10_to=18:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Our doorway. Corridor. 18:10 to 18:20.",
+        "2": "From our doorway I saw the corridor from 18:10 to 18:20.",
+        "3": "I could see the corridor from our doorway from ten past to twenty past.",
+        "4": "Our doorway looks straight down the corridor, and I stood there from ten past to twenty past.",
+        "5": "I was busy with our own gear, but our doorway looks down the corridor and I was there from ten past to twenty past."
+      },
+      "hintJa": "next door = 隣の / gear = 道具 / look down = 見通す"
+    },
+    {
+      "id": "f_nb_b",
+      "owner": "neighbour",
+      "value": "gear_cases_stacked_inside_next_room_door_from=18:10_to=18:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Gear cases. Inside our door. 18:10 to 18:20.",
+        "2": "Our gear cases were stacked inside our door from 18:10 to 18:20.",
+        "3": "Our gear cases stood stacked just inside our door from ten past to twenty past.",
+        "4": "Between ten past and twenty past, nobody was stepping into our room past that stack.",
+        "5": "Ask me the minute and I could not say, but our gear cases were stacked just inside our door from ten past to twenty past."
+      },
+      "hintJa": "case = 運搬用のケース / stack = 積み重ねる / past = 〜を越えて"
+    },
+    {
+      "id": "f_al_a",
+      "owner": "alumnus",
+      "value": "boxes_blocked_club_room_door_from=18:10_to=18:15",
+      "disclosure": "free",
+      "text": {
+        "1": "Boxes. Club room door. 18:10 to 18:15.",
+        "2": "My boxes blocked the club room door from 18:10 to 18:15.",
+        "3": "My boxes stood in the club room doorway from ten past until fifteen past.",
+        "4": "My boxes were in the way there from ten past to fifteen past, so nobody could have slipped through.",
+        "5": "Nobody was timing me, but my boxes were standing in the club room doorway from about ten past until fifteen past six."
+      },
+      "hintJa": "box = 段ボール箱 / block = ふさぐ / doorway = 出入口"
+    },
+    {
+      "id": "f_al_b",
+      "owner": "alumnus",
+      "value": "car_parked_by_emergency_exit_until=18:25",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "My car. By the emergency exit. Until 18:25.",
+        "2": "My car was parked by the emergency exit until 18:25.",
+        "3": "My car stood right outside the emergency exit until twenty-five past.",
+        "4": "Anyone coming out that way before twenty-five past would have found my car in the way.",
+        "5": "I did not check my watch, but my car was standing right outside the emergency exit until about twenty-five past six."
+      },
+      "hintJa": "park = 停める / outside = 外に / in the way = ふさいで"
+    },
+    {
+      "id": "f_cp_a",
+      "owner": "captain",
+      "value": "equipment_room_door_in_sight_until=18:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Equipment room door. I watched it. Until 18:20.",
+        "2": "I had the equipment room door in sight until 18:20.",
+        "3": "I kept the equipment room door in view until twenty past six.",
+        "4": "I never lost sight of the equipment room door before twenty past, as far as I know.",
+        "5": "I would not call it keeping watch exactly, but the equipment room door stayed within my sight until about twenty minutes past six."
+      },
+      "hintJa": "equipment = 用具 / in sight = 見えるところに / keep = 〜し続ける"
+    },
+    {
+      "id": "f_cp_b",
+      "owner": "captain",
+      "value": "club_room_window_shut_between=18:00_and=18:25",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "The window. Shut. 18:00 to 18:25.",
+        "2": "The club room window was shut between 18:00 and 18:25.",
+        "3": "Nobody opened the window between six o'clock and twenty-five past.",
+        "4": "Had the window been opened at any point up to twenty-five past, the cold air would have got in.",
+        "5": "I do not fuss about it usually, but the club room window stayed shut between six o'clock and twenty-five past."
+      },
+      "hintJa": "window = 窓 / shut = 閉まっている / cold air = 冷たい空気"
+    },
+    {
+      "id": "f_gd_a",
+      "owner": "guard",
+      "value": "vending_machine_out_of_order_from=18:05",
+      "disclosure": "free",
+      "text": {
+        "1": "Vending machine. Out of order. From 18:05.",
+        "2": "The vending machine was out of order from 18:05.",
+        "3": "The vending machine had been out of order since about five past six.",
+        "4": "Anyone going for a drink would have found that machine dead after five past.",
+        "5": "The minute is guesswork on my part, but the vending machine had been out of order since around five past six."
+      },
+      "hintJa": "vending machine = 自動販売機 / out of order = 故障中 / dead = 動かない"
+    },
+    {
+      "id": "f_gd_b",
+      "owner": "guard",
+      "value": "emergency_exit_locked_until=18:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Emergency exit. Locked. Until 18:20.",
+        "2": "The emergency exit was locked until 18:20.",
+        "3": "The emergency exit stayed locked until twenty past six.",
+        "4": "That door would not have opened for anyone before twenty past, however hard they pushed.",
+        "5": "Short of checking my log, I would say the emergency exit stayed locked until at least twenty minutes past six."
+      },
+      "hintJa": "emergency exit = 非常口 / locked = 鍵がかかっている / stay = 〜のままである"
+    }
+  ],
+  "variants": [
+    {
+      "culprit": "freshman",
+      "lie": {
+        "replaces": "f_fr_a",
+        "value": "claims_out_in_corridor_from=18:10",
+        "text": {
+          "1": "Me. Out in the corridor. From 18:10.",
+          "2": "I went out into the corridor at 18:10.",
+          "3": "I stepped out into the corridor at about ten past and stayed there.",
+          "4": "I was already out in the corridor by then, so I saw nothing in the room.",
+          "5": "The minute is a blur, but I had already gone out into the corridor by about ten minutes past six."
+        },
+        "hintJa": "go out = 外へ出る / corridor = 廊下 / stay = とどまる"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_fr_a", "f_gd_a", "f_mn_a", "f_al_a", "f_cp_a", "f_nb_a"],
+          "requires5p": null,
+          "yields": "freshman_alibi_broken",
+          "meaningJa": "Naoは18:10に部室から廊下へ出たと言うが、Junの段ボール箱が18:10から18:15まで部室の出入口を塞いでいた。Hinaの18:05の証言で入れ替えの時間帯が絞られ、Rikuの廊下の視界とSoraの視線とIto氏の自販機の故障の証言で、その間に他の経路も使えなかったことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "manager",
+      "lie": {
+        "replaces": "f_mn_a",
+        "value": "claims_downstairs_at=18:15",
+        "text": {
+          "1": "Me. Downstairs. At 18:15.",
+          "2": "I was downstairs at 18:15.",
+          "3": "I went down the stairs at about a quarter past six.",
+          "4": "I had gone down to the ground floor by then, so I missed all of it.",
+          "5": "I would not stake anything on the time, but I had gone down the stairs by around a quarter past six."
+        },
+        "hintJa": "downstairs = 下の階へ / go down = 下りる / floor = 階"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_mn_a", "f_gd_a", "f_fr_b", "f_al_a", "f_cp_a", "f_nb_a"],
+          "requires5p": null,
+          "yields": "manager_alibi_broken",
+          "meaningJa": "Hinaは18:15に下の階へ行っていたと言うが、Naoは18:20より前に階段を下りた者はいないと言っている。Junの段ボール箱とSoraの視線とRikuの廊下の視界とIto氏の自販機の故障の証言で、その時間帯に廊下から抜けられなかったことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "neighbour",
+      "lie": {
+        "replaces": "f_nb_a",
+        "value": "claims_at_vending_corner_at=18:15",
+        "text": {
+          "1": "Me. Buying a drink. At 18:15.",
+          "2": "I was buying a drink at the vending machine at 18:15.",
+          "3": "I was getting a drink from the vending machine at about a quarter past.",
+          "4": "I had gone along to buy a drink by then, so I was not at our doorway.",
+          "5": "I do not often bother with that machine, but I had gone along to buy a drink at around a quarter past six."
+        },
+        "hintJa": "vending machine = 自動販売機 / drink = 飲み物 / along = 〜に沿って"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_nb_a", "f_gd_a", "f_fr_a", "f_mn_a", "f_al_a", "f_cp_b"],
+          "requires5p": null,
+          "yields": "neighbour_alibi_broken",
+          "meaningJa": "Rikuは18:15に自販機コーナーで飲み物を買っていたと言うが、Ito氏は自販機が18:05から故障していたと言っている。Soraの窓の証言、Hinaの18:05の証言、Naoの廊下の視界、Junの段ボール箱で、その時間帯に部室と廊下の様子が確定する。"
+        }
+      ]
+    },
+    {
+      "culprit": "alumnus",
+      "lie": {
+        "replaces": "f_al_a",
+        "value": "claims_in_equipment_room_at=18:15",
+        "text": {
+          "1": "Me. Equipment room. At 18:15.",
+          "2": "I was in the equipment room at 18:15.",
+          "3": "I was in the equipment room looking for my old racket at a quarter past.",
+          "4": "I was through in the equipment room, so I was nowhere near the shelf.",
+          "5": "I would have to think about it, but I believe I was in the equipment room looking for my old racket at around a quarter past six."
+        },
+        "hintJa": "equipment = 用具 / look for = 探す / racket = ラケット"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_al_a", "f_gd_a", "f_fr_a", "f_mn_b", "f_cp_a", "f_nb_a"],
+          "requires5p": null,
+          "yields": "alumnus_alibi_broken",
+          "meaningJa": "Junは18:15に用具室にいたと言うが、Soraは18:20まで用具室の扉を見ており、誰も入っていない。Hinaが18:10から棚を見ている者がいなくなったと言い、NaoとRikuの廊下の視界とIto氏の自販機の故障の証言で、その直後の廊下の様子が分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "captain",
+      "lie": {
+        "replaces": "f_cp_a",
+        "value": "claims_out_emergency_exit_at=18:15",
+        "text": {
+          "1": "Me. Out the emergency exit. At 18:15.",
+          "2": "I went out the emergency exit at 18:15.",
+          "3": "I took the rubbish out that way at about a quarter past six.",
+          "4": "I had stepped outside with the rubbish, so I was not in the room.",
+          "5": "I do that every evening, so I would say I was outside with the rubbish at around a quarter past six."
+        },
+        "hintJa": "emergency exit = 非常口 / rubbish = ごみ / take out = 外へ出す"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_cp_a", "f_gd_b", "f_fr_a", "f_mn_a", "f_al_b", "f_nb_a"],
+          "requires5p": null,
+          "yields": "captain_alibi_broken",
+          "meaningJa": "Soraは18:15に非常口から外へ出たと言うが、Ito氏は非常口が18:20まで施錠されていたと言っている。Junの車が非常口の外に停まっていたこと、Naoの廊下の視界、Hinaの18:05の証言、Rikuの廊下の視界で、その時間帯に建物を出た者がいないことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "guard",
+      "lie": {
+        "replaces": "f_gd_a",
+        "value": "claims_in_next_room_at=18:15",
+        "text": {
+          "1": "Me. Next room. At 18:15.",
+          "2": "I was in the next room at 18:15.",
+          "3": "I stepped into the next club's room at about a quarter past six.",
+          "4": "I had gone into the next room on my round, so I saw nothing of the corridor.",
+          "5": "My round takes me in there most evenings, and I had gone into the next club's room by about a quarter past six."
+        },
+        "hintJa": "next door = 隣の / round = 見回り / step into = 中へ入る"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_gd_a", "f_fr_a", "f_mn_a", "f_al_a", "f_cp_a", "f_nb_b"],
+          "requires5p": null,
+          "yields": "guard_alibi_broken",
+          "meaningJa": "Ito氏は18:15に隣のサークルの部屋へ入ったと言うが、Rikuの運搬用ケースが18:10から18:20まで隣室の扉の内側に積まれており、人が入れる隙間はなかった。Hinaの18:05の証言で入れ替えの時間帯が絞られ、Naoの廊下の視界とJunの段ボール箱とSoraの視線で、その間に廊下を通った者がいないことが分かる。"
+        }
+      ]
+    }
+  ],
+  "reveal": {
+    "timelineEn": [
+      "18:00 The club room opened and the trophy stood on the shelf.",
+      "18:05 The trophy was still on the shelf.",
+      "18:10 Everyone moved to the far side of the room and nobody watched the shelf.",
+      "18:15 The trophy was swapped for a cheap replica.",
+      "18:20 Someone looked at the shelf and saw the wrong cup."
+    ],
+    "keyExpressions": [
+      { "en": "Hold on, something is missing here.", "ja": "待って、何かが抜けています。" },
+      { "en": "I have no memory of that.", "ja": "それは記憶にありません。" },
+      { "en": "Which way did you go?", "ja": "どちらから行きましたか。" },
+      { "en": "I was nowhere near there.", "ja": "そこには近づいていません。" }
+    ]
+  }
+}

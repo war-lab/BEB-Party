@@ -23,9 +23,9 @@
       "text": {
         "1": "Counter. Nobody there. From 14:12.",
         "2": "Nobody was behind the counter from 14:12.",
-        "3": "I remember the counter was left empty from about ten past two.",
-        "4": "Now that you mention it, there was nobody at the counter after ten past.",
-        "5": "I would not swear to the exact minute, but I am fairly sure nobody stood behind the counter from around twelve past two."
+        "3": "I remember the counter was left empty from about twelve past two.",
+        "4": "Now that you mention it, there was nobody at the counter from a little after ten past.",
+        "5": "I would not swear to the exact minute, but I am fairly sure nobody was behind the counter from around twelve past two."
       },
       "hintJa": "counter = カウンター / behind = 〜の後ろに / empty = 誰もいない"
     },
@@ -38,7 +38,7 @@
         "1": "Back door. Locked. Until 14:20.",
         "2": "The back door was locked until 14:20.",
         "3": "The back door stayed locked until twenty past two.",
-        "4": "If anyone had tried the back way out, they would have found it locked.",
+        "4": "If anyone had tried the back way out before twenty past, they would have found it locked.",
         "5": "I cannot be completely certain, but I believe the back door stayed locked until at least twenty minutes past two."
       },
       "hintJa": "back door = 裏口 / locked = 鍵がかかっている / stay = 〜のままである"
@@ -52,24 +52,24 @@
         "1": "Window seat. I saw the room. Until 14:18.",
         "2": "From the window seat I could see the room until 14:18.",
         "3": "I sat at the window seat and could see the whole room until about eighteen past.",
-        "4": "I had a clear view of most of the room from where I sat, at least until a quarter past.",
+        "4": "From where I sat, I could take in most of the room, at least until just before twenty past.",
         "5": "I was not really paying attention, but from the window seat I could see most of the room until about eighteen minutes past two."
       },
-      "hintJa": "window seat = 窓際の席 / view = 見える範囲 / whole = 全体の"
+      "hintJa": "window seat = 窓際の席 / whole = 全体の / take in = 見渡す"
     },
     {
       "id": "f_st_b",
       "owner": "student",
-      "value": "nobody_used_stairs_before=14:20",
+      "value": "stairs_chained_off_until=14:20",
       "disclosure": "on_question_only",
       "text": {
-        "1": "Stairs. Nobody used them. Before 14:20.",
-        "2": "Nobody used the stairs before 14:20.",
-        "3": "I did not see anyone go up the stairs before twenty past two.",
-        "4": "Had someone taken the stairs before twenty past, I think I would have noticed.",
-        "5": "I would not put it too strongly, but I do not believe anyone went up the stairs before twenty minutes past two."
+        "1": "The stairs. A chain across. Until 14:20.",
+        "2": "A chain was across the stairs until 14:20.",
+        "3": "There was a chain across the stairs until twenty past two.",
+        "4": "Anyone heading upstairs before twenty past would have found a chain across the steps.",
+        "5": "I could not tell you who unhooked it in the end, but the chain stayed across the stairs until about twenty past two."
       },
-      "hintJa": "stairs = 階段 / go up = 上がる / notice = 気づく"
+      "hintJa": "chain = 鎖 / across = 横切って / unhook = 外す"
     },
     {
       "id": "f_rg_a",
@@ -107,8 +107,8 @@
       "text": {
         "1": "Trolley. Front door. 14:13 to 14:17.",
         "2": "My trolley blocked the front door from 14:13 to 14:17.",
-        "3": "My trolley stood in the front doorway from thirteen past until seventeen past.",
-        "4": "Nobody could have got past my trolley in that doorway for those few minutes.",
+        "3": "I had my trolley parked in the front doorway from thirteen past to seventeen past.",
+        "4": "Between thirteen past and seventeen past, there was no way round my trolley in that doorway.",
         "5": "I did not time it exactly, but my trolley was standing in the front doorway from about thirteen past until seventeen past two."
       },
       "hintJa": "trolley = 台車 / block = ふさぐ / doorway = 出入口"
@@ -119,11 +119,11 @@
       "value": "van_doors_open_facing_entrance_until=14:25",
       "disclosure": "on_question_only",
       "text": {
-        "1": "My van. Doors open. Facing the entrance.",
+        "1": "Van doors open. Facing the entrance. Until 14:25.",
         "2": "My van doors were open, facing the entrance, until 14:25.",
-        "3": "My van stood facing the entrance with its doors open until twenty-five past.",
-        "4": "Anyone leaving by the entrance would have walked straight into my open van doors.",
-        "5": "I was in and out of it the whole time, but the van faced the entrance with its doors open until about twenty-five past two."
+        "3": "My van sat right in front of the entrance with both doors open until twenty-five past.",
+        "4": "Anyone leaving by the entrance before twenty-five past would have run straight into those open doors.",
+        "5": "I cannot say to the minute when I shut them, but the van stood facing the entrance with its doors open until about twenty-five past two."
       },
       "hintJa": "van = 配送車 / entrance = 入口 / facing = 〜に面して"
     },
@@ -136,7 +136,7 @@
         "1": "Office door. I watched it. Until 14:20.",
         "2": "I had the office door in sight until 14:20.",
         "3": "I kept the office door in view until twenty past two.",
-        "4": "The office door was never out of my sight before twenty past, as far as I know.",
+        "4": "As far as I know, that office door did not leave my sight before twenty past.",
         "5": "I would hesitate to call it constant attention, but the office door was within my sight until about twenty minutes past two."
       },
       "hintJa": "office = 事務室 / in sight = 見えるところに / keep = 〜し続ける"
@@ -150,7 +150,7 @@
         "1": "The till. Not opened. 14:05 to 14:25.",
         "2": "The till was not opened between 14:05 and 14:25.",
         "3": "Nobody opened the till between five past and twenty-five past two.",
-        "4": "Had the till been opened in that window, the printout would show it.",
+        "4": "Had the till been opened between five past and twenty-five past, the printout would show it.",
         "5": "I do not check it that often, but the printout shows the till was never opened between five past and twenty-five past two."
       },
       "hintJa": "till = レジ / printout = 記録の紙 / show = 示す"
@@ -158,30 +158,30 @@
     {
       "id": "f_ks_a",
       "owner": "kitchen_staff",
-      "value": "kitchen_hatch_view_of_floor_from=14:10_to=14:20",
+      "value": "kitchen_floor_wet_and_unmarked_until=14:20",
       "disclosure": "free",
       "text": {
-        "1": "Hatch. I saw the room. 14:10 to 14:20.",
-        "2": "Through the kitchen hatch I saw the room from 14:10 to 14:20.",
-        "3": "I could see the room through the kitchen hatch from ten past to twenty past.",
-        "4": "The hatch gives me a view of the room, and I stood at it for those ten minutes.",
-        "5": "I was busy with orders, but the kitchen hatch gives a view of the room and I was at it from ten past to twenty past."
+        "1": "Kitchen floor. Wet. No footprints. Until 14:20.",
+        "2": "The kitchen floor was wet and had no footprints until 14:20.",
+        "3": "I mopped the kitchen floor after the lunch rush, and it stayed wet until twenty past.",
+        "4": "Anyone who walked in there before twenty past would have left prints across my wet floor.",
+        "5": "It dries slowly with the door shut, so the kitchen floor was still wet and unmarked until about twenty past two."
       },
-      "hintJa": "hatch = 受け渡し口 / kitchen = 厨房 / order = 注文"
+      "hintJa": "mop = 床を拭く / wet = 濡れている / footprint = 足跡"
     },
     {
       "id": "f_ks_b",
       "owner": "kitchen_staff",
-      "value": "no_staff_entered_kitchen_between=14:10_and=14:20",
+      "value": "store_cupboard_locked_between=14:10_and=14:20",
       "disclosure": "free",
       "text": {
-        "1": "Kitchen. No staff came in. 14:10 to 14:20.",
-        "2": "No staff came into the kitchen between 14:10 and 14:20.",
-        "3": "Nobody from the floor came into the kitchen in those ten minutes.",
-        "4": "If one of the staff had come through, I would have had to step aside.",
-        "5": "I might have missed someone at the very edge of it, but no member of staff came into the kitchen between ten past and twenty past."
+        "1": "Store cupboard. Locked. 14:10 to 14:20.",
+        "2": "The store cupboard was locked between 14:10 and 14:20.",
+        "3": "I locked the store cupboard at ten past and kept the key.",
+        "4": "From ten past to twenty past that key was in my pocket, so nobody was getting in.",
+        "5": "I always lock it after the lunch rush, and the key stayed in my pocket from ten past until twenty past two."
       },
-      "hintJa": "staff = 従業員 / come in = 入ってくる / step aside = よける"
+      "hintJa": "store cupboard = 備品庫 / lock = 鍵をかける / key = 鍵"
     }
   ],
   "variants": [
@@ -189,22 +189,22 @@
       "culprit": "part_timer",
       "lie": {
         "replaces": "f_pt_a",
-        "value": "claims_in_kitchen_at=14:15",
+        "value": "claims_in_store_cupboard_at=14:15",
         "text": {
-          "1": "Me. In the kitchen. At 14:15.",
-          "2": "I was in the kitchen at 14:15.",
-          "3": "I went into the kitchen at about a quarter past two.",
-          "4": "I had gone through to the kitchen by then, so I saw nothing of the room.",
-          "5": "I could not tell you the exact minute, but I had gone through into the kitchen by about a quarter past two."
+          "1": "Me. In the store cupboard. At 14:15.",
+          "2": "I was in the store cupboard at 14:15.",
+          "3": "I went to fetch paper cups from the store cupboard at a quarter past.",
+          "4": "I had gone through to the store cupboard by then, so I saw nothing of the room.",
+          "5": "I could not tell you the exact minute, but I had gone to fetch paper cups from the store cupboard by about a quarter past two."
         },
-        "hintJa": "kitchen = 厨房 / go through = 通って入る"
+        "hintJa": "store cupboard = 備品庫 / fetch = 取りに行く / paper cup = 紙コップ"
       },
       "contradictions": [
         {
           "requires": ["f_pt_a", "f_st_a", "f_rg_a", "f_cr_a", "f_mg_a", "f_ks_b"],
           "requires5p": null,
           "yields": "part_timer_alibi_broken",
-          "meaningJa": "Aoiは14:15に厨房にいたと言うが、Yukiは14:10から14:20の間に厨房へ入った従業員はいないと言っている。Mikaの14:10の証言で盗まれた時間帯が絞られ、Renの視界とTaroの台車とKenの視線で、その間にフロアを離れられた者がいないことが分かる。"
+          "meaningJa": "Aoiは14:15に備品庫にいたと言うが、Yukiは14:10に備品庫へ鍵をかけ、その鍵を自分のポケットに入れていたと言っている。Mikaの14:10の証言で盗まれた時間帯が絞られ、Renの視界とTaroの台車とKenの視線で、その間にフロアを離れられた者がいないことが分かる。"
         }
       ]
     },
@@ -216,8 +216,8 @@
         "text": {
           "1": "Me. Outside. Front door. From 14:13.",
           "2": "I went out the front door at 14:13.",
-          "3": "I stepped out the front door at about thirteen past and stayed outside.",
-          "4": "I had gone out for some air by then, so I saw none of what happened.",
+          "3": "I slipped out the front door at about thirteen past and stayed out there.",
+          "4": "I was already outside getting some air by then, so I saw none of it.",
           "5": "I cannot give you the exact minute, but I had already gone out through the front door by about thirteen minutes past two."
         },
         "hintJa": "go out = 外へ出る / front door = 正面ドア / air = 外の空気"
@@ -227,7 +227,7 @@
           "requires": ["f_st_a", "f_pt_a", "f_rg_a", "f_cr_a", "f_mg_a", "f_ks_a"],
           "requires5p": null,
           "yields": "student_alibi_broken",
-          "meaningJa": "Renは14:13に正面ドアから外へ出たと言うが、Taroの台車が14:13から14:17まで正面の出入口を塞いでいた。AoiとMikaとKenとYukiの証言で、その時間帯に他の出口が使えなかったことも分かる。"
+          "meaningJa": "Renは14:13に正面ドアから外へ出たと言うが、Taroの台車が14:13から14:17まで正面の出入口を塞いでいた。Aoiのカウンターの証言、Mikaの14:10の証言、Kenの事務室の扉の証言、Yukiの厨房の床が濡れたままだったという証言で、その時間帯に他の出口も使えなかったことが分かる。"
         }
       ]
     },
@@ -250,7 +250,7 @@
           "requires": ["f_rg_a", "f_pt_a", "f_st_b", "f_cr_a", "f_mg_a", "f_ks_a"],
           "requires5p": null,
           "yields": "regular_alibi_broken",
-          "meaningJa": "Mikaは14:15に上の階にいたと言うが、Renは14:20より前に階段を使った者はいないと言っている。Yukiの受け渡し口からの視界とTaroの台車とKenの視線とAoiのカウンターの証言で、その時間帯にフロアから抜けられなかったことが分かる。"
+          "meaningJa": "Mikaは14:15に上の階にいたと言うが、Renは14:20まで階段に鎖が張られていたと言っている。Yukiの厨房の床、Taroの台車、Kenの事務室の扉、Aoiのカウンターの証言で、その時間帯にフロアから抜けられなかったことが分かる。"
         }
       ]
     },
@@ -262,7 +262,7 @@
         "text": {
           "1": "Me. In the office. At 14:15.",
           "2": "I was in the office at 14:15.",
-          "3": "I was in the office getting the delivery sheet signed at a quarter past.",
+          "3": "I was in the office waiting for a signature on my delivery sheet at a quarter past.",
           "4": "I was through in the office with the paperwork, so I was nowhere near the tables.",
           "5": "I would have to check the sheet, but I believe I was in the office getting it signed at around a quarter past two."
         },
@@ -273,7 +273,7 @@
           "requires": ["f_cr_a", "f_pt_a", "f_st_a", "f_rg_b", "f_mg_a", "f_ks_a"],
           "requires5p": null,
           "yields": "courier_alibi_broken",
-          "meaningJa": "Taroは14:15に事務室にいたと言うが、Kenは14:20まで事務室の扉を見ており、誰も入っていない。Mikaが14:12に持ち主が席を離れたと言い、AoiとRenとYukiの証言で、その直後のフロアの様子が分かる。"
+          "meaningJa": "Taroは14:15に事務室にいたと言うが、Kenは14:20まで事務室の扉を見ており、誰も入っていない。Mikaが14:12に持ち主が席を離れたと言い、Aoiのカウンターの証言、Renの視界、Yukiの厨房の床の証言で、その直後のフロアの様子が分かる。"
         }
       ]
     },
@@ -296,7 +296,7 @@
           "requires": ["f_mg_a", "f_pt_b", "f_st_a", "f_rg_a", "f_cr_b", "f_ks_a"],
           "requires5p": null,
           "yields": "manager_alibi_broken",
-          "meaningJa": "Kenは14:15に裏口から外へ出たと言うが、Aoiは裏口が14:20まで施錠されていたと言っている。Taroの配送車が入口に面していたこと、Renの視界、Mikaの14:10の証言、Yukiの受け渡し口からの視界で、その時間帯に店を出た者がいないことが分かる。"
+          "meaningJa": "Kenは14:15に裏口から外へ出たと言うが、Aoiは裏口が14:20まで施錠されていたと言っている。Taroの配送車が入口に面していたこと、Renの視界、Mikaの14:10の証言、Yukiの厨房の床に足跡がなかったという証言で、その時間帯に店を出た者がいないことが分かる。"
         }
       ]
     },
