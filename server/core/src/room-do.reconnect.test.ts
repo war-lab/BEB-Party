@@ -12,11 +12,12 @@
 // 検証すれば構造的に同じことを確認できる。
 import { beforeAll, describe, expect, it } from "vitest";
 import { registry } from "./registry";
-import { STUB_GAME_ID, stubGameModule } from "./test-support/stub-game-module";
+import { STUB_CONTENT_ID, STUB_GAME_ID, stubGameModule } from "./test-support/stub-game-module";
 import {
   collectMessages,
   createRoom,
   openSocket,
+  selectGameAndContent,
   sendMessage,
   uniqueRoomCode,
 } from "./test-support/room-do-test-helpers";
@@ -37,9 +38,7 @@ describe("Hibernation復帰後の再接続", () => {
     const reconnectToken = (joined as { reconnectToken: string }).reconnectToken;
     expect(reconnectToken).toBeTruthy();
 
-    const selectRecv = collectMessages(host, 1);
-    sendMessage(host, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
-    await selectRecv;
+    await selectGameAndContent(host, STUB_GAME_ID, STUB_CONTENT_ID);
 
     const startRecv = collectMessages(host, 2); // secret, state
     sendMessage(host, { v: 1, type: "start" });

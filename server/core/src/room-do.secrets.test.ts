@@ -2,8 +2,15 @@
 // 受入条件4: 全ステージを通し、secret以外の受信メッセージにreconnectToken・スタブの秘密状態が含まれない（ADR-0003）
 import { beforeAll, describe, expect, it } from "vitest";
 import { registry } from "./registry";
-import { STUB_GAME_ID, stubGameModule } from "./test-support/stub-game-module";
-import { collectMessages, createRoom, openSocket, sendMessage, uniqueRoomCode } from "./test-support/room-do-test-helpers";
+import { STUB_CONTENT_ID, STUB_GAME_ID, stubGameModule } from "./test-support/stub-game-module";
+import {
+  collectMessages,
+  createRoom,
+  openSocket,
+  selectGameAndContent,
+  sendMessage,
+  uniqueRoomCode,
+} from "./test-support/room-do-test-helpers";
 
 beforeAll(() => {
   registry[STUB_GAME_ID] = stubGameModule;
@@ -31,9 +38,7 @@ describe("秘密情報の分離", () => {
     expect(bPlayerId).toBeTruthy();
 
     // ゲームを開始し、playing中にする(ロビー中は照合失敗が新規参加として扱われ「失敗」の意味が薄いため)
-    const selectRecv = Promise.all([collectMessages(hostA, 1), collectMessages(hostB, 1)]);
-    sendMessage(hostA, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
-    await selectRecv;
+    await selectGameAndContent(hostA, STUB_GAME_ID, STUB_CONTENT_ID);
     const startRecv = Promise.all([collectMessages(hostA, 2), collectMessages(hostB, 2)]);
     sendMessage(hostA, { v: 1, type: "start" });
     await startRecv;
@@ -72,9 +77,7 @@ describe("秘密情報の分離", () => {
     sendMessage(host, { v: 1, type: "join", name: "Host", level: 3 });
     await hostJoin;
 
-    const selectRecv = collectMessages(host, 1);
-    sendMessage(host, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
-    await selectRecv;
+    await selectGameAndContent(host, STUB_GAME_ID, STUB_CONTENT_ID);
 
     const startRecv = collectMessages(host, 2);
     sendMessage(host, { v: 1, type: "start" });

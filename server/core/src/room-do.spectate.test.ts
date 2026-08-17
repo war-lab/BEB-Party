@@ -1,11 +1,12 @@
 // 受入条件6: spectateのみのソケットにsecretが届かない。3本目のspectateがspectator_limitで拒否される
 import { beforeAll, describe, expect, it } from "vitest";
 import { registry } from "./registry";
-import { STUB_GAME_ID, stubGameModule } from "./test-support/stub-game-module";
+import { STUB_CONTENT_ID, STUB_GAME_ID, stubGameModule } from "./test-support/stub-game-module";
 import {
   collectMessages,
   createRoom,
   openSocket,
+  selectGameAndContent,
   sendMessage,
   uniqueRoomCode,
 } from "./test-support/room-do-test-helpers";
@@ -37,10 +38,8 @@ describe("観戦ソケット", () => {
       }
     });
 
-    const selectRecv = collectMessages(host, 1);
-    const spectatorSelectState = collectMessages(spectator, 1);
-    sendMessage(host, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
-    await selectRecv;
+    const spectatorSelectState = collectMessages(spectator, 2); // selectGameとconfigureのstate
+    await selectGameAndContent(host, STUB_GAME_ID, STUB_CONTENT_ID);
     await spectatorSelectState;
 
     const startRecv = collectMessages(host, 2);

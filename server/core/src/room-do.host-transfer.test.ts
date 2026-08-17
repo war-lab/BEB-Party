@@ -2,7 +2,7 @@
 // 受入条件4: 接続中の参加者が0人になった後、次に接続した者へホスト権限が与えられる
 import { beforeAll, describe, expect, it } from "vitest";
 import { registry } from "./registry";
-import { STUB_GAME_ID, stubGameModule } from "./test-support/stub-game-module";
+import { STUB_CONTENT_ID, STUB_GAME_ID, stubGameModule } from "./test-support/stub-game-module";
 import {
   collectMessages,
   createRoom,
@@ -42,11 +42,15 @@ describe("ホスト権限の自動移譲", () => {
     );
     expect(guestPlayer?.isHost).toBe(true);
 
-    // 次点参加者(guest)からのselectGame/startが受理される
+    // 次点参加者(guest)からのselectGame/configure/startが受理される
     const selectRecv = collectMessages(guest, 1);
     sendMessage(guest, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
     const [selectState] = await selectRecv;
     expect(selectState).toMatchObject({ gameId: STUB_GAME_ID });
+
+    const configureRecv = collectMessages(guest, 1);
+    sendMessage(guest, { v: 1, type: "configure", contentId: STUB_CONTENT_ID, settings: {} });
+    await configureRecv;
 
     const startRecv = collectMessages(guest, 2); // secret, state
     sendMessage(guest, { v: 1, type: "start" });

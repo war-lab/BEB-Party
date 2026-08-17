@@ -1,8 +1,15 @@
 // 受入条件2: lifecycle×メッセージ表の全組み合わせで、表にないものがerrorになる（01_サーバ.mdのメッセージ処理表）
 import { beforeAll, describe, expect, it } from "vitest";
 import { registry } from "./registry";
-import { STUB_GAME_ID, stubGameModule } from "./test-support/stub-game-module";
-import { collectMessages, createRoom, openSocket, sendMessage, uniqueRoomCode } from "./test-support/room-do-test-helpers";
+import { STUB_CONTENT_ID, STUB_GAME_ID, stubGameModule } from "./test-support/stub-game-module";
+import {
+  collectMessages,
+  createRoom,
+  openSocket,
+  selectGameAndContent,
+  sendMessage,
+  uniqueRoomCode,
+} from "./test-support/room-do-test-helpers";
 
 beforeAll(() => {
   registry[STUB_GAME_ID] = stubGameModule;
@@ -21,9 +28,7 @@ async function setupRoomAtStage(code: string, stage: Lifecycle) {
     return { stub, host };
   }
 
-  const selectRecv = collectMessages(host, 1);
-  sendMessage(host, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
-  await selectRecv;
+  await selectGameAndContent(host, STUB_GAME_ID, STUB_CONTENT_ID);
 
   const startRecv = collectMessages(host, 2); // secret, state
   sendMessage(host, { v: 1, type: "start" });
@@ -144,6 +149,41 @@ describe("メッセージ処理表: 表にない組み合わせはerror", () => 
     sendMessage(spectator, { v: 1, type: "spectate" });
     const [state] = await spectateRecv;
     expect(state).not.toHaveProperty("contentId");
+  });
+
+  it("未登録contentIdのconfigureはinvalid_payloadで拒否される", async () => {
+    // settingsが妥当でもcontentIdが未登録なら拒否する。保存するとstartでゲームモジュールが引けない
+    const code = uniqueRoomCode("mt-unknown-content");
+    const stub = await createRoom(code);
+    const host = await openSocket(stub);
+    const hostJoin = collectMessages(host, 2);
+    sendMessage(host, { v: 1, type: "join", name: "Host", level: 3 });
+    await hostJoin;
+    const selectRecv = collectMessages(host, 1);
+    sendMessage(host, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
+    await selectRecv;
+
+    const recv = collectMessages(host, 1);
+    sendMessage(host, { v: 1, type: "configure", contentId: "no-such-content", settings: {} });
+    const [error] = await recv;
+    expect(error).toMatchObject({ type: "error", code: "invalid_payload" });
+  });
+
+  it("コンテンツ未選択のstartはinvalid_payloadで拒否される", async () => {
+    const code = uniqueRoomCode("mt-no-content");
+    const stub = await createRoom(code);
+    const host = await openSocket(stub);
+    const hostJoin = collectMessages(host, 2);
+    sendMessage(host, { v: 1, type: "join", name: "Host", level: 3 });
+    await hostJoin;
+    const selectRecv = collectMessages(host, 1);
+    sendMessage(host, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
+    await selectRecv;
+
+    const recv = collectMessages(host, 1);
+    sendMessage(host, { v: 1, type: "start" });
+    const [error] = await recv;
+    expect(error).toMatchObject({ type: "error", code: "invalid_payload" });
   });
 
   it("プロトコルバージョン不一致のjoin/spectateはunsupported_versionで拒否される（03_プロトコル.md）", async () => {

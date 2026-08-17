@@ -64,4 +64,18 @@ export function sendMessage(ws: WebSocket, message: Record<string, unknown>): vo
   ws.send(JSON.stringify(message));
 }
 
+/**
+ * ゲーム選択とコンテンツ選択をまとめて行う（stateを2回受信して待つ）。
+ *
+ * コンテンツを持つゲームは、選択しないと `start` が `invalid_payload` で拒否される（基本設計/01）。
+ */
+export async function selectGameAndContent(ws: WebSocket, gameId: string, contentId: string): Promise<void> {
+  const selectRecv = collectMessages(ws, 1);
+  sendMessage(ws, { v: V, type: "selectGame", gameId });
+  await selectRecv;
+  const configureRecv = collectMessages(ws, 1);
+  sendMessage(ws, { v: V, type: "configure", contentId, settings: {} });
+  await configureRecv;
+}
+
 export const V = 1;

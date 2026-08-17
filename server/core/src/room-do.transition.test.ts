@@ -1,11 +1,12 @@
 // 受入条件7: GameTransition.rejectが返ったとき状態が変わらない。resultが返ったときlifecycleがfinishedになる
 import { beforeAll, describe, expect, it } from "vitest";
 import { registry } from "./registry";
-import { STUB_GAME_ID, stubGameModule } from "./test-support/stub-game-module";
+import { STUB_CONTENT_ID, STUB_GAME_ID, stubGameModule } from "./test-support/stub-game-module";
 import {
   collectMessages,
   createRoom,
   openSocket,
+  selectGameAndContent,
   sendMessage,
   uniqueRoomCode,
 } from "./test-support/room-do-test-helpers";
@@ -23,9 +24,7 @@ describe("GameTransitionの反映", () => {
     const hostJoin = collectMessages(host, 2);
     sendMessage(host, { v: 1, type: "join", name: "Host", level: 3 });
     await hostJoin;
-    const selectRecv = collectMessages(host, 1);
-    sendMessage(host, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
-    await selectRecv;
+    await selectGameAndContent(host, STUB_GAME_ID, STUB_CONTENT_ID);
     const startRecv = collectMessages(host, 2);
     sendMessage(host, { v: 1, type: "start" });
     await startRecv;
@@ -57,9 +56,7 @@ describe("GameTransitionの反映", () => {
     const hostJoin = collectMessages(host, 2);
     sendMessage(host, { v: 1, type: "join", name: "Host", level: 3 });
     await hostJoin;
-    const selectRecv = collectMessages(host, 1);
-    sendMessage(host, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
-    await selectRecv;
+    await selectGameAndContent(host, STUB_GAME_ID, STUB_CONTENT_ID);
     const startRecv = collectMessages(host, 2);
     sendMessage(host, { v: 1, type: "start" });
     await startRecv;
@@ -92,9 +89,7 @@ describe("GameTransitionの反映", () => {
     const hostJoin = collectMessages(host, 2);
     sendMessage(host, { v: 1, type: "join", name: "Host", level: 3 });
     await hostJoin;
-    const selectRecv = collectMessages(host, 1);
-    sendMessage(host, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
-    await selectRecv;
+    await selectGameAndContent(host, STUB_GAME_ID, STUB_CONTENT_ID);
     const startRecv = collectMessages(host, 2);
     sendMessage(host, { v: 1, type: "start" });
     await startRecv;
@@ -112,9 +107,7 @@ describe("GameTransitionの反映", () => {
     const nextRecv = collectMessages(host, 1);
     sendMessage(host, { v: 1, type: "nextGame" });
     await nextRecv;
-    const reselect = collectMessages(host, 1);
-    sendMessage(host, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
-    await reselect;
+    await selectGameAndContent(host, STUB_GAME_ID, STUB_CONTENT_ID);
     const restart = collectMessages(host, 2);
     sendMessage(host, { v: 1, type: "start" });
     await restart;

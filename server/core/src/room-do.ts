@@ -293,6 +293,11 @@ export class RoomDO extends DurableObject<Env> {
     if (!validation.valid) {
       return this.sendError(ws, ERROR_CODES.INVALID_PAYLOAD, validation.reason ?? "invalid settings");
     }
+    // contentIdの範囲検証は共通コアの責務（基本設計/01のメッセージ処理表）。
+    // 未登録のidを保存するとstartでゲームモジュールが引けず、例外になる
+    if (message.contentId !== undefined && !gameModule.listContents().some((c) => c.id === message.contentId)) {
+      return this.sendError(ws, ERROR_CODES.INVALID_PAYLOAD, "unknown contentId");
+    }
 
     room.contentId = message.contentId;
     room.settings = message.settings;
@@ -316,6 +321,12 @@ export class RoomDO extends DurableObject<Env> {
     const [min, max] = gameModule.playerCount;
     if (room.players.length < min || room.players.length > max) {
       return this.sendError(ws, ERROR_CODES.PLAYER_COUNT_MISMATCH, "player count out of range");
+    }
+    // コンテンツを持つゲームは、選択されていなければ開始できない。
+    // コンテンツを持たないゲーム（listContentsが空）はこの検査の対象外とする
+    const contents = gameModule.listContents();
+    if (contents.length > 0 && !contents.some((c) => c.id === room.contentId)) {
+      return this.sendError(ws, ERROR_CODES.INVALID_PAYLOAD, "content not selected");
     }
 
     const startResult = gameModule.start({

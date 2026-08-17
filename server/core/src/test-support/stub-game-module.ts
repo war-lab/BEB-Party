@@ -22,13 +22,14 @@ export interface StubGameSecret {
 }
 
 export const STUB_GAME_ID = "stub-game";
+export const STUB_CONTENT_ID = "stub-content";
 
 export const stubGameModule: GameModule<StubPublicState, StubSecret, StubResult, StubGameSecret> = {
   id: STUB_GAME_ID,
   title: "Stub Game",
   playerCount: [1, 8],
 
-  listContents: () => [{ id: "stub-content", title: "Stub Content" }],
+  listContents: () => [{ id: STUB_CONTENT_ID, title: "Stub Content" }],
 
   validateSettings: (settings) => {
     if (settings === undefined) {

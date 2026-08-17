@@ -9,12 +9,13 @@
 import { runDurableObjectAlarm, runInDurableObject } from "cloudflare:test";
 import { beforeAll, describe, expect, it } from "vitest";
 import { registry } from "./registry";
-import { STUB_GAME_ID, stubGameModule } from "./test-support/stub-game-module";
+import { STUB_CONTENT_ID, STUB_GAME_ID, stubGameModule } from "./test-support/stub-game-module";
 import {
   collectMessages,
   createRoom,
   getStub,
   openSocket,
+  selectGameAndContent,
   sendMessage,
   uniqueRoomCode,
   upgradeToWebSocket,
@@ -44,9 +45,7 @@ describe("アラーム多重化", () => {
     const hostJoin = collectMessages(host, 2);
     sendMessage(host, { v: 1, type: "join", name: "Host", level: 3 });
     await hostJoin;
-    const selectRecv = collectMessages(host, 1);
-    sendMessage(host, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
-    await selectRecv;
+    await selectGameAndContent(host, STUB_GAME_ID, STUB_CONTENT_ID);
     const startRecv = collectMessages(host, 2);
     sendMessage(host, { v: 1, type: "start" });
     await startRecv;
@@ -76,9 +75,7 @@ describe("アラーム多重化", () => {
     await guestJoin;
     await hostRecvGuestJoin;
 
-    const selectRecv = Promise.all([collectMessages(host, 1), collectMessages(guest, 1)]);
-    sendMessage(host, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
-    await selectRecv;
+    await selectGameAndContent(host, STUB_GAME_ID, STUB_CONTENT_ID);
     const startRecv = Promise.all([collectMessages(host, 2), collectMessages(guest, 2)]);
     sendMessage(host, { v: 1, type: "start" });
     await startRecv;
@@ -127,9 +124,7 @@ describe("アラーム多重化", () => {
     const hostJoin = collectMessages(host, 2);
     sendMessage(host, { v: 1, type: "join", name: "Host", level: 3 });
     await hostJoin;
-    const selectRecv = collectMessages(host, 1);
-    sendMessage(host, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
-    await selectRecv;
+    await selectGameAndContent(host, STUB_GAME_ID, STUB_CONTENT_ID);
     const startRecv = collectMessages(host, 2);
     sendMessage(host, { v: 1, type: "start" });
     await startRecv;
