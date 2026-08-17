@@ -108,6 +108,21 @@ describe("start: 配役と秘密情報", () => {
     expect(gameSecret.culpritPlayerId).toBe(topPlayerId);
   });
 
+  it("最高レベルのプレイヤーが複数いる場合、その中から抽選する（初級者だけの組でも犯人が固定されない）", () => {
+    // 先頭固定にすると、初級者だけの組で毎回同じ犯人・同じ嘘になる
+    const culprits = new Set(
+      Array.from({ length: 60 }, (_, index) => start([2, 2, 1, 1, 1, 1], index + 1).gameSecret.culpritCharacterId),
+    );
+    expect(culprits.size).toBeGreaterThan(1);
+
+    // 抽選対象は最高レベル（この組では2）のプレイヤーに配役されたキャラクターに限る
+    for (const seed of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
+      const { players, gameSecret } = start([2, 2, 1, 1, 1, 1], seed);
+      const culpritLevel = players.find((player) => player.id === gameSecret.culpritPlayerId)!.level;
+      expect(culpritLevel).toBe(2);
+    }
+  });
+
   it("レベル3以上のプレイヤーが居る場合、犯人はその中から選ばれる", () => {
     for (const seed of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
       const { players, gameSecret } = start(SIX, seed);

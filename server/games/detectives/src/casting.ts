@@ -64,11 +64,11 @@ export function pickCulpritVariant(cast: CastMember[], variants: Variant[], rand
   }
 
   // 全員がレベル1〜2の組。最もレベルが高いプレイヤーのキャラクターを犯人にする。
-  // 同レベルが並ぶ場合はassignCastでシャッフル済みの順を使う（抽選をやり直さない）
-  const fallback = [...cast]
-    .sort((a, b) => b.level - a.level)
-    .map((member) => variants.find((variant) => variant.culprit === member.characterId))
-    .find((variant): variant is Variant => variant !== undefined);
+  // 同レベルのプレイヤーが複数いる場合はその中から抽選する。先頭を固定で選ぶと、
+  // 初級者だけの組で毎回同じ犯人・同じ嘘になり、リプレイ性が失われる（実測で確認）
+  const topLevel = Math.max(...cast.map((member) => member.level));
+  const topVariants = variants.filter((variant) => levelOf.get(variant.culprit) === topLevel);
+  const fallback = pickOne(topVariants, random);
 
   if (fallback === undefined) {
     throw new Error("配役されたキャラクターに対応するバリアントが1つも無い");
