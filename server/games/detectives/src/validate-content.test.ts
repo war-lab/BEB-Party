@@ -196,6 +196,17 @@ describe("5人版の導出と検証", () => {
     expect(merge[0]!.detail.join("\n")).toContain("統合後の所有者: c2");
   });
 
+  it("下限人数を宣言しているのにmerge5pがない事件をエラーにする", () => {
+    const broken = mutate(validCase(), (target) => {
+      for (const character of target.characters) {
+        character.merge5p = null;
+      }
+    });
+    const merge = errorsOf(validateCase(broken)).filter((finding) => finding.item === "merge5p");
+    expect(merge).toHaveLength(1);
+    expect(merge[0]!.message).toContain("merge5p");
+  });
+
   it("requires5pを指定すると5人版の検証が通る", () => {
     const fixed = mutate(mergeGapCase(), (target) => {
       // 5人版ではc2に統合されないc1側の事実を使わせる（設計上の解決）
@@ -220,6 +231,15 @@ describe("構造検証", () => {
     const messages = errorsOf(report).map((finding) => finding.message);
     expect(messages.some((message) => message.includes("ownerが存在しない"))).toBe(true);
     expect(messages.some((message) => message.includes("未知の参照"))).toBe(true);
+  });
+
+  it("証言を1枚も持たないキャラクターがいる事件を拒否する", () => {
+    const broken = mutate(validCase(), (target) => {
+      target.characters.push({ id: "c7", name: "c7 (role)", recommendedLevel: 3, merge5p: null });
+    });
+    const report = validateCase(broken);
+    expect(failedItems(report)).toEqual(["schema"]);
+    expect(errorsOf(report)[0]!.message).toContain("証言を1枚も持たない");
   });
 
   it("valueが重複する事件を拒否する", () => {

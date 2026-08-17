@@ -506,6 +506,13 @@ export function validateCase(content: unknown): ValidationReport {
   if (has5p(base)) {
     checkMergeDesign(base, findings);
     versions.push({ playerCount: "5p", target: derive5p(base) });
+  } else if (base.playerCount[0] < base.characters.length) {
+    // 下限人数を宣言しているのに統合指定がなければ、その人数では配役できない
+    findings.error(
+      "merge5p",
+      { variant: null, playerCount: null },
+      `playerCountの下限は${base.playerCount[0]}人だが、${base.characters.length}人から減らす統合指定（merge5p）がない`,
+    );
   }
 
   for (const version of versions) {

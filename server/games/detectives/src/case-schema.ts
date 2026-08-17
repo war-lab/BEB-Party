@@ -142,6 +142,15 @@ function checkFacts(raw: unknown, characters: Character[], issues: IssueCollecto
     facts.push(entry as unknown as Fact);
   });
 
+  // 証言を1枚も持たないキャラクターは配役できない。
+  // 検証2はキャラクター単位で「除くと解けなくなるか」を見るため、事実を持たない
+  // キャラクターは常に合格になる。ここで弾かないと穴が検証をすり抜ける
+  for (const character of characters) {
+    if (!facts.some((fact) => fact.owner === character.id)) {
+      issues.add(`characters[${character.id}]`, "証言を1枚も持たないキャラクターがいる");
+    }
+  }
+
   return facts;
 }
 
