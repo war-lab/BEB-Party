@@ -137,6 +137,23 @@ test("捜査中に切断してもカードが消えず、自動復帰する", as
   }
 });
 
+test("遊び方から収録ゲームのルールを読める", async ({ page, baseURL }) => {
+  // 部屋を作らないため、レート制限のためのIP分離は不要
+  await page.goto(baseURL!);
+  await page.click("text=遊び方");
+
+  const sheet = page.locator("[data-testid='how-to-play']");
+  await expect(sheet).toBeVisible();
+  await expect(sheet).toContainText("同じ部屋にいる5〜6人で遊ぶ");
+  // ゲームごとのルールは動的importで読み込まれる
+  await expect(sheet).toContainText("ENGLISH DETECTIVES", { timeout: 10_000 });
+  await expect(sheet).toContainText("嘘は1人の証言だけでは割れない");
+  await expect(sheet).toContainText("同数で並んだ場合は犯人の勝ち");
+
+  await page.click("text=閉じる");
+  await expect(sheet).toHaveCount(0);
+});
+
 test("配役カットインはタップするまで役柄をDOMに出さない", async ({ browser, baseURL }) => {
   test.slow();
   const table = await openTable(browser, baseURL!, [5, 4, 3, 3, 2, 1], { testTitle: test.info().title });

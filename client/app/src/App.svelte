@@ -7,6 +7,11 @@
   const gameScreens: Record<string, () => Promise<{ default: Component }>> = {
     detectives: () => import("@beb/client-detectives") as Promise<{ default: Component }>,
   };
+
+  // gameId→遊び方ローダーのテーブル。ルール説明もゲームモジュールが持つ
+  const gameGuides: Record<string, () => Promise<{ default: Component }>> = {
+    detectives: () => import("@beb/client-detectives/guide") as Promise<{ default: Component }>,
+  };
 </script>
 
-<ClientCoreApp {gameScreens} />
+<ClientCoreApp {gameScreens} {gameGuides} />

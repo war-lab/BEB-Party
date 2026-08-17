@@ -4,18 +4,21 @@
   import { connect, disconnect } from "./connection";
   import ConnectionBanner from "./components/ConnectionBanner.svelte";
   import Home from "./components/Home.svelte";
+  import HowToPlay from "./components/HowToPlay.svelte";
   import Lobby from "./components/Lobby.svelte";
   import LicenseNotice from "./components/LicenseNotice.svelte";
   import UnknownStage from "./components/UnknownStage.svelte";
 
   let showLicense = $state(false);
+  let showHowToPlay = $state(false);
 
   // client/appがgameId→画面ローダーのテーブルを組み立てて渡す。client/coreはここに何が
   // 登録されているかを知らない（基本設計/07、ADR-0009）
   interface Props {
     gameScreens: Record<string, () => Promise<{ default: Component }>>;
+    gameGuides: Record<string, () => Promise<{ default: Component }>>;
   }
-  let { gameScreens }: Props = $props();
+  let { gameScreens, gameGuides }: Props = $props();
 
   let code = $state<string | null>(null);
   let gameScreen = $state<Component | null>(null);
@@ -76,8 +79,14 @@
 {/if}
 
 <footer class="license-footer">
+  <!-- 遊び方はどの画面からも開ける。捜査中にルールを確認したい場面があるため -->
+  <button class="license-link" onclick={() => (showHowToPlay = true)}>遊び方</button>
   <button class="license-link" onclick={() => (showLicense = true)}>書体のライセンス表記</button>
 </footer>
+
+{#if showHowToPlay}
+  <HowToPlay {gameGuides} onClose={() => (showHowToPlay = false)} />
+{/if}
 
 {#if showLicense}
   <LicenseNotice onClose={() => (showLicense = false)} />
@@ -90,6 +99,8 @@
     right: 0;
     padding: 0.25rem 0.5rem;
     z-index: 900;
+    display: flex;
+    gap: 0.75rem;
   }
   .license-link {
     background: none;
