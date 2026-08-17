@@ -1,5 +1,5 @@
 {
-  "name": "@beb/server-detectives",
+  "name": "@beb/engine",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,10 +9,5 @@
   "scripts": {
     "check": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
-  },
-  "dependencies": {
-    "@beb/engine": "workspace:*",
-    "@beb/shared-core": "workspace:*",
-    "@beb/shared-detectives": "workspace:*"
   }
 }

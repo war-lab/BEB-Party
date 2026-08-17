@@ -1,5 +1,6 @@
 packages:
   - shared/core
+  - shared/engine
   - shared/games/detectives
   - server/core
   - server/games/detectives

@@ -119,6 +119,9 @@ importers:
 
   server/games/detectives:
     dependencies:
+      '@beb/engine':
+        specifier: workspace:*
+        version: link:../../../shared/engine
       '@beb/shared-core':
         specifier: workspace:*
         version: link:../../../shared/core
@@ -128,6 +131,8 @@ importers:
 
   shared/core: {}
 
+  shared/engine: {}
+
   shared/games/detectives:
     dependencies:
       '@beb/shared-core':
@@ -136,6 +141,9 @@ importers:
 
   tools:
     dependencies:
+      '@beb/engine':
+        specifier: workspace:*
+        version: link:../shared/engine
       '@beb/server-detectives':
         specifier: workspace:*
         version: link:../server/games/detectives

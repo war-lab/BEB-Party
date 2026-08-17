@@ -17,6 +17,18 @@ const noDynamicDetectivesImport = {
   message: "ゲームモジュールを動的importできるのはregistry.tsだけ（不変条件4、ADR-0009）",
 };
 
+// server/ が tools/ を参照しないことの機械的な担保（07「toolsがサーバ側パッケージに依存する件」）。
+// 依存の向きは tools -> server の一方向で閉じる。逆流するとWorkerのバンドルにCI専用コードが入りうる
+const noToolsImportPattern = {
+  group: ["@beb/tools"],
+  message: "server/ から tools/ を参照しない。依存の向きは tools -> server の一方向で閉じる（07）",
+};
+
+const noGameModuleImportPattern = {
+  group: ["@beb/*-detectives"],
+  message: "server/core/ でゲームモジュールをimportできるのはregistry.tsだけ（不変条件4、ADR-0009）",
+};
+
 const noWsAccept = {
   selector: "CallExpression[callee.property.name='accept']",
   message: "ws.accept()は禁止。Hibernation APIのみ使用する（ADR-0002、CLAUDE.md不変条件6）",
@@ -104,18 +116,15 @@ export default tseslint.config(
     files: ["server/core/src/**/*.ts"],
     ignores: ["server/core/src/registry.ts", "server/core/src/**/*.test.ts", "server/core/src/test-support/**"],
     rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: ["@beb/*-detectives"],
-              message: "server/core/ でゲームモジュールをimportできるのはregistry.tsだけ（不変条件4、ADR-0009）",
-            },
-          ],
-        },
-      ],
+      "no-restricted-imports": ["error", { patterns: [noGameModuleImportPattern, noToolsImportPattern] }],
       "no-restricted-syntax": ["error", noDynamicDetectivesImport, noDetectivesLiteral, noWsAccept],
+    },
+  },
+  // registry.tsはゲームモジュールのimportだけが許される。tools/への依存は他と同じく禁止する
+  {
+    files: ["server/core/src/registry.ts"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [noToolsImportPattern] }],
     },
   },
   // server/games/*（server/core・テストコード以外のserver/配下）
@@ -124,6 +133,7 @@ export default tseslint.config(
     files: ["server/**/*.ts"],
     ignores: ["server/core/src/**/*.ts", "server/**/*.test.ts", "server/**/test-support/**"],
     rules: {
+      "no-restricted-imports": ["error", { patterns: [noToolsImportPattern] }],
       "no-restricted-syntax": ["error", noDetectivesLiteral, noWsAccept],
     },
   },
@@ -131,20 +141,19 @@ export default tseslint.config(
   // テストヘルパーがクライアント側WebSocketPairで呼ぶ.accept()とは無関係のため対象外とする。
   // detectivesリテラル・動的import禁止はテストコードにも適用する
   {
-    files: ["server/**/*.test.ts", "server/**/test-support/**/*.ts"],
+    files: ["server/core/src/**/*.test.ts", "server/core/src/test-support/**/*.ts"],
     rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: ["@beb/*-detectives"],
-              message: "server/core/ でゲームモジュールをimportできるのはregistry.tsだけ（不変条件4、ADR-0009）",
-            },
-          ],
-        },
-      ],
+      "no-restricted-imports": ["error", { patterns: [noGameModuleImportPattern, noToolsImportPattern] }],
       "no-restricted-syntax": ["error", noDynamicDetectivesImport, noDetectivesLiteral],
+    },
+  },
+  // server/games/* のテストコード: 自分のパッケージが依存してよい@beb/shared-detectivesを使うため、
+  // ゲームモジュールのimport禁止は課さない。tools/への逆流とdetectivesリテラルのみ禁止する
+  {
+    files: ["server/games/**/*.test.ts", "server/games/**/test-support/**/*.ts"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [noToolsImportPattern] }],
+      "no-restricted-syntax": ["error", noDetectivesLiteral],
     },
   },
   // shared/core/ client/core/: ゲームモジュールをimportしない（検査2、静的・動的とも）+ 検査3 + 検査5
@@ -171,11 +180,29 @@ export default tseslint.config(
       ],
     },
   },
-  // shared/games/*, tools/*: 検査3のみ（svelteファイルを持たないため検査5は対象外）
+  // shared/games/*, shared/engine/*, tools/*: 検査3のみ（svelteファイルを持たないため検査5は対象外）
   {
-    files: ["shared/games/**/*.ts", "tools/**/*.ts"],
+    files: ["shared/games/**/*.ts", "shared/engine/**/*.ts", "tools/**/*.ts"],
     rules: {
       "no-restricted-syntax": ["error", noDetectivesLiteral],
+    },
+  },
+  // shared/engine/: 汎用推論エンジンはどのパッケージにも依存しない（ADR-0014）。
+  // ゲーム固有の語彙が混入していないことは、検査3に加えて@beb/*のimport禁止で機械的に担保する
+  {
+    files: ["shared/engine/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@beb/*"],
+              message: "推論エンジンは他パッケージに依存しない（ADR-0014、07のパッケージ表）",
+            },
+          ],
+        },
+      ],
     },
   },
   // client/games/*: 検査3 + 検査5

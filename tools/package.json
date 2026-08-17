@@ -9,6 +9,7 @@
     "validate:content": "tsx src/validate-content.ts"
   },
   "dependencies": {
+    "@beb/engine": "workspace:*",
     "@beb/server-detectives": "workspace:*",
     "@beb/shared-core": "workspace:*",
     "@beb/shared-detectives": "workspace:*"

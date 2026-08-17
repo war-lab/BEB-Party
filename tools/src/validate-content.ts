@@ -1,20 +1,19 @@
-import { existsSync, readdirSync } from "node:fs";
+// 事件データ検証のCLIエントリ。実装は validate/run.ts にある。
+// ゲームを追加するときは validators に1行足す（05_ゲームモジュール.md「ゲームを追加する手順」）
 import { fileURLToPath } from "node:url";
+import { validateCase } from "@beb/server-detectives";
+import { runValidation, type GameValidator } from "./validate/run";
 
-// M0時点ではDETECTIVESのcontent/がまだ存在しないため、ディレクトリ自体が無ければスキップする。
-// ディレクトリがあって0件の場合はエラーとする（07_リポジトリとツールチェーン.md、04_事件データと検証.md）
-const contentDir = fileURLToPath(new URL("../../content/detectives", import.meta.url));
+const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 
-if (!existsSync(contentDir)) {
-  console.log("::notice::content/detectives が存在しないため検証をスキップする");
-  process.exit(0);
+const validators: GameValidator[] = [{ contentPath: "content/detectives", validate: validateCase }];
+
+const result = runValidation(repoRoot, validators);
+for (const line of result.lines) {
+  if (line.startsWith("[ERROR]")) {
+    console.error(line);
+  } else {
+    console.log(line);
+  }
 }
-
-const entries = readdirSync(contentDir);
-if (entries.length === 0) {
-  console.error("content/detectives が空である");
-  process.exit(1);
-}
-
-// M1以降で実際の検証7項目を実装する
-console.log(`content/detectives の ${entries.length}件を検証対象として検出した（検証ロジックはM1で実装）`);
+process.exit(result.exitCode);

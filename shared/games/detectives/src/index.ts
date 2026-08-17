@@ -1,2 +1,14 @@
-// M1以降でDETECTIVES固有の型・ステージ定数・コンテンツスキーマを実装する
-export {};
+// 事件データのスキーマ型（正本）。ステージ定数・秘密情報の型はM2で追加する
+export type {
+  Case,
+  Character,
+  Contradiction,
+  Disclosure,
+  Fact,
+  KeyExpression,
+  LevelText,
+  Lie,
+  PlayerCountVariant,
+  Reveal,
+  Variant,
+} from "./case";
