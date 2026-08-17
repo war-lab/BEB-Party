@@ -43,8 +43,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--ground);
-    color: var(--panel);
+    background: linear-gradient(180deg, #101838, var(--ground));
+    color: var(--mist);
     font-family: var(--font-body);
   }
 </style>

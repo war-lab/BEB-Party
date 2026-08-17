@@ -51,6 +51,41 @@ export async function readStateMessages(page: Page): Promise<string[]> {
   return page.evaluate(() => (window as unknown as { __states: string[] }).__states ?? []);
 }
 
+/** ホーム画面でなまえとレベルを入れる（レベルはチップ選択） */
+async function fillIdentity(page: Page, name: string, level: number): Promise<void> {
+  await page.fill('input[placeholder="なまえ"]', name);
+  await page.click(`.level-chip:has-text("Lv.${level}")`);
+}
+
+/** 部屋を作ってロビーへ入る */
+export async function createRoom(page: Page, baseURL: string, name: string, level: number): Promise<void> {
+  await page.goto(baseURL);
+  await fillIdentity(page, name, level);
+  await page.click("text=部屋を作る");
+  await page.waitForSelector(".room-chip .code");
+}
+
+/** 部屋コードで参加する */
+export async function joinRoom(
+  page: Page,
+  baseURL: string,
+  name: string,
+  level: number,
+  code: string,
+): Promise<void> {
+  await page.goto(baseURL);
+  await fillIdentity(page, name, level);
+  await page.click("text=部屋に参加する");
+  await page.fill('input[placeholder="部屋コード"]', code);
+  await page.click("text=参加する");
+  await page.waitForSelector(".room-chip .code");
+}
+
+/** ロビーに表示されている部屋コードを読む */
+export async function readRoomCode(page: Page): Promise<string> {
+  return ((await page.locator(".room-chip .code").textContent()) ?? "").trim();
+}
+
 /** 人数分のコンテキストを開き、部屋を作って全員を参加させる */
 export async function openTable(
   browser: Browser,
@@ -75,25 +110,15 @@ export async function openTable(
   }
 
   const host = pages[0]!;
-  await host.goto(baseURL);
-  await host.fill('input[placeholder="なまえ"]', "Player1");
-  await host.selectOption("select", String(levels[0]));
-  await host.click("button.primary");
-  await host.waitForSelector("h1:has-text('部屋 ')");
-  const code = ((await host.locator("h1").textContent()) ?? "").replace("部屋 ", "").trim();
+  await createRoom(host, baseURL, "Player1", levels[0]!);
+  const code = await readRoomCode(host);
 
   for (let index = 1; index < pages.length; index += 1) {
-    const page = pages[index]!;
-    await page.goto(baseURL);
-    await page.fill('input[placeholder="なまえ"]', `Player${index + 1}`);
-    await page.selectOption("select", String(levels[index]));
-    await page.fill('input[placeholder="部屋コード"]', code);
-    await page.click("text=参加する");
-    await page.waitForSelector("h1:has-text('部屋 ')");
+    await joinRoom(pages[index]!, baseURL, `Player${index + 1}`, levels[index]!, code);
   }
 
   for (const page of pages) {
-    await expect(page.locator(".participants .tile")).toHaveCount(levels.length, { timeout: 10_000 });
+    await expect(page.locator(".roster .beb-tile:not(.empty)")).toHaveCount(levels.length, { timeout: 10_000 });
   }
 
   return {
@@ -107,18 +132,28 @@ export async function openTable(
 
 /** ホストがゲームと事件を選び、開始する */
 export async function startGame(host: Page): Promise<void> {
-  await host.click("text=ENGLISH DETECTIVES");
-  await host.click("text=The Missing Laptop");
-  await host.click("button.primary:has-text('はじめる')");
+  await host.click(".title-card:has-text('ENGLISH DETECTIVES')");
+  await host.click(".content-chip:has-text('The Missing Laptop')");
+  await host.click(".beb-btn:has-text('ゲームスタート')");
 }
 
-/** 全員が配役カットインを開いて準備完了を送る */
+/**
+ * 全員が配役カットインを開いて準備完了を送る。
+ *
+ * 送信が受理されたことを画面で確かめてから次の人へ進む。
+ * 最後の1人が送った時点で捜査へ遷移するため、待つ対象は「ボタンの無効化」か「捜査のタイマー」のどちらかになる。
+ */
 export async function readyAll(pages: Page[]): Promise<void> {
   for (const page of pages) {
     await page.waitForSelector("[data-testid='role-cover']");
     await page.click("[data-testid='role-cover']");
-    await page.click("text=確認した");
-    await page.click("text=準備できた");
+    await page.click(".beb-btn:has-text('確認した')");
+    await page.click(".beb-btn:has-text('準備できた')");
+    await expect(
+      page
+        .locator(".beb-btn:has-text('他の人を待っています'), [data-testid='stage-timer']:has-text('捜査フェーズ')")
+        .first(),
+    ).toBeVisible({ timeout: 10_000 });
   }
 }
 
@@ -132,7 +167,7 @@ export async function voteAll(pages: Page[]): Promise<void> {
   for (const page of pages) {
     await page.waitForSelector("button.suspect");
     await page.locator("button.suspect").first().click();
-    await page.click("text=この人にする");
+    await page.click("text=この人に投票する");
     await expect(page.locator("[data-testid='vote-done'], [data-testid='outcome']").first()).toBeVisible();
   }
 }

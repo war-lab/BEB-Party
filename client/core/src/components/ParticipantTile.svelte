@@ -1,5 +1,7 @@
+<!-- 参加者タイル。格闘ゲームのキャラクターセレクトの文法（ビジュアルデザイン.md） -->
 <script lang="ts">
   import type { Player } from "@beb/shared-core";
+  import { faceColor } from "../face-color";
 
   interface Props {
     player: Player;
@@ -7,9 +9,10 @@
   let { player }: Props = $props();
 </script>
 
-<div class="tile" class:disconnected={!player.connected}>
-  <p class="name">{player.name}</p>
-  <p class="stars" aria-label={`レベル${player.level}`}>{"★".repeat(player.level)}{"☆".repeat(5 - player.level)}</p>
+<div class="beb-tile" class:disconnected={!player.connected}>
+  <div class="face" style={`background:${faceColor(player.id)}`}></div>
+  <span class="tile-name">{player.name}</span>
+  <span class="lv" aria-label={`レベル${player.level}`}>Lv.{player.level}</span>
   {#if player.isHost}
     <span class="host-badge">HOST</span>
   {/if}
@@ -19,43 +22,29 @@
 </div>
 
 <style>
-  .tile {
+  .beb-tile {
     position: relative;
-    background: var(--panel);
-    color: var(--ink);
-    border: var(--outline-width) solid var(--ink);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-hard);
-    padding: 0.75rem;
-    text-align: center;
-    font-family: var(--font-body);
   }
-  .tile.disconnected {
-    opacity: 0.5;
-  }
-  .name {
-    font-weight: 700;
-    margin: 0 0 0.25rem;
-  }
-  .stars {
-    color: var(--yellow);
-    margin: 0;
+  .beb-tile.disconnected {
+    opacity: 0.55;
   }
   .host-badge {
     position: absolute;
-    top: -0.5rem;
-    right: -0.5rem;
+    top: -0.55rem;
+    right: -0.4rem;
     background: var(--red);
-    color: white;
+    color: #fff;
     border-radius: var(--radius-button);
-    padding: 0.1rem 0.5rem;
-    font-size: 0.7rem;
-    /* ラテン文字のみのバッジなので表示書体のままでよい */
+    padding: 0.05rem 0.45rem;
+    font-size: 0.62rem;
     font-family: var(--font-display);
+    transform: rotate(6deg);
   }
   .disconnected-badge {
     display: block;
-    font-size: 0.7rem;
-    margin-top: 0.25rem;
+    font-size: 0.62rem;
+    font-weight: 700;
+    margin-top: 0.2rem;
+    color: var(--ink-soft);
   }
 </style>

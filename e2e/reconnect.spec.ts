@@ -5,7 +5,7 @@
 // detectives-playthrough.spec.tsが検証する。両方を残すのは、ゲーム選択前の経路も
 // 実際に使われるためである。
 import { test, expect, type WebSocketRoute } from "@playwright/test";
-import { clientIpHeaders } from "./support/room";
+import { clientIpHeaders, createRoom, readRoomCode } from "./support/room";
 
 // 部屋作成はIPごとに5回/60秒。テストごとにIPを分ける（support/room.tsのclientIpHeaders）
 test.use({ extraHTTPHeaders: clientIpHeaders("reconnect-lobby") });
@@ -22,24 +22,20 @@ test("disconnecting the WebSocket keeps the last snapshot and recovers automatic
     route = ws;
   });
 
-  await page.goto(baseURL!);
-  await page.fill('input[placeholder="なまえ"]', "Host");
-  await page.click("button.primary");
-  await page.waitForSelector("h1:has-text('部屋 ')");
-  await expect(page.locator(".participants .tile")).toHaveCount(1);
+  await createRoom(page, baseURL!, "Host", 3);
+  await expect(page.locator(".roster .beb-tile:not(.empty)")).toHaveCount(1);
 
-  const codeBefore = (await page.locator("h1").textContent())?.replace("部屋 ", "").trim();
+  const codeBefore = await readRoomCode(page);
 
   // WebSocketを強制切断する(ページはリロードしない。JS上のserverStateはそのまま)
   route?.close();
 
   // 再接続バナーが出る間も、直前のスナップショット(参加者タイル)が消えずに維持される
   await expect(page.locator("text=再接続しています")).toBeVisible({ timeout: 5000 });
-  await expect(page.locator(".participants .tile")).toHaveCount(1);
-  const codeDuringReconnect = (await page.locator("h1").textContent())?.replace("部屋 ", "").trim();
-  expect(codeDuringReconnect).toBe(codeBefore);
+  await expect(page.locator(".roster .beb-tile:not(.empty)")).toHaveCount(1);
+  expect(await readRoomCode(page)).toBe(codeBefore);
 
   // 自動再接続で復帰し、バナーが消える
   await expect(page.locator("text=再接続しています")).not.toBeVisible({ timeout: 15_000 });
-  await expect(page.locator(".participants .tile")).toHaveCount(1);
+  await expect(page.locator(".roster .beb-tile:not(.empty)")).toHaveCount(1);
 });

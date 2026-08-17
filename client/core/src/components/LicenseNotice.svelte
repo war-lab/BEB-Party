@@ -24,7 +24,7 @@
         <a href="/fonts/m-plus-rounded-1c.OFL.txt" target="_blank" rel="noopener">SIL Open Font License 1.1 全文</a>
       </li>
     </ul>
-    <button onclick={onClose}>閉じる</button>
+    <button class="beb-btn blue" onclick={onClose}><span>閉じる</span></button>
   </div>
 </div>
 
@@ -41,10 +41,17 @@
   .panel {
     background: var(--panel);
     color: var(--ink);
+    border: var(--outline-width) solid var(--ink);
     border-radius: var(--radius-card);
+    box-shadow: var(--shadow-hard);
     padding: 1.5rem;
     max-width: 90vw;
     font-family: var(--font-body);
+  }
+  h2 {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    margin-top: 0;
   }
   ul {
     list-style: none;
@@ -52,5 +59,6 @@
   }
   li {
     margin-bottom: 1rem;
+    font-size: 0.85rem;
   }
 </style>

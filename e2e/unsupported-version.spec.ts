@@ -31,7 +31,7 @@ test("unsupported_version never causes more than one join per connection (no rec
 
   await page.goto(baseURL!);
   await page.fill('input[placeholder="なまえ"]', "Host");
-  await page.click("button.primary");
+  await page.click("text=部屋を作る");
 
   // モックは常にunsupported_versionを返し続けるため、その都度location.reload()で
   // ページ自体が繰り返しリロードされる。ここではその複数回のリロードを許容したうえで、

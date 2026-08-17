@@ -1,4 +1,4 @@
-<!-- 捜査画面。証言カード・制約・タイマー・質問テンプレート・役柄の再確認（基本設計/02、08） -->
+<!-- 捜査HUD（ビジュアルデザイン.mdのモック `.s-inv`）。深紺の地、上部に太いタイマー、白カードで可読性最優先 -->
 <script lang="ts">
   import type { Room } from "@beb/shared-core";
   import { ACTIONS, type DetectivesPublic, type DetectivesSecret } from "@beb/shared-detectives";
@@ -26,48 +26,52 @@
   $effect(() => acquireWakeLock());
 </script>
 
-<StageTimer deadline={room.deadline} />
-
 <main class="investigation">
-  <header>
-    <h1>捜査</h1>
-    <button class="role-button" onclick={() => (showRole = true)}>役柄を確認</button>
-  </header>
+  <StageTimer deadline={room.deadline} label="捜査フェーズ" />
 
-  {#if secret}
-    <section class="constraints" data-testid="constraints">
-      <h2>このレベルの制約</h2>
-      <ul>
-        {#each secret.constraints as constraint (constraint)}
-          <li>{constraint}</li>
-        {/each}
-      </ul>
-    </section>
+  <div class="body">
+    <header>
+      <span class="role-label">{characterName}</span>
+      <button class="role-button" onclick={() => (showRole = true)}>役柄を確認</button>
+    </header>
 
-    {#if secret.questionTemplates}
-      <section class="templates">
-        <h2>質問のことば</h2>
+    {#if secret}
+      <section class="constraints" data-testid="constraints">
+        <h2>このレベルの制約</h2>
         <ul>
-          {#each secret.questionTemplates as template (template)}
-            <li>{template}</li>
+          {#each secret.constraints as constraint (constraint)}
+            <li>{constraint}</li>
           {/each}
         </ul>
       </section>
+
+      <section class="cards">
+        <h2>あなたの証言</h2>
+        {#each secret.cards as card (card.factId)}
+          <TestimonyCardView {card} />
+        {/each}
+      </section>
+
+      {#if secret.questionTemplates}
+        <section class="templates">
+          <h2>質問のことば</h2>
+          <ul class="q-row">
+            {#each secret.questionTemplates as template (template)}
+              <li class="q">{template}</li>
+            {/each}
+          </ul>
+        </section>
+      {/if}
+    {:else}
+      <p class="waiting">証言を受信しています…</p>
     {/if}
 
-    <section class="cards">
-      <h2>あなたの証言</h2>
-      {#each secret.cards as card (card.factId)}
-        <TestimonyCardView {card} />
-      {/each}
-    </section>
-  {:else}
-    <p>証言を受信しています…</p>
-  {/if}
-
-  {#if isHost}
-    <button class="primary" onclick={() => sendAction(ACTIONS.endInvestigation)}>投票へ進む</button>
-  {/if}
+    {#if isHost}
+      <button class="beb-btn red end" onclick={() => sendAction(ACTIONS.endInvestigation)}>
+        <span>投票へ進む</span>
+      </button>
+    {/if}
+  </div>
 </main>
 
 {#if showRole && secret}
@@ -77,62 +81,95 @@
 <style>
   .investigation {
     min-height: 100vh;
-    background: var(--sky);
-    color: var(--ink);
+    background: linear-gradient(180deg, #101838, var(--ground));
+    color: var(--panel);
     font-family: var(--font-body);
-    padding: 1rem 1rem calc(1rem + var(--footer-clearance));
+    display: flex;
+    flex-direction: column;
   }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem 0.75rem calc(0.75rem + var(--footer-clearance));
+  }
+
   header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
   }
-  h1 {
+
+  .role-label {
     font-family: var(--font-display);
+    font-size: 0.95rem;
+    color: var(--yellow);
+    transform: skew(var(--skew-angle));
   }
+
+  .role-button {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 0.75rem;
+    color: var(--ink);
+    background: var(--panel);
+    border: var(--outline-width) solid var(--ink);
+    border-radius: var(--radius-button);
+    padding: 0.25rem 0.8rem;
+    cursor: pointer;
+  }
+
   h2 {
     font-family: var(--font-heading);
     font-weight: var(--font-heading-weight);
-    font-size: 1rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    color: var(--yellow);
+    margin: 0.8rem 0 0.35rem;
   }
-  .role-button {
-    background: var(--panel);
-    color: var(--ink);
-    border: var(--outline-width) solid var(--ink);
-    border-radius: var(--radius-button);
-    padding: 0.4rem 1rem;
-    font-family: var(--font-heading);
-    font-weight: var(--font-heading-weight);
-  }
-  .constraints ul,
-  .templates ul {
+
+  .constraints ul {
     list-style: none;
     padding: 0;
+    margin: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.35rem;
   }
   .constraints li {
-    background: var(--ink);
+    background: var(--ground-2);
+    border: 2px solid rgba(255, 255, 255, 0.16);
     color: var(--panel);
     border-radius: var(--radius-button);
-    padding: 0.25rem 0.75rem;
-    font-size: 0.85rem;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.75rem;
   }
-  .templates li {
-    background: var(--panel);
-    border: 1px solid var(--ink);
-    border-radius: var(--radius-button);
-    padding: 0.25rem 0.75rem;
+
+  .q-row {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
   }
-  .primary {
-    background: var(--red);
-    color: white;
-    border: none;
+  .q {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: #dce9ff;
+    border: 2px solid var(--blue);
     border-radius: var(--radius-button);
-    padding: 0.75rem 2rem;
-    font-family: var(--font-heading);
-    font-weight: var(--font-heading-weight);
-    box-shadow: var(--shadow-hard);
+    padding: 0.25rem 0.7rem;
+  }
+
+  .waiting {
+    color: var(--mist);
+  }
+
+  .end {
+    margin-top: 1.1rem;
   }
 </style>

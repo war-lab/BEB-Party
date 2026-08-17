@@ -1,3 +1,4 @@
+<!-- ロビー。キャラクターセレクト風のグリッドとタイトルカード（ビジュアルデザイン.mdのモック） -->
 <script lang="ts">
   import type { GameSummary } from "@beb/shared-core";
   import { serverState } from "../stores/server-state.svelte";
@@ -10,10 +11,13 @@
   }
   let { code }: Props = $props();
 
+  const MAX_TILES = 6;
+
   let catalog = $state<GameSummary[]>([]);
   let qrSvg = $state<string | null>(null);
   let investigationSeconds = $state(600);
   let contentId = $state<string | null>(null);
+  let showQr = $state(false);
 
   $effect(() => {
     fetch("/api/catalog")
@@ -37,6 +41,7 @@
   const isHost = $derived(room?.players.find((p) => p.id === ui.myPlayerId)?.isHost ?? false);
   const selectedGame = $derived(catalog.find((game) => game.id === room?.gameId));
   const contents = $derived(selectedGame?.contents ?? []);
+  const emptySlots = $derived(Math.max(0, MAX_TILES - (room?.players.length ?? 0)));
 
   function selectGame(gameId: string): void {
     contentId = null;
@@ -63,50 +68,62 @@
 </script>
 
 <main class="lobby">
-  <h1>部屋 {code}</h1>
+  <div class="room-chip">
+    <span class="lbl">ROOM CODE</span>
+    <span class="code">{code}</span>
+    <button class="qr-toggle" onclick={() => (showQr = !showQr)}>{showQr ? "とじる" : "QR"}</button>
+  </div>
 
-  <div class="qr-panel">
-    {#if qrSvg}
+  {#if showQr && qrSvg}
+    <div class="qr-panel">
       <!-- uqrのrenderSVGが自室コードURLから生成したSVGであり、外部・ユーザー入力は含まれない -->
       <!-- eslint-disable-next-line svelte/no-at-html-tags -->
       {@html qrSvg}
-    {/if}
-    <p>このコードで参加: <strong>{code}</strong></p>
-  </div>
+      <p>このコードで参加: <strong>{code}</strong></p>
+    </div>
+  {/if}
 
-  <section class="participants">
+  <section class="roster" aria-label="参加者">
     {#each room?.players ?? [] as player (player.id)}
       <ParticipantTile {player} />
+    {/each}
+    {#each Array.from({ length: emptySlots }, (_, index) => index) as slot (slot)}
+      <div class="beb-tile empty">待機中…</div>
     {/each}
   </section>
 
   {#if isHost}
     <section class="host-controls">
       <h2>ゲームを選ぶ</h2>
-      <ul class="catalog">
+      <ul class="title-cards">
         {#each catalog as game (game.id)}
           <li>
-            <button onclick={() => selectGame(game.id)} class:selected={room?.gameId === game.id}>
-              {game.title}
+            <button class="title-card" class:selected={room?.gameId === game.id} onclick={() => selectGame(game.id)}>
+              <span class="title-card-name">{game.title}</span>
+              <span class="title-card-meta">{game.playerCount[0]}〜{game.playerCount[1]}人</span>
             </button>
           </li>
         {/each}
       </ul>
 
       {#if room?.gameId}
-        <h2>コンテンツを選ぶ</h2>
-        <ul class="catalog">
+        <h2>事件を選ぶ</h2>
+        <ul class="content-chips">
           {#each contents as content (content.id)}
             <li>
-              <button onclick={() => configure(content.id)} class:selected={room?.contentId === content.id}>
+              <button
+                class="content-chip"
+                class:selected={room?.contentId === content.id}
+                onclick={() => configure(content.id)}
+              >
                 {content.title}
               </button>
             </li>
           {/each}
         </ul>
 
-        <label>
-          捜査時間(秒)
+        <label class="seconds">
+          <span class="seconds-label">捜査時間（秒）</span>
           <input
             type="number"
             bind:value={investigationSeconds}
@@ -116,60 +133,190 @@
             onchange={() => (contentId ? configure(contentId) : undefined)}
           />
         </label>
-        <button class="primary" onclick={start} disabled={!room?.contentId}>はじめる</button>
+
+        <button class="beb-btn yellow" onclick={start} disabled={!room?.contentId}><span>ゲームスタート</span></button>
       {/if}
     </section>
+  {:else}
+    <p class="waiting-note">ホストが始めるのを待っています…</p>
   {/if}
 </main>
 
 <style>
   .lobby {
     min-height: 100vh;
-    background: var(--sky);
-    color: var(--ink);
-    font-family: var(--font-body);
-    padding: 1rem 1rem calc(1rem + var(--footer-clearance));
+    background: linear-gradient(180deg, #63d2ff, #2fa6ee);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.1rem 1rem calc(1rem + var(--footer-clearance));
   }
-  h1 {
+
+  .room-chip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--ink);
+    border-radius: var(--radius-tile);
+    padding: 0.55rem 0.85rem;
+    box-shadow: var(--shadow-hard);
+  }
+  .room-chip .lbl {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 0.68rem;
+    color: var(--mist);
+    letter-spacing: 0.1em;
+  }
+  .room-chip .code {
     font-family: var(--font-display);
+    font-size: 1.35rem;
+    color: var(--yellow);
+    letter-spacing: 0.14em;
   }
+  .qr-toggle {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 0.7rem;
+    color: var(--ink);
+    background: var(--yellow);
+    border: none;
+    border-radius: var(--radius-button);
+    padding: 0.2rem 0.7rem;
+    cursor: pointer;
+  }
+
+  .qr-panel {
+    background: var(--panel);
+    color: var(--ink);
+    border-radius: var(--radius-card);
+    border: var(--outline-width) solid var(--ink);
+    box-shadow: var(--shadow-hard);
+    padding: 0.75rem;
+    text-align: center;
+    max-width: 15rem;
+    align-self: center;
+  }
+  .qr-panel p {
+    margin: 0.4rem 0 0;
+    font-size: 0.8rem;
+  }
+
+  .roster {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.55rem;
+  }
+
   h2 {
     font-family: var(--font-heading);
     font-weight: var(--font-heading-weight);
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    background: var(--yellow);
+    border-radius: var(--radius-button);
+    padding: 0.1rem 0.7rem;
+    align-self: flex-start;
+    margin: 0.6rem 0 0.4rem;
   }
-  .qr-panel {
-    background: var(--panel);
-    border-radius: var(--radius-card);
-    padding: 1rem;
-    display: inline-block;
+
+  .host-controls {
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
   }
-  .participants {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 0.75rem;
-    margin: 1rem 0;
-  }
-  .catalog {
+
+  .title-cards,
+  .content-chips {
     list-style: none;
+    margin: 0;
     padding: 0;
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
   }
-  .catalog button.selected {
-    outline: var(--outline-width) solid var(--yellow);
+
+  .title-card {
+    display: grid;
+    gap: 0.1rem;
+    text-align: left;
+    background: var(--panel);
+    color: var(--ink);
+    border: var(--outline-width) solid var(--ink);
+    border-radius: var(--radius-tile);
+    box-shadow: var(--shadow-tile);
+    padding: 0.5rem 0.8rem;
+    cursor: pointer;
   }
-  .primary {
-    background: var(--red);
-    color: white;
-    border: none;
-    border-radius: var(--radius-button);
-    padding: 0.75rem 2rem;
+  .title-card.selected {
+    outline: 4px solid var(--yellow);
+    outline-offset: -2px;
+  }
+  .title-card-name {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+  }
+  .title-card-meta {
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .content-chip {
     font-family: var(--font-heading);
     font-weight: var(--font-heading-weight);
-    box-shadow: var(--shadow-hard);
+    font-size: 0.78rem;
+    color: var(--ink);
+    background: var(--panel);
+    border: var(--outline-width) solid var(--ink);
+    border-radius: var(--radius-button);
+    padding: 0.25rem 0.75rem;
+    cursor: pointer;
   }
-  .primary:disabled {
-    background: #9aa0b5;
-    box-shadow: none;
+  .content-chip.selected {
+    background: var(--blue);
+    color: #fff;
+  }
+
+  .seconds {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.7rem 0;
+  }
+  .seconds-label {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 0.72rem;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: var(--radius-button);
+    padding: 0.1rem 0.6rem;
+  }
+  .seconds input {
+    width: 5.5rem;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--ink);
+    background: var(--panel);
+    border: var(--outline-width) solid var(--ink);
+    border-radius: var(--radius-tile);
+    padding: 0.3rem 0.5rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .waiting-note {
+    margin-top: auto;
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: var(--radius-button);
+    padding: 0.35rem 0.9rem;
+    align-self: center;
   }
 </style>

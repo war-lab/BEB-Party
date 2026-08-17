@@ -1,9 +1,8 @@
-<!-- 投票画面。容疑者グリッドから1人を選んで確定する（基本設計/02、08） -->
+<!-- 投票VS画面（ビジュアルデザイン.mdのモック `.s-vote`）。赤青の斜め分割、選択タイルは黄色の太枠 -->
 <script lang="ts">
   import type { Room } from "@beb/shared-core";
-  import type { DetectivesPublic } from "@beb/shared-detectives";
-  import { ACTIONS } from "@beb/shared-detectives";
-  import { sendAction, ui } from "@beb/client-core";
+  import { ACTIONS, type DetectivesPublic } from "@beb/shared-detectives";
+  import { faceColor, sendAction, ui } from "@beb/client-core";
   import StageTimer from "./StageTimer.svelte";
   import { acquireWakeLock } from "./wake-lock.svelte";
 
@@ -34,89 +33,123 @@
   $effect(() => acquireWakeLock());
 </script>
 
-<StageTimer deadline={room.deadline} />
-
 <main class="voting">
-  <h1>投票</h1>
-  <p class="progress">投票済み {publicState.votedPlayerIds.length} / {connectedCount}</p>
+  <StageTimer deadline={room.deadline} label="投票フェーズ" />
 
-  {#if hasVoted}
-    <p class="done" data-testid="vote-done">投票しました。他の人を待っています。</p>
-  {:else}
-    <ul class="suspects">
-      {#each suspects as suspect (suspect.playerId)}
-        <li>
-          <button
-            class="suspect"
-            class:selected={selected === suspect.playerId}
-            onclick={() => (selected = suspect.playerId)}
-          >
-            <span class="name">{nameOf(suspect.playerId)}</span>
-            <span class="character">{suspect.characterName}</span>
-          </button>
-        </li>
-      {/each}
-    </ul>
-    <button class="primary" onclick={confirm} disabled={selected === null}>この人にする</button>
-  {/if}
+  <div class="body">
+    <p class="vs-title">WHO IS THE CULPRIT?</p>
+    <p class="vs-sub">犯人だと思う1人を選んで投票（{publicState.votedPlayerIds.length} / {connectedCount}）</p>
+
+    {#if hasVoted}
+      <p class="done" data-testid="vote-done">投票しました。他の人を待っています。</p>
+    {:else}
+      <ul class="roster">
+        {#each suspects as suspect (suspect.playerId)}
+          <li>
+            <button
+              class="beb-tile suspect"
+              class:sel={selected === suspect.playerId}
+              onclick={() => (selected = suspect.playerId)}
+            >
+              <span class="face" style={`background:${faceColor(suspect.playerId)}`}></span>
+              <span class="tile-name">{nameOf(suspect.playerId)}</span>
+              <span class="character">{suspect.characterName}</span>
+            </button>
+          </li>
+        {/each}
+      </ul>
+
+      <button class="beb-btn yellow" onclick={confirm} disabled={selected === null}>
+        <span>この人に投票する</span>
+      </button>
+    {/if}
+  </div>
 </main>
 
 <style>
   .voting {
     min-height: 100vh;
-    background: linear-gradient(160deg, var(--red) 0 50%, var(--blue) 50% 100%);
-    color: white;
+    background: linear-gradient(100deg, var(--red-deep) 0 47%, #8b1f4b 47% 53%, var(--blue-deep) 53% 100%);
+    color: #fff;
     font-family: var(--font-body);
-    padding: 1rem 1rem calc(1rem + var(--footer-clearance));
-  }
-  h1 {
-    font-family: var(--font-display);
-  }
-  .suspects {
-    list-style: none;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 0.75rem;
-  }
-  .suspect {
-    width: 100%;
-    background: var(--panel);
-    color: var(--ink);
-    border: var(--outline-width) solid var(--ink);
-    border-radius: var(--radius-card);
-    padding: 0.75rem;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
-    font-family: var(--font-body);
   }
-  .suspect.selected {
-    outline: var(--outline-width) solid var(--yellow);
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 1rem 0.9rem calc(1rem + var(--footer-clearance));
+    flex: 1;
   }
-  .name {
-    font-weight: 700;
+
+  .vs-title {
+    font-family: var(--font-display);
+    text-align: center;
+    font-size: 1.2rem;
+    margin: 0.2rem 0 0;
+    transform: skew(var(--skew-angle));
+    text-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
   }
-  .character {
-    font-size: 0.85rem;
+  .vs-sub {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #ffd9d9;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
   }
-  .primary {
-    margin-top: 1rem;
-    background: var(--yellow);
+
+  .roster {
+    list-style: none;
+    margin: 0.3rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.55rem;
+  }
+
+  .suspect {
+    width: 100%;
+    cursor: pointer;
+    position: relative;
+    min-height: 4.8rem;
+  }
+  .suspect .character {
+    display: block;
+    font-size: 0.66rem;
+    color: var(--ink-soft);
+    margin-top: 0.15rem;
+  }
+  .suspect.sel {
+    outline: 5px solid var(--yellow);
+    outline-offset: -2px;
+  }
+  .suspect.sel::after {
+    content: "投票";
+    position: absolute;
+    top: -0.6rem;
+    right: -0.35rem;
+    font-family: var(--font-display);
+    font-size: 0.62rem;
     color: var(--ink);
-    border: none;
+    background: var(--yellow);
     border-radius: var(--radius-button);
-    padding: 0.75rem 2rem;
-    font-family: var(--font-heading);
-    font-weight: var(--font-heading-weight);
-    box-shadow: var(--shadow-hard);
+    padding: 0.1rem 0.5rem;
+    transform: rotate(6deg);
   }
-  .primary:disabled {
-    background: #9aa0b5;
-    box-shadow: none;
+
+  .beb-btn {
+    margin-top: auto;
   }
+
   .done {
+    margin-top: 2rem;
+    text-align: center;
     font-family: var(--font-heading);
     font-weight: var(--font-heading-weight);
+    background: rgba(13, 20, 46, 0.65);
+    border-radius: var(--radius-tile);
+    padding: 0.7rem;
   }
 </style>

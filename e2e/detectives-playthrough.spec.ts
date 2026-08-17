@@ -18,14 +18,14 @@ test("6人で部屋作成から開示まで通しで進める", async ({ browser
 
     // briefing: 全員に事件概要と配役が届く
     for (const page of table.pages) {
-      await expect(page.locator("h1:has-text('事件の概要')")).toBeVisible({ timeout: 10_000 });
+      await expect(page.locator(".case-title")).toBeVisible({ timeout: 10_000 });
     }
 
     await readyAll(table.pages);
 
     // investigation: 全員が自分の証言カードと制約を持つ
     for (const page of table.pages) {
-      await expect(page.locator("h1:has-text('捜査')")).toBeVisible({ timeout: 10_000 });
+      await expect(page.locator("[data-testid='stage-timer']:has-text('捜査フェーズ')")).toBeVisible({ timeout: 10_000 });
       await expect(page.locator("[data-testid='constraints']")).toContainText("証言は英語で読み上げる");
       await expect(page.locator("[data-testid='testimony-card']").first()).toBeVisible();
     }
@@ -46,7 +46,7 @@ test("6人で部屋作成から開示まで通しで進める", async ({ browser
     // voting: ホストが捜査を切り上げる
     await host.click("text=投票へ進む");
     for (const page of table.pages) {
-      await expect(page.locator("h1:has-text('投票')")).toBeVisible({ timeout: 10_000 });
+      await expect(page.locator("[data-testid='stage-timer']:has-text('投票フェーズ')")).toBeVisible({ timeout: 10_000 });
     }
 
     await voteAll(table.pages);
@@ -54,7 +54,7 @@ test("6人で部屋作成から開示まで通しで進める", async ({ browser
     // reveal: 全員に結果が届く
     for (const page of table.pages) {
       await expect(page.locator("[data-testid='outcome']")).toBeVisible({ timeout: 10_000 });
-      await expect(page.locator("[data-testid='outcome']")).toContainText(/市民の勝ち|犯人の勝ち/);
+      await expect(page.locator("[data-testid='outcome']")).toContainText(/市民の勝利|犯人の勝利/);
     }
 
     // 受入条件5: stateに秘密が含まれない
@@ -84,7 +84,7 @@ test("5人での参加時は5人版の事件が使われる", async ({ browser, 
   try {
     const host = table.pages[0]!;
     await startGame(host);
-    await expect(host.locator("h1:has-text('事件の概要')")).toBeVisible({ timeout: 10_000 });
+    await expect(host.locator(".case-title")).toBeVisible({ timeout: 10_000 });
 
     const cast = host.locator(".cast li");
     await expect(cast).toHaveCount(5);
@@ -118,7 +118,7 @@ test("捜査中に切断してもカードが消えず、自動復帰する", as
     await readyAll(table.pages);
 
     const target = table.pages[1]!;
-    await expect(target.locator("h1:has-text('捜査')")).toBeVisible({ timeout: 10_000 });
+    await expect(target.locator("[data-testid='stage-timer']:has-text('捜査フェーズ')")).toBeVisible({ timeout: 10_000 });
     const cardCount = await target.locator("[data-testid='testimony-card']").count();
     expect(cardCount).toBeGreaterThan(0);
 
@@ -130,7 +130,7 @@ test("捜査中に切断してもカードが消えず、自動復帰する", as
 
     // 自動復帰し、証言カードが再送される
     await expect(target.locator("text=再接続しています")).not.toBeVisible({ timeout: 20_000 });
-    await expect(target.locator("h1:has-text('捜査')")).toBeVisible();
+    await expect(target.locator("[data-testid='stage-timer']:has-text('捜査フェーズ')")).toBeVisible();
     await expect(target.locator("[data-testid='testimony-card']")).toHaveCount(cardCount);
   } finally {
     await table.close();
