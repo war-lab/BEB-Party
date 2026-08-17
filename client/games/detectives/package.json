@@ -7,12 +7,16 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "check": "tsc --noEmit",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@beb/client-core": "workspace:*",
     "@beb/shared-core": "workspace:*",
-    "@beb/shared-detectives": "workspace:*"
+    "@beb/shared-detectives": "workspace:*",
+    "svelte": "5.56.9"
+  },
+  "devDependencies": {
+    "svelte-check": "4.7.5"
   }
 }

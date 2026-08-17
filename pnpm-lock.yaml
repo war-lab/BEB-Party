@@ -100,6 +100,13 @@ importers:
       '@beb/shared-detectives':
         specifier: workspace:*
         version: link:../../../shared/games/detectives
+      svelte:
+        specifier: 5.56.9
+        version: 5.56.9(@typescript-eslint/types@8.67.0)
+    devDependencies:
+      svelte-check:
+        specifier: 4.7.5
+        version: 4.7.5(picomatch@4.0.5)(svelte@5.56.9(@typescript-eslint/types@8.67.0))(typescript@6.0.3)
 
   server/core:
     dependencies:

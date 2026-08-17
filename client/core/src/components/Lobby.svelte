@@ -13,6 +13,7 @@
   let catalog = $state<GameSummary[]>([]);
   let qrSvg = $state<string | null>(null);
   let investigationSeconds = $state(600);
+  let contentId = $state<string | null>(null);
 
   $effect(() => {
     fetch("/api/catalog")
@@ -34,13 +35,18 @@
 
   const room = $derived(serverState.room);
   const isHost = $derived(room?.players.find((p) => p.id === ui.myPlayerId)?.isHost ?? false);
+  const selectedGame = $derived(catalog.find((game) => game.id === room?.gameId));
+  const contents = $derived(selectedGame?.contents ?? []);
 
   function selectGame(gameId: string): void {
+    contentId = null;
     sendCommon({ type: "selectGame", gameId });
   }
 
-  function configure(): void {
-    sendCommon({ type: "configure", settings: { investigationSeconds } });
+  // コンテンツと設定は同じconfigureで送る。コンテンツ未選択のstartはサーバが拒否する（基本設計/01）
+  function configure(id: string): void {
+    contentId = id;
+    sendCommon({ type: "configure", contentId: id, settings: { investigationSeconds } });
   }
 
   function start(): void {
@@ -80,12 +86,29 @@
       </ul>
 
       {#if room?.gameId}
+        <h2>コンテンツを選ぶ</h2>
+        <ul class="catalog">
+          {#each contents as content (content.id)}
+            <li>
+              <button onclick={() => configure(content.id)} class:selected={room?.contentId === content.id}>
+                {content.title}
+              </button>
+            </li>
+          {/each}
+        </ul>
+
         <label>
           捜査時間(秒)
-          <input type="number" bind:value={investigationSeconds} min="60" max="1800" />
+          <input
+            type="number"
+            bind:value={investigationSeconds}
+            min="300"
+            max="1200"
+            step="60"
+            onchange={() => (contentId ? configure(contentId) : undefined)}
+          />
         </label>
-        <button onclick={configure}>設定を保存</button>
-        <button class="primary" onclick={start}>はじめる</button>
+        <button class="primary" onclick={start} disabled={!room?.contentId}>はじめる</button>
       {/if}
     </section>
   {/if}
