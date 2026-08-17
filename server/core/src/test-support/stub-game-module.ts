@@ -12,11 +12,18 @@ export interface StubSecret {
 
 export interface StubResult {
   outcome: "win" | "lose";
+  // 秘密状態が呼び出しをまたいで戻ってきたかを結果に載せて観測する（ADR-0015の退行検知）
+  advanceCount?: number;
+}
+
+// ゲームモジュールが保持する秘密状態。共通コアは中身を解釈せず預かるだけである
+export interface StubGameSecret {
+  advanceCount: number;
 }
 
 export const STUB_GAME_ID = "stub-game";
 
-export const stubGameModule: GameModule<StubPublicState, StubSecret, StubResult> = {
+export const stubGameModule: GameModule<StubPublicState, StubSecret, StubResult, StubGameSecret> = {
   id: STUB_GAME_ID,
   title: "Stub Game",
   playerCount: [1, 8],
@@ -43,19 +50,21 @@ export const stubGameModule: GameModule<StubPublicState, StubSecret, StubResult>
       deadlineSeconds: 120,
       publicState: { stage: "stage1" },
       secrets,
+      gameSecret: { advanceCount: 0 },
     };
   },
 
-  handleAction: ({ publicState, action }) => {
+  handleAction: ({ publicState, gameSecret, action }) => {
     if (action === "advance" && publicState.stage === "stage1") {
       return {
         publicState: { stage: "stage2" },
         stage: "stage2",
         deadlineSeconds: 90,
+        gameSecret: { advanceCount: (gameSecret?.advanceCount ?? 0) + 1 },
       };
     }
     if (action === "finish" && publicState.stage === "stage2") {
-      return { result: { outcome: "win" } };
+      return { result: { outcome: "win", advanceCount: gameSecret?.advanceCount ?? 0 } };
     }
     return { reject: { code: "invalid_action" } };
   },

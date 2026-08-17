@@ -81,4 +81,50 @@ describe("GameTransitionの反映", () => {
     expect(state).toMatchObject({ type: "state", lifecycle: "finished" });
     expect(result).toMatchObject({ type: "result", gameId: STUB_GAME_ID, payload: { outcome: "win" } });
   });
+
+  // ADR-0015: ゲームモジュールの秘密状態は共通コアが預かり、次の呼び出しへ戻す。
+  // 戻していなければadvanceCountが0のままになり、投票先のような秘密の蓄積が成立しない
+  it("ゲームモジュールの秘密状態が呼び出しをまたいで保持され、nextGameで消える", async () => {
+    const code = uniqueRoomCode("transition-gamesecret");
+    const stub = await createRoom(code);
+    const host = await openSocket(stub);
+
+    const hostJoin = collectMessages(host, 2);
+    sendMessage(host, { v: 1, type: "join", name: "Host", level: 3 });
+    await hostJoin;
+    const selectRecv = collectMessages(host, 1);
+    sendMessage(host, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
+    await selectRecv;
+    const startRecv = collectMessages(host, 2);
+    sendMessage(host, { v: 1, type: "start" });
+    await startRecv;
+
+    const advanceRecv = collectMessages(host, 1);
+    sendMessage(host, { v: 1, type: "action", action: "advance" });
+    await advanceRecv;
+
+    const finishRecv = collectMessages(host, 2); // state, result
+    sendMessage(host, { v: 1, type: "action", action: "finish" });
+    const [, result] = await finishRecv;
+    expect(result).toMatchObject({ payload: { advanceCount: 1 } });
+
+    // 次のゲームでは秘密状態が持ち越されない（ADR-0011の「持ち越すのは参加者とレベルだけ」）
+    const nextRecv = collectMessages(host, 1);
+    sendMessage(host, { v: 1, type: "nextGame" });
+    await nextRecv;
+    const reselect = collectMessages(host, 1);
+    sendMessage(host, { v: 1, type: "selectGame", gameId: STUB_GAME_ID });
+    await reselect;
+    const restart = collectMessages(host, 2);
+    sendMessage(host, { v: 1, type: "start" });
+    await restart;
+    const advanceAgain = collectMessages(host, 1);
+    sendMessage(host, { v: 1, type: "action", action: "advance" });
+    await advanceAgain;
+    const finishAgain = collectMessages(host, 2);
+    sendMessage(host, { v: 1, type: "action", action: "finish" });
+    const [, secondResult] = await finishAgain;
+    // 前のゲームの値が残っていれば2になる
+    expect(secondResult).toMatchObject({ payload: { advanceCount: 1 } });
+  });
 });

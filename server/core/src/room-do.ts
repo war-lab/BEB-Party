@@ -334,6 +334,7 @@ export class RoomDO extends DurableObject<Env> {
     for (const [playerId, payload] of startResult.secrets) {
       secrets.playerSecrets[playerId] = payload;
     }
+    secrets.gameSecret = startResult.gameSecret;
 
     await this.ctx.storage.put("room", room);
     await this.ctx.storage.put("secrets", secrets);
@@ -362,6 +363,7 @@ export class RoomDO extends DurableObject<Env> {
     const transition = gameModule.handleAction({
       room: toPublicRoom(room),
       publicState: room.gameState,
+      gameSecret: (await this.getSecrets()).gameSecret,
       playerId,
       action: message.action,
       payload,
@@ -394,6 +396,7 @@ export class RoomDO extends DurableObject<Env> {
 
     const secrets = await this.getSecrets();
     secrets.playerSecrets = {};
+    secrets.gameSecret = undefined;
     await this.ctx.storage.put("secrets", secrets);
     await this.updateAlarm(nextRoom);
 
@@ -414,7 +417,11 @@ export class RoomDO extends DurableObject<Env> {
       await this.updateAlarm(room);
       return;
     }
-    const transition = gameModule.onDeadline({ room: toPublicRoom(room), publicState: room.gameState });
+    const transition = gameModule.onDeadline({
+      room: toPublicRoom(room),
+      publicState: room.gameState,
+      gameSecret: (await this.getSecrets()).gameSecret,
+    });
     if (transition.reject) {
       // onDeadlineは強制遷移が前提であり、rejectは通常返らない。返った場合はアラームだけ再設定する
       await this.updateAlarm(room);
@@ -518,10 +525,13 @@ export class RoomDO extends DurableObject<Env> {
     }
 
     let newSecrets: Map<string, unknown> | undefined;
-    if (transition.secrets) {
+    if (transition.secrets || transition.gameSecret !== undefined) {
       const secrets = await this.getSecrets();
-      for (const [playerId, payload] of transition.secrets) {
+      for (const [playerId, payload] of transition.secrets ?? []) {
         secrets.playerSecrets[playerId] = payload;
+      }
+      if (transition.gameSecret !== undefined) {
+        secrets.gameSecret = transition.gameSecret;
       }
       await this.ctx.storage.put("secrets", secrets);
       newSecrets = transition.secrets;
