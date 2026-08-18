@@ -1,0 +1,342 @@
+{
+  "id": "festival_till_v1",
+  "playerCount": [5, 6],
+  "title": "The Missing Change Bag",
+  "briefing": {
+    "ja": "文化祭の校庭で、焼きそば屋台の売上箱から釣銭袋が1つ、11時から11時30分の間に消えた。屋台のまわりにいた6人のうち1人が犯人であり、その人の証言カードには嘘が1枚だけ混ざっている。全員の証言を突き合わせて、誰の話が成り立たないかを見つける。",
+    "en": "A change bag went missing from the yakisoba stall's cash box between 11:00 and 11:30 at the school festival. One of the six people around the stall took it, and one card in that person's hand is a lie."
+  },
+  "characters": [
+    { "id": "cashier", "name": "Hina (stall cashier)", "recommendedLevel": 1, "merge5p": null },
+    { "id": "broadcaster", "name": "Rin (broadcasting club)", "recommendedLevel": 2, "merge5p": null },
+    { "id": "graduate", "name": "Kaito (visiting graduate)", "recommendedLevel": 3, "merge5p": null },
+    { "id": "committee", "name": "Nao (festival committee)", "recommendedLevel": 4, "merge5p": null },
+    { "id": "teacher", "name": "Mr. Ito (club adviser)", "recommendedLevel": 5, "merge5p": null },
+    { "id": "cook", "name": "Sota (cooking tent)", "recommendedLevel": 3, "merge5p": "teacher" }
+  ],
+  "facts": [
+    {
+      "id": "f_ca_a",
+      "owner": "cashier",
+      "value": "stall_till_unattended_from=11:12",
+      "disclosure": "free",
+      "text": {
+        "1": "Stall till. Nobody there. From 11:12.",
+        "2": "Nobody was at the stall till from 11:12.",
+        "3": "I remember the till was left empty from about twelve minutes past eleven.",
+        "4": "Thinking back, there was nobody at the till from a minute or two after ten past.",
+        "5": "My memory of the minute is shaky, but I am fairly sure nobody was standing at the till from around twelve minutes past eleven."
+      },
+      "hintJa": "till = 会計台 / stall = 屋台 / empty = 誰もいない"
+    },
+    {
+      "id": "f_ca_b",
+      "owner": "cashier",
+      "value": "storeroom_shutter_locked_until=11:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Storeroom shutter. Locked. Until 11:20.",
+        "2": "The storeroom shutter was locked until 11:20.",
+        "3": "The storeroom shutter stayed locked until twenty past eleven.",
+        "4": "Anyone who went for the storeroom before twenty past would have found the shutter down.",
+        "5": "I would not go as far as certain, but the storeroom shutter stayed locked until at least twenty minutes past eleven."
+      },
+      "hintJa": "storeroom = 倉庫 / shutter = シャッター / locked = 鍵がかかっている"
+    },
+    {
+      "id": "f_br_a",
+      "owner": "broadcaster",
+      "value": "broadcast_desk_view_of_yard_until=11:18",
+      "disclosure": "free",
+      "text": {
+        "1": "Broadcast desk. I saw the yard. Until 11:18.",
+        "2": "From the broadcast desk I could see the yard until 11:18.",
+        "3": "I sat at the broadcast desk and could see the whole yard until about eighteen past.",
+        "4": "Very little in that yard escaped me from the desk, at least until just before twenty past.",
+        "5": "My eyes were mostly on the script, but from the broadcast desk I could see most of the yard until about eighteen minutes past eleven."
+      },
+      "hintJa": "broadcast = 放送 / desk = 机 / yard = 校庭"
+    },
+    {
+      "id": "f_br_b",
+      "owner": "broadcaster",
+      "value": "walkway_roped_off_until=11:20",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "Walkway. Roped off. Until 11:20.",
+        "2": "The walkway was roped off until 11:20.",
+        "3": "The walkway to the gym stayed roped off until twenty past eleven.",
+        "4": "Anyone heading for the gym before twenty past would have found the rope still across it.",
+        "5": "The rope goes up for the stage show every year, and the walkway stayed roped off until about twenty past eleven."
+      },
+      "hintJa": "walkway = 渡り廊下 / rope off = 立入禁止にする / gym = 体育館"
+    },
+    {
+      "id": "f_gr_a",
+      "owner": "graduate",
+      "value": "change_bag_in_box_at=11:10",
+      "disclosure": "free",
+      "text": {
+        "1": "Change bag. In the box. At 11:10.",
+        "2": "The change bag was still in the box at 11:10.",
+        "3": "There was no doubt about it: the change bag was in the cash box at ten past eleven.",
+        "4": "The change bag was certainly still there when I looked into the box at ten past.",
+        "5": "Do not hold me to the minute, but the change bag was still in the cash box at around ten past eleven."
+      },
+      "hintJa": "change bag = 釣銭袋 / box = 箱 / still = まだ"
+    },
+    {
+      "id": "f_gr_b",
+      "owner": "graduate",
+      "value": "queue_at_stall_cleared_at=11:12",
+      "disclosure": "free",
+      "text": {
+        "1": "The queue. Gone. At 11:12.",
+        "2": "The queue at the stall cleared at 11:12.",
+        "3": "The line of customers at the stall was gone by about twelve past eleven.",
+        "4": "The queue melted away no more than two minutes after ten past.",
+        "5": "I would not be precise about the time, but the queue at the stall had gone by roughly twelve minutes past eleven."
+      },
+      "hintJa": "queue = 行列 / clear = なくなる / line = 列"
+    },
+    {
+      "id": "f_cm_a",
+      "owner": "committee",
+      "value": "cart_blocked_yard_gate_from=11:13_to=11:17",
+      "disclosure": "free",
+      "text": {
+        "1": "Cart. Yard gate. 11:13 to 11:17.",
+        "2": "My cart blocked the yard gate from 11:13 to 11:17.",
+        "3": "My cart stood in the yard gateway from thirteen past until seventeen past.",
+        "4": "My cart filled that gateway from thirteen past to seventeen past, so nobody could have got out.",
+        "5": "I had no reason to watch the clock, but my cart was standing in the yard gateway from about thirteen past until seventeen past eleven."
+      },
+      "hintJa": "cart = 台車 / block = ふさぐ / gateway = 門の出入口"
+    },
+    {
+      "id": "f_cm_b",
+      "owner": "committee",
+      "value": "banner_frame_across_gate_until=11:25",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "Banner frame. Across the gate. Until 11:25.",
+        "2": "The banner frame stood across the gate until 11:25.",
+        "3": "The banner frame stood across the gate until twenty-five past eleven.",
+        "4": "Anyone leaving by the gate before twenty-five past would have had to duck under the banner frame.",
+        "5": "I did not look at a clock, but the banner frame stood right across the gate until about twenty-five past eleven."
+      },
+      "hintJa": "banner = 横断幕 / frame = 枠組み / duck under = 下をくぐる"
+    },
+    {
+      "id": "f_te_a",
+      "owner": "teacher",
+      "value": "hq_door_in_sight_until=11:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Committee room door. I watched it. Until 11:20.",
+        "2": "I had the committee room door in sight until 11:20.",
+        "3": "I kept the committee room door in view until twenty past eleven.",
+        "4": "As far as I know, I did not once look away from the committee room door before twenty past.",
+        "5": "I was not standing guard over it, you understand, but the committee room door stayed in my view until about twenty minutes past eleven."
+      },
+      "hintJa": "in sight = 見えるところに / keep = 〜し続ける / committee = 実行委員"
+    },
+    {
+      "id": "f_te_b",
+      "owner": "teacher",
+      "value": "sales_sheet_unmarked_between=11:12_and=11:25",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "Sales sheet. Nothing written. 11:12 to 11:25.",
+        "2": "Nothing was written on the sales sheet between 11:12 and 11:25.",
+        "3": "Nobody wrote anything on the sales sheet between twelve past and twenty-five past.",
+        "4": "Had any money been taken between twelve past and twenty-five past, the sheet would show a line for it.",
+        "5": "I look at it once an hour at best, but the sales sheet shows no entry between twelve past and twenty-five past eleven."
+      },
+      "hintJa": "sales sheet = 売上票 / write = 書く / entry = 記入"
+    },
+    {
+      "id": "f_co_a",
+      "owner": "cook",
+      "value": "tent_back_flap_tied_down_from=11:10_to=11:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Tent back flap. Tied down. 11:10 to 11:20.",
+        "2": "The back flap of the tent was tied down from 11:10 to 11:20.",
+        "3": "The back flap of the cooking tent stayed tied down from ten past to twenty past.",
+        "4": "With that flap tied down from ten past to twenty past, nobody could have slipped out behind the tent.",
+        "5": "The wind was getting up, so the back flap of the cooking tent stayed tied down from ten past to twenty past."
+      },
+      "hintJa": "flap = 出入口の垂れ幕 / tie down = 縛って下ろす / behind = 裏側"
+    },
+    {
+      "id": "f_co_b",
+      "owner": "cook",
+      "value": "spare_hairnets_still_sealed_at=11:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Spare hairnets. Still sealed. At 11:20.",
+        "2": "The spare hairnets were still sealed in their packet at 11:20.",
+        "3": "Nobody goes into the food tent without a hairnet, and the packet was still sealed at twenty past.",
+        "4": "Had anyone come into the tent to help before twenty past, that packet would have been opened.",
+        "5": "I know it sounds fussy, but the spare hairnets were still sealed in their packet when I looked at twenty past eleven."
+      },
+      "hintJa": "hairnet = 髪をおさえる網 / seal = 封をする / packet = 袋"
+    }
+  ],
+  "variants": [
+    {
+      "culprit": "cashier",
+      "lie": {
+        "replaces": "f_ca_a",
+        "value": "claims_in_cooking_tent_at=11:15",
+        "text": {
+          "1": "Me. In the cooking tent. At 11:15.",
+          "2": "I was in the cooking tent at 11:15.",
+          "3": "I went into the cooking tent at about a quarter past eleven.",
+          "4": "I was already inside the tent by then, so I had my back to the stall.",
+          "5": "The minute is beyond me now, but I had gone through into the cooking tent by about a quarter past eleven."
+        },
+        "hintJa": "cooking tent = 調理テント / go through = 通って入る / have one's back to = 背を向けている"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_ca_a", "f_br_a", "f_gr_a", "f_cm_a", "f_te_a", "f_co_b"],
+          "requires5p": null,
+          "yields": "cashier_alibi_broken",
+          "meaningJa": "Hinaは11:15に調理テントにいたと言うが、予備の三角巾は11:20の時点でまだ未開封だったという証言がある。三角巾なしで食品のテントへ入る者はいないため、この2つは同時に成り立たない。Kaitoの11:10の証言で釣銭袋が消えた時間帯が絞られ、Rinの視界とNaoの台車とMr. Itoの視線で、その間に校庭を離れられた者がいないことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "broadcaster",
+      "lie": {
+        "replaces": "f_br_a",
+        "value": "claims_out_yard_gate_from=11:13",
+        "text": {
+          "1": "Me. Outside. Yard gate. From 11:13.",
+          "2": "I went out through the yard gate at 11:13.",
+          "3": "I stepped out through the yard gate at about thirteen past and stayed outside.",
+          "4": "I was out on the street by then, and the stall was behind the wall.",
+          "5": "I could not put a minute on it, but I had already gone out through the yard gate by about thirteen minutes past eleven."
+        },
+        "hintJa": "go out = 外へ出る / gate = 門 / street = 通り"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_br_a", "f_ca_a", "f_gr_a", "f_cm_a", "f_te_a", "f_co_a"],
+          "requires5p": null,
+          "yields": "broadcaster_alibi_broken",
+          "meaningJa": "Rinは11:13に校庭の門から外へ出たと言うが、Naoの台車が11:13から11:17まで門の出入口を塞いでいた。HinaとKaitoとMr. Itoの証言と、テントの裏の垂れ幕で、その時間帯に他の経路も使えなかったことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "graduate",
+      "lie": {
+        "replaces": "f_gr_a",
+        "value": "claims_on_walkway_at=11:15",
+        "text": {
+          "1": "Me. On the walkway. At 11:15.",
+          "2": "I was on the walkway at 11:15.",
+          "3": "I crossed to the gym along the walkway at about a quarter past eleven.",
+          "4": "I had walked over to the gym by then, so I was not at the stall.",
+          "5": "It could have been a little earlier, but I had crossed the walkway to the gym by around a quarter past eleven."
+        },
+        "hintJa": "walkway = 渡り廊下 / cross = 渡る / gym = 体育館"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_gr_a", "f_ca_a", "f_br_b", "f_cm_a", "f_te_a", "f_co_a"],
+          "requires5p": null,
+          "yields": "graduate_alibi_broken",
+          "meaningJa": "Kaitoは11:15に渡り廊下を通って体育館へ渡ったと言うが、Rinは渡り廊下が11:20まで立入禁止のロープで塞がれていたと言っている。テントの裏の垂れ幕とNaoの台車とMr. Itoの視線とHinaの会計台の証言で、その時間帯に屋台のまわりから抜けられなかったことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "committee",
+      "lie": {
+        "replaces": "f_cm_a",
+        "value": "claims_in_committee_hq_at=11:15",
+        "text": {
+          "1": "Me. In the committee room. At 11:15.",
+          "2": "I was in the committee room at 11:15.",
+          "3": "I was in the committee room getting the stall sheet stamped at a quarter past.",
+          "4": "I was through in the committee room with the paperwork, so I was nowhere near the stall.",
+          "5": "The sheet would tell you better than I can, but I believe I was in the committee room getting it stamped at around a quarter past eleven."
+        },
+        "hintJa": "committee room = 実行委員本部 / stamp = 印を押す / paperwork = 書類仕事"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_cm_a", "f_ca_a", "f_br_a", "f_gr_b", "f_te_a", "f_co_a"],
+          "requires5p": null,
+          "yields": "committee_alibi_broken",
+          "meaningJa": "Naoは11:15に実行委員本部にいたと言うが、Mr. Itoは11:20まで本部の扉を見ており、誰も入っていない。Kaitoが11:12に行列がはけたと言い、HinaとRinの証言と、テントの裏の垂れ幕で、その直後の屋台のまわりの様子が分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "teacher",
+      "lie": {
+        "replaces": "f_te_a",
+        "value": "claims_in_storeroom_at=11:15",
+        "text": {
+          "1": "Me. In the storeroom. At 11:15.",
+          "2": "I went into the storeroom at 11:15.",
+          "3": "I went to the storeroom for more sauce at about a quarter past eleven.",
+          "4": "I had stepped into the storeroom for the sauce, so I was not in the yard at all.",
+          "5": "I do that every year, and my recollection is that I was in the storeroom fetching sauce at around a quarter past eleven."
+        },
+        "hintJa": "storeroom = 倉庫 / sauce = ソース / fetch = 取ってくる"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_te_a", "f_ca_b", "f_br_a", "f_gr_a", "f_cm_b", "f_co_a"],
+          "requires5p": ["f_te_a", "f_ca_b", "f_br_a", "f_gr_a", "f_cm_b"],
+          "yields": "teacher_alibi_broken",
+          "meaningJa": "Mr. Itoは11:15に倉庫にいたと言うが、Hinaは倉庫のシャッターが11:20まで施錠されていたと言っている。Naoの横断幕の枠が門を塞いでいたこと、Rinの視界、Kaitoの11:10の証言、テントの裏の垂れ幕で、その時間帯に校庭を離れた者がいないことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "cook",
+      "lie": {
+        "replaces": "f_co_a",
+        "value": "claims_at_stall_till_at=11:15",
+        "text": {
+          "1": "Me. At the till. At 11:15.",
+          "2": "I was at the stall till at 11:15.",
+          "3": "I was taking money at the stall till at about a quarter past eleven.",
+          "4": "I had come out to cover the till by then, so I was not in the tent.",
+          "5": "Serving is not really my job, but I had come out to cover the stall till at around a quarter past eleven."
+        },
+        "hintJa": "till = 会計台 / take money = 会計する / cover = 代わりに担当する"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_co_a", "f_ca_a", "f_br_a", "f_gr_a", "f_cm_a", "f_te_b"],
+          "requires5p": null,
+          "yields": "cook_alibi_broken",
+          "meaningJa": "Sotaは11:15に屋台の会計台にいたと言うが、Hinaは11:12以降会計台に誰も立っていなかったと言っている。Mr. Itoの売上票、Kaitoの11:10の証言、Rinの視界、Naoの台車で、その時間帯に会計が行われていなかったことが分かる。"
+        }
+      ]
+    }
+  ],
+  "reveal": {
+    "timelineEn": [
+      "11:05 The class put the cash box under the stall counter.",
+      "11:10 The change bag was still in the cash box.",
+      "11:12 The queue cleared and nobody was at the till.",
+      "11:15 The change bag was taken from the box.",
+      "11:20 The next shift opened the box and the bag was gone."
+    ],
+    "keyExpressions": [
+      { "en": "What were you doing then?", "ja": "そのとき何をしていましたか。" },
+      { "en": "If I remember rightly...", "ja": "確か…だったと思います。" },
+      { "en": "Are you telling me nobody saw you?", "ja": "誰にも見られていないということですか。" },
+      { "en": "Who else was with you?", "ja": "ほかに誰と一緒でしたか。" }
+    ]
+  }
+}

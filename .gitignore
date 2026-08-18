@@ -35,6 +35,3 @@ Thumbs.db
 *.log
 npm-debug.log*
 pnpm-debug.log*
-
-# フォントサブセットの生成物（ビルド時に再生成する）
-client/public/fonts/*.subset.woff2

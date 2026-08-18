@@ -1,0 +1,245 @@
+/* デザイントークンと共通プリミティブ。色・形状・モーションはここに一元定義する（ビジュアルデザイン.md）。
+   値はモック（ビジュアルデザイン案）と一致させる。ゲームモジュールはトークンとプリミティブを
+   参照するだけで、独自の色値をハードコードしない */
+
+/* サブセット済みフォント。生成はclient/app/scripts/generate-font-subsets.mjsが行う。
+   パスはclient/public/(ViteのpublicDir)から配信される絶対パス */
+@font-face {
+  font-family: "Dela Gothic One";
+  src: url("/fonts/DelaGothicOne-Regular.subset.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "M PLUS Rounded 1c";
+  src: url("/fonts/MPLUSRounded1c-Regular.subset.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "M PLUS Rounded 1c";
+  src: url("/fonts/MPLUSRounded1c-Bold.subset.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  /* カラー */
+  --ground: #0d142e;
+  --ground-2: #131c42;
+  --sky: #4ec9ff;
+  --sky-deep: #1e8fe0;
+  --panel: #f7f8fd;
+  --red: #ff3d3d;
+  --red-deep: #d42121;
+  --blue: #2e7cf6;
+  --blue-deep: #1b5cd6;
+  --yellow: #ffc400;
+  --ink: #161b33;
+  --ink-soft: #4a5170;
+  --mist: #b9c2e8;
+
+  /* タイポグラフィ
+     Dela Gothic Oneは超極太のため、1rem前後の漢字が塊になって読めない（実測）。
+     大きく出す見出しだけに使い、小見出し・ボタン・バッジは本文書体のboldにする。
+     使い分けの規則はビジュアルデザイン.mdを正とする */
+  --font-display: "Dela Gothic One", sans-serif;
+  --font-heading: "M PLUS Rounded 1c", sans-serif;
+  --font-body: "M PLUS Rounded 1c", sans-serif;
+  --font-heading-weight: 700;
+
+  /* 画面下端の固定フッター（遊び方・ライセンス）と重ならないための余白 */
+  --footer-clearance: 3.25rem;
+
+  /* 形状・エフェクト */
+  --skew-angle: -8deg;
+  --radius-button: 999px;
+  --radius-card: 20px;
+  --radius-tile: 14px;
+  --shadow-hard: 0 6px 0 rgba(0, 0, 0, 0.25);
+  --shadow-tile: 0 4px 0 rgba(0, 0, 0, 0.28);
+  --shadow-card: 0 5px 0 rgba(0, 0, 0, 0.3);
+  --outline-width: 3px;
+
+  /* モーション */
+  --motion-duration: 200ms;
+  --motion-easing: cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration: 0ms;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ゲーム画面は世界観優先の単一テーマとし、OSのライト/ダーク設定に追従しない（ビジュアルデザイン.md） */
+html {
+  color-scheme: only light;
+  background: var(--ground);
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--panel);
+  font-family: var(--font-body);
+  line-height: 1.7;
+}
+
+/* --- 共通プリミティブ ---
+   モックの .btn / .tile / .card に対応する。全画面で同じ形にするため、
+   スコープ付きスタイルではなくここに置く */
+
+.beb-btn {
+  display: block;
+  width: 100%;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  color: #fff;
+  border: var(--outline-width) solid rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-button);
+  padding: 0.8rem 0.6rem;
+  text-align: center;
+  box-shadow: var(--shadow-hard);
+  transform: skew(var(--skew-angle));
+  cursor: pointer;
+  transition: transform var(--motion-duration) var(--motion-easing);
+}
+
+/* 文字は斜めに倒さない。傾けるのはボタンの面だけ（モックと同じ） */
+.beb-btn > span {
+  display: inline-block;
+  transform: skew(8deg);
+}
+
+.beb-btn:disabled {
+  background: linear-gradient(#9aa0b5, #6f7492);
+  box-shadow: none;
+  cursor: default;
+}
+
+.beb-btn:not(:disabled):active {
+  transform: skew(var(--skew-angle)) translateY(3px);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.25);
+}
+
+.beb-btn.red {
+  background: linear-gradient(#ff5a4e, var(--red-deep));
+}
+.beb-btn.blue {
+  background: linear-gradient(#4d93ff, var(--blue-deep));
+}
+.beb-btn.yellow {
+  background: linear-gradient(#ffd34d, #f0a800);
+  color: var(--ink);
+}
+.beb-btn.ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: none;
+}
+
+/* キャラクターセレクト風のタイル */
+.beb-tile {
+  background: var(--panel);
+  color: var(--ink);
+  border: var(--outline-width) solid var(--ink);
+  border-radius: var(--radius-tile);
+  box-shadow: var(--shadow-tile);
+  padding: 0.6rem 0.4rem 0.5rem;
+  text-align: center;
+  min-height: 5.5rem;
+  font-family: var(--font-body);
+}
+
+.beb-tile .face {
+  display: block;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  margin: 0 auto 0.3rem;
+  border: var(--outline-width) solid var(--ink);
+}
+
+.beb-tile .tile-name {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  /* 24文字までの名前を許すため、途中でも折り返してタイル幅を守る */
+  overflow-wrap: anywhere;
+}
+
+.beb-tile .lv {
+  font-size: 0.63rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--blue);
+  border-radius: var(--radius-button);
+  display: inline-block;
+  padding: 0.05rem 0.5rem;
+  margin-top: 0.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.beb-tile.empty {
+  background: rgba(255, 255, 255, 0.28);
+  border-style: dashed;
+  border-color: rgba(22, 27, 51, 0.4);
+  color: rgba(22, 27, 51, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+/* 白パネルのカード（証言カード・解説パネル） */
+.beb-card {
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 1rem;
+  border: var(--outline-width) solid #2a335e;
+  box-shadow: var(--shadow-card);
+  padding: 0.75rem 0.9rem;
+}
+
+.beb-pill {
+  font-size: 0.63rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--blue);
+  border-radius: var(--radius-button);
+  padding: 0.1rem 0.55rem;
+  display: inline-block;
+}
+
+.beb-pill.lock {
+  background: var(--red);
+}
+
+/* 斜めスピードライン（明るい地）と縞（暗い地） */
+.beb-speedlines-light {
+  background-image: repeating-linear-gradient(
+    var(--skew-angle),
+    rgba(255, 255, 255, 0.1) 0 3px,
+    transparent 3px 46px
+  );
+}
+
+.beb-stripes-dark {
+  background-image: repeating-linear-gradient(var(--skew-angle), rgba(0, 0, 0, 0.16) 0 22px, transparent 22px 44px);
+}
+
+/* 見出しの傾き。文字を倒すのは大きな表示書体のときだけにする */
+.beb-skew {
+  transform: skew(var(--skew-angle));
+  transform-origin: left bottom;
+}

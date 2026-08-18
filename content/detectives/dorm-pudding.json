@@ -1,0 +1,342 @@
+{
+  "id": "dorm_pudding_v1",
+  "playerCount": [5, 6],
+  "title": "The Last Pudding",
+  "briefing": {
+    "ja": "学生寮の共用キッチンで、冷蔵庫に入っていた最後のプリンが21時から21時30分の間に食べられた。プリンにはEmiの名前が書いてあった。その時間に寮にいた6人のうち1人が犯人であり、その人の証言カードには嘘が1枚だけ混ざっている。全員の証言を突き合わせて、誰の話が成り立たないかを見つける。",
+    "en": "The last pudding in the shared fridge, with Emi's name on it, was eaten between 21:00 and 21:30. One of the six residents in the dorm is the culprit, and one card in that person's hand is a lie."
+  },
+  "characters": [
+    { "id": "cleaner", "name": "Sora (on cleaning duty)", "recommendedLevel": 1, "merge5p": null },
+    { "id": "exchange_student", "name": "Lena (exchange student)", "recommendedLevel": 2, "merge5p": null },
+    { "id": "night_worker", "name": "Kai (back from a night shift)", "recommendedLevel": 3, "merge5p": null },
+    { "id": "cook", "name": "Nao (senior who loves cooking)", "recommendedLevel": 4, "merge5p": null },
+    { "id": "warden", "name": "Yuri (dorm warden)", "recommendedLevel": 5, "merge5p": null },
+    { "id": "parcel_taker", "name": "Mio (took the parcel at the door)", "recommendedLevel": 3, "merge5p": "warden" }
+  ],
+  "facts": [
+    {
+      "id": "f_cl_a",
+      "owner": "cleaner",
+      "value": "common_room_tv_off_from=21:10",
+      "disclosure": "free",
+      "text": {
+        "1": "Common room. TV off. From 21:10.",
+        "2": "The TV in the common room was off from 21:10.",
+        "3": "The television in the common room stayed off from about ten past nine.",
+        "4": "Nobody had the television on in there, at least not after ten past.",
+        "5": "I am going by memory here, but the television in the common room was off from around ten past nine."
+      },
+      "hintJa": "common room = 談話室 / television = テレビ / off = 電源が入っていない"
+    },
+    {
+      "id": "f_cl_b",
+      "owner": "cleaner",
+      "value": "back_door_locked_until=21:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Back door. Locked. Until 21:20.",
+        "2": "The back door was locked until 21:20.",
+        "3": "The back door to the garden stayed locked until twenty past nine.",
+        "4": "Anyone who tried the garden door before twenty past would have found it locked.",
+        "5": "I would stop short of certainty, but the back door stayed locked until at least twenty minutes past nine."
+      },
+      "hintJa": "back door = 裏口 / locked = 鍵がかかっている / garden = 庭"
+    },
+    {
+      "id": "f_ex_a",
+      "owner": "exchange_student",
+      "value": "sofa_view_of_corridor_until=21:18",
+      "disclosure": "free",
+      "text": {
+        "1": "Sofa. I saw the corridor. Until 21:18.",
+        "2": "From the sofa I could see the corridor until 21:18.",
+        "3": "I sat on the sofa and could see the corridor until about eighteen past.",
+        "4": "Nobody could have gone along that corridor without me noticing, at least until just before twenty past.",
+        "5": "I was half asleep on that sofa, but I could see the corridor until about eighteen minutes past nine."
+      },
+      "hintJa": "sofa = ソファ / corridor = 廊下 / notice = 気づく"
+    },
+    {
+      "id": "f_ex_b",
+      "owner": "exchange_student",
+      "value": "drying_rack_blocked_laundry_doorway_from=21:10_to=21:20",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "Drying rack. Laundry doorway. 21:10 to 21:20.",
+        "2": "The drying rack blocked the laundry room doorway from 21:10 to 21:20.",
+        "3": "The drying rack stood right across the laundry room doorway from ten past to twenty past.",
+        "4": "With the rack across that doorway from ten past to twenty past, the laundry room was shut off.",
+        "5": "Nobody times the laundry, but the drying rack stood across the laundry room doorway from ten past until twenty past nine."
+      },
+      "hintJa": "drying rack = 物干し / across = 横切って / doorway = 出入口"
+    },
+    {
+      "id": "f_nw_a",
+      "owner": "night_worker",
+      "value": "pudding_in_fridge_at=21:10",
+      "disclosure": "free",
+      "text": {
+        "1": "Pudding. In the fridge. At 21:10.",
+        "2": "The pudding was still in the fridge at 21:10.",
+        "3": "The pudding was still in the fridge at ten past nine, I know that much.",
+        "4": "The pudding was certainly still on the shelf when I opened the fridge at ten past.",
+        "5": "My timing may be a minute or two out, but the pudding was still in the fridge at around ten past nine."
+      },
+      "hintJa": "pudding = プリン / fridge = 冷蔵庫 / still = まだ"
+    },
+    {
+      "id": "f_nw_b",
+      "owner": "night_worker",
+      "value": "kettle_cold_at=21:20",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "The kettle. Stone cold. At 21:20.",
+        "2": "The kettle was completely cold at 21:20.",
+        "3": "When I went for tea at twenty past nine, the kettle was stone cold.",
+        "4": "That kettle cannot have been boiled in the few minutes before I lifted it at twenty past.",
+        "5": "I always want tea after a night shift, and the kettle was stone cold when I lifted it at twenty past nine."
+      },
+      "hintJa": "kettle = 電気ケトル / stone cold = すっかり冷たい / boil = 沸かす"
+    },
+    {
+      "id": "f_ck_a",
+      "owner": "cook",
+      "value": "pudding_owner_left_kitchen_at=21:12",
+      "disclosure": "free",
+      "text": {
+        "1": "Emi. Left the kitchen. At 21:12.",
+        "2": "Emi, whose name was on the pudding, left the kitchen at 21:12.",
+        "3": "The girl whose name was on the pudding left the kitchen at about twelve past.",
+        "4": "Emi was out of the kitchen by a minute or two after ten past.",
+        "5": "The clock was not on my mind, but Emi walked out of the kitchen at roughly twelve minutes past nine."
+      },
+      "hintJa": "whose name = 誰の名前が / leave = 離れる / walk out = 出ていく"
+    },
+    {
+      "id": "f_ck_b",
+      "owner": "cook",
+      "value": "washing_up_left_in_sink_until=21:25",
+      "disclosure": "free",
+      "text": {
+        "1": "Washing-up. Still in the sink. At 21:25.",
+        "2": "The washing-up was still in the sink at 21:25.",
+        "3": "Nobody had touched the pans in the sink by twenty-five past nine.",
+        "4": "Had anyone done the washing-up, the sink would not still have been full at twenty-five past.",
+        "5": "I do complain about it every week, but the pans were still sitting in the sink when I came back at twenty-five past nine."
+      },
+      "hintJa": "washing-up = 洗い物 / sink = 流し / pan = 鍋"
+    },
+    {
+      "id": "f_wd_a",
+      "owner": "warden",
+      "value": "entrance_hall_in_sight_until=21:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Entrance hall. I watched it. Until 21:20.",
+        "2": "I had the entrance hall in sight until 21:20.",
+        "3": "I kept the entrance hall in view from my desk until twenty past nine.",
+        "4": "Not much gets through that hall without me seeing it, and I was at my desk until twenty past.",
+        "5": "I will not pretend I never looked away, but the entrance hall was in front of me until about twenty minutes past nine."
+      },
+      "hintJa": "entrance hall = 玄関ホール / in sight = 見えるところに / keep = 〜し続ける"
+    },
+    {
+      "id": "f_wd_b",
+      "owner": "warden",
+      "value": "key_box_not_opened_between=21:05_and=21:25",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "The key box. Not opened. 21:05 to 21:25.",
+        "2": "The key box was not opened between 21:05 and 21:25.",
+        "3": "Nobody took a key out of the box between five past and twenty-five past.",
+        "4": "Had anyone borrowed the garden key between five past and twenty-five past, the tag would be on the wrong hook.",
+        "5": "I only glance at it now and then, but the tags show the key box was never opened between five past and twenty-five past nine."
+      },
+      "hintJa": "key box = 鍵箱 / tag = 札 / hook = 掛けるところ"
+    },
+    {
+      "id": "f_pc_a",
+      "owner": "parcel_taker",
+      "value": "parcel_boxes_blocked_entrance_from=21:13_to=21:17",
+      "disclosure": "free",
+      "text": {
+        "1": "Boxes. Front entrance. 21:13 to 21:17.",
+        "2": "The parcel boxes blocked the front entrance from 21:13 to 21:17.",
+        "3": "The parcels stood in the front doorway from thirteen past until seventeen past.",
+        "4": "The doorway was full of parcels from thirteen past to seventeen past, so nobody could get through.",
+        "5": "I cannot give the exact minute, but the parcels were standing in the front doorway from about thirteen past until seventeen past nine."
+      },
+      "hintJa": "parcel = 荷物 / block = ふさぐ / doorway = 出入口"
+    },
+    {
+      "id": "f_pc_b",
+      "owner": "parcel_taker",
+      "value": "delivery_van_across_front_path_until=21:25",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "The van. Across the path. Until 21:25.",
+        "2": "The delivery van stood across the front path until 21:25.",
+        "3": "The van was parked right across the front path until twenty-five past nine.",
+        "4": "Anyone leaving by the front before twenty-five past had that van in the way.",
+        "5": "The driver was in and out of it the whole time, but the van sat across the front path until about twenty-five past nine."
+      },
+      "hintJa": "van = 配送車 / path = 通路 / across = 横切って"
+    }
+  ],
+  "variants": [
+    {
+      "culprit": "cleaner",
+      "lie": {
+        "replaces": "f_cl_a",
+        "value": "claims_in_laundry_room_at=21:15",
+        "text": {
+          "1": "Me. Laundry room. At 21:15.",
+          "2": "I was in the laundry room at 21:15.",
+          "3": "I went into the laundry room at about a quarter past nine.",
+          "4": "I was already in the laundry room by then, so the kitchen was out of my sight.",
+          "5": "I would not like to fix the minute, but I had gone through into the laundry room by about a quarter past nine."
+        },
+        "hintJa": "laundry room = 洗濯室 / go through = 通って入る / out of sight = 見えないところに"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_cl_a", "f_ex_b", "f_nw_a", "f_ck_a", "f_wd_a", "f_pc_a"],
+          "requires5p": null,
+          "yields": "cleaner_alibi_broken",
+          "meaningJa": "Soraは21:15に洗濯室にいたと言うが、Lenaの物干しが21:10から21:20まで洗濯室の出入口を塞いでいた。Kaiの21:10の証言とNaoの21:12の証言でプリンが消えた時間帯が絞られ、Yuriの玄関ホールの視線と玄関の荷物で、その間に寮を出た者がいないことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "exchange_student",
+      "lie": {
+        "replaces": "f_ex_a",
+        "value": "claims_out_front_door_from=21:13",
+        "text": {
+          "1": "Me. Outside. Front door. From 21:13.",
+          "2": "I went out the front door at 21:13.",
+          "3": "I stepped out the front door at about thirteen past and stayed outside.",
+          "4": "I was standing outside the front door by then, so I saw none of it.",
+          "5": "I am hazy on the minute, but I had already gone out through the front door by about thirteen minutes past nine."
+        },
+        "hintJa": "go out = 外へ出る / front door = 玄関の扉 / outside = 外に"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_ex_a", "f_pc_a", "f_cl_a", "f_nw_a", "f_ck_a", "f_wd_a"],
+          "requires5p": null,
+          "yields": "exchange_student_alibi_broken",
+          "meaningJa": "Lenaは21:13に玄関から外へ出たと言うが、配送の荷物が21:13から21:17まで玄関をふさいでいた。Yuriは21:20まで玄関ホールを見ており、Soraの談話室のテレビ、Kaiの21:10の証言、Naoの21:12の証言で、その時間帯の寮の中の様子が分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "night_worker",
+      "lie": {
+        "replaces": "f_nw_a",
+        "value": "claims_in_back_garden_at=21:15",
+        "text": {
+          "1": "Me. Back garden. At 21:15.",
+          "2": "I was out in the back garden at 21:15.",
+          "3": "I went out to the back garden at about a quarter past nine.",
+          "4": "I had stepped out for some air in the garden, so I was not inside.",
+          "5": "I might be a few minutes out, but I had gone out to the back garden by around a quarter past nine."
+        },
+        "hintJa": "back garden = 裏庭 / step out = 外へ出る / inside = 建物の中"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_nw_a", "f_cl_b", "f_ex_a", "f_ck_a", "f_wd_b", "f_pc_b"],
+          "requires5p": null,
+          "yields": "night_worker_alibi_broken",
+          "meaningJa": "Kaiは21:15に裏庭にいたと言うが、Soraは裏口が21:20まで施錠されていたと言っている。Yuriの鍵箱の証言から庭の鍵を持ち出した者もいない。配送車が前の通路をふさいでいたため表から回り込むこともできず、Lenaの廊下の視界とNaoの21:12の証言で、その時間帯の寮の中の様子が分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "cook",
+      "lie": {
+        "replaces": "f_ck_a",
+        "value": "claims_watching_tv_at=21:15",
+        "text": {
+          "1": "Me. Watching TV. At 21:15.",
+          "2": "I was watching TV in the common room at 21:15.",
+          "3": "I was watching television in the common room at about a quarter past nine.",
+          "4": "I had settled down in front of the television by then, so I was not in the kitchen.",
+          "5": "I would have to check what was on, but I believe I was watching television in the common room at around a quarter past nine."
+        },
+        "hintJa": "watch = 見る / television = テレビ / settle down = 腰を落ち着ける"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_ck_a", "f_cl_a", "f_ex_a", "f_nw_a", "f_wd_a", "f_pc_a"],
+          "requires5p": null,
+          "yields": "cook_alibi_broken",
+          "meaningJa": "Naoは21:15に談話室でテレビを見ていたと言うが、Soraは21:10以降テレビの電源が入っていなかったと言っている。Lenaは同じ談話室のソファにいて廊下まで見えていた。Kaiの21:10の証言で時間帯が絞られ、Yuriの玄関ホールの視線と玄関の荷物で、その間に寮を出た者がいないことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "warden",
+      "lie": {
+        "replaces": "f_wd_a",
+        "value": "claims_at_kitchen_sink_at=21:15",
+        "text": {
+          "1": "Me. At the sink. At 21:15.",
+          "2": "I was at the kitchen sink at 21:15.",
+          "3": "I was doing the washing-up at the sink at about a quarter past nine.",
+          "4": "I had my hands in the sink by then, so I never went near the fridge.",
+          "5": "I do it every evening after supper, so I would put myself at the sink at around a quarter past nine."
+        },
+        "hintJa": "sink = 流し / washing-up = 洗い物 / near = 〜の近くに"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_wd_a", "f_ck_b", "f_cl_a", "f_ex_a", "f_nw_a", "f_pc_a"],
+          "requires5p": ["f_wd_a", "f_ck_b", "f_cl_a", "f_ex_a", "f_nw_a"],
+          "yields": "warden_alibi_broken",
+          "meaningJa": "Yuriは21:15に流しで洗い物をしていたと言うが、Naoは21:25まで洗い物が流しに残ったままだったと言っている。Kaiの21:10の証言で時間帯が絞られ、Soraの談話室のテレビ、Lenaの廊下の視界、玄関の荷物で、その間に寮を出た者がいないことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "parcel_taker",
+      "lie": {
+        "replaces": "f_pc_a",
+        "value": "claims_making_tea_at=21:15",
+        "text": {
+          "1": "Me. Making tea. At 21:15.",
+          "2": "I was making tea in the kitchen at 21:15.",
+          "3": "I was boiling the kettle for tea at about a quarter past nine.",
+          "4": "I had put the kettle on by then, so I was standing away from the fridge.",
+          "5": "Tea at that hour is not really my habit, but I had put the kettle on at around a quarter past nine."
+        },
+        "hintJa": "make tea = お茶をいれる / kettle = 電気ケトル / put on = 火にかける"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_pc_a", "f_nw_b", "f_cl_a", "f_ex_a", "f_ck_a", "f_wd_a"],
+          "requires5p": null,
+          "yields": "parcel_taker_alibi_broken",
+          "meaningJa": "Mioは21:15に湯を沸かしていたと言うが、Kaiは21:20に電気ケトルがすっかり冷たかったと言っている。Naoの21:12の証言で時間帯が絞られ、Soraの談話室のテレビ、Lenaの廊下の視界、Yuriの玄関ホールの視線で、その間に寮を出た者がいないことが分かる。"
+        }
+      ]
+    }
+  ],
+  "reveal": {
+    "timelineEn": [
+      "21:05 Emi wrote her name on the pudding and put it in the fridge.",
+      "21:10 The pudding was still in the fridge and the common room TV went off.",
+      "21:12 Emi left the kitchen.",
+      "21:15 The pudding was taken out of the fridge and eaten.",
+      "21:20 Emi came back for it and found the empty pot in the bin."
+    ],
+    "keyExpressions": [
+      { "en": "I only had a little bit...", "ja": "ほんの少しだけ食べて…" },
+      { "en": "Someone must have taken it.", "ja": "誰かが持っていったはずです。" },
+      { "en": "I might be wrong, but...", "ja": "間違っているかもしれませんが…" },
+      { "en": "Whose name was on it?", "ja": "誰の名前が書いてありましたか。" }
+    ]
+  }
+}

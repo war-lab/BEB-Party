@@ -1,0 +1,24 @@
+{
+  "name": "@beb/client-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest run --passWithNoTests",
+    "dev": "vite",
+    "build": "node scripts/generate-font-subsets.mjs && vite build",
+    "fonts:generate": "node scripts/generate-font-subsets.mjs"
+  },
+  "dependencies": {
+    "@beb/client-core": "workspace:*",
+    "@beb/client-detectives": "workspace:*"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "7.3.0",
+    "subset-font": "2.5.0",
+    "svelte": "5.56.9",
+    "svelte-check": "4.7.5",
+    "vite": "8.2.1"
+  }
+}

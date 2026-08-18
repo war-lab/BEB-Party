@@ -1,0 +1,342 @@
+{
+  "id": "hotel_umbrella_v1",
+  "playerCount": [5, 6],
+  "title": "The Missing Umbrella",
+  "briefing": {
+    "ja": "ノースゲート・ホテルのロビーで、傘立てに預けられていた客の傘が9時から9時30分の間に持ち去られた。旅先で買った記念の傘であり、持ち主にとって大切な品である。ロビーにいた6人のうち1人が犯人であり、その人の証言カードには嘘が1枚だけ混ざっている。全員の証言を突き合わせて、誰の話が成り立たないかを見つける。",
+    "en": "A guest's umbrella was taken from the stand in the lobby of the Northgate Hotel between 09:00 and 09:30. She bought it on a trip and wants it back. One of the six people in the lobby is the thief, and one card in that person's hand is a lie."
+  },
+  "characters": [
+    { "id": "front_desk", "name": "Hana (front desk clerk)", "recommendedLevel": 1, "merge5p": null },
+    { "id": "guest", "name": "Sota (guest waiting by the elevator)", "recommendedLevel": 2, "merge5p": null },
+    { "id": "bell_staff", "name": "Rio (bell staff)", "recommendedLevel": 3, "merge5p": "manager" },
+    { "id": "driver", "name": "Taku (delivery driver)", "recommendedLevel": 4, "merge5p": null },
+    { "id": "manager", "name": "Emi (hotel manager)", "recommendedLevel": 5, "merge5p": null },
+    { "id": "breakfast_staff", "name": "Yui (breakfast room staff)", "recommendedLevel": 3, "merge5p": null }
+  ],
+  "facts": [
+    {
+      "id": "f_fd_a",
+      "owner": "front_desk",
+      "value": "front_desk_unattended_from=09:10",
+      "disclosure": "free",
+      "text": {
+        "1": "Front desk. Nobody there. From 09:10.",
+        "2": "Nobody was behind the front desk from 09:10.",
+        "3": "From about ten past nine there was nobody at the front desk.",
+        "4": "Anyone who came to the desk after ten past would have found it unattended.",
+        "5": "The minutes all run together for me, but I am fairly sure nobody was behind the front desk from around ten past nine."
+      },
+      "hintJa": "front desk = フロント / behind = 〜の後ろに / empty = 誰もいない"
+    },
+    {
+      "id": "f_fd_b",
+      "owner": "front_desk",
+      "value": "staff_corridor_door_locked_until=09:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Staff corridor. Door locked. Until 09:20.",
+        "2": "The staff corridor door was locked until 09:20.",
+        "3": "The door to the staff corridor stayed locked until twenty past nine.",
+        "4": "Had anyone wanted the staff corridor before twenty past, they would have had to ask me to unlock it.",
+        "5": "I keep that key myself, so I would be surprised if the staff corridor door was open before twenty past nine."
+      },
+      "hintJa": "staff corridor = 従業員通路 / locked = 鍵がかかっている / stay = 〜のままである"
+    },
+    {
+      "id": "f_gu_a",
+      "owner": "guest",
+      "value": "sofa_view_of_lobby_until=09:18",
+      "disclosure": "free",
+      "text": {
+        "1": "Lobby sofa. I saw the room. Until 09:18.",
+        "2": "From the lobby sofa I could see the room until 09:18.",
+        "3": "I was sitting on the lobby sofa, and I could see most of the room until about eighteen minutes past.",
+        "4": "Right up to eighteen minutes past, there was not much of that lobby I could not see from my sofa.",
+        "5": "My mind was on my phone, to be honest, but from that sofa I could see most of the lobby until about eighteen minutes past nine."
+      },
+      "hintJa": "sofa = ソファ / view = 見える範囲 / most of = 〜の大半"
+    },
+    {
+      "id": "f_gu_b",
+      "owner": "guest",
+      "value": "elevator_doors_open_on_ground_floor_until=09:20",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "Elevator. Doors open. Ground floor. Until 09:20.",
+        "2": "The elevator stood open on the ground floor until 09:20.",
+        "3": "The elevator sat there with its doors open on the ground floor until twenty past nine.",
+        "4": "The car had not moved off the ground floor by twenty past, and its doors were still open.",
+        "5": "Nobody had called it up as far as I know, and the elevator stood on the ground floor with its doors open until about twenty past nine."
+      },
+      "hintJa": "elevator = エレベーター / doors = 扉 / car = かご"
+    },
+    {
+      "id": "f_bs_a",
+      "owner": "bell_staff",
+      "value": "umbrella_in_stand_at=09:10",
+      "disclosure": "free",
+      "text": {
+        "1": "The umbrella. In the stand. At 09:10.",
+        "2": "The umbrella was still in the stand at 09:10.",
+        "3": "The umbrella was definitely still in the stand when I passed it at ten past nine.",
+        "4": "Nobody had taken that umbrella yet when I glanced over at ten past.",
+        "5": "I could not put an exact time on it, but the umbrella was still in the stand at around ten past nine."
+      },
+      "hintJa": "umbrella = 傘 / stand = 傘立て / still = まだ"
+    },
+    {
+      "id": "f_bs_b",
+      "owner": "bell_staff",
+      "value": "umbrella_owner_left_for_breakfast_at=09:12",
+      "disclosure": "free",
+      "text": {
+        "1": "The owner. Went to breakfast. At 09:12.",
+        "2": "The owner went to breakfast at 09:12.",
+        "3": "The guest it belonged to went in for breakfast at about twelve past nine.",
+        "4": "She left it there and went through for breakfast, two minutes or so after ten past.",
+        "5": "She did not say where she was going, but I think the owner went through for breakfast at roughly twelve minutes past nine."
+      },
+      "hintJa": "owner = 持ち主 / breakfast = 朝食 / go through = 通って入る"
+    },
+    {
+      "id": "f_dr_a",
+      "owner": "driver",
+      "value": "trolley_blocked_entrance_from=09:13_to=09:17",
+      "disclosure": "free",
+      "text": {
+        "1": "Trolley. Front entrance. 09:13 to 09:17.",
+        "2": "My trolley blocked the front entrance from 09:13 to 09:17.",
+        "3": "I had my trolley wedged in the front entrance from thirteen past until seventeen past.",
+        "4": "For those four minutes, the only way past that trolley was over the top of it.",
+        "5": "I was in a hurry with the boxes, so the trolley sat across the front entrance from about thirteen past until seventeen past nine."
+      },
+      "hintJa": "trolley = 台車 / block = ふさぐ / wedge = 押し込む"
+    },
+    {
+      "id": "f_dr_b",
+      "owner": "driver",
+      "value": "van_doors_open_facing_entrance_until=09:25",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "Van doors. Open. Towards the entrance. Until 09:25.",
+        "2": "The doors of my van were open towards the entrance until 09:25.",
+        "3": "The van was parked right in front of the entrance with its back doors open until twenty-five past.",
+        "4": "You could not step out of that entrance without squeezing round my open van doors.",
+        "5": "I forget when I finally shut them, but the van was standing in front of the entrance with its doors open until about twenty-five past nine."
+      },
+      "hintJa": "van = 配送車 / entrance = 入口 / squeeze round = 体をよけて通る"
+    },
+    {
+      "id": "f_mg_a",
+      "owner": "manager",
+      "value": "office_door_in_sight_until=09:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Office door. I watched it. Until 09:20.",
+        "2": "I had the office door in sight until 09:20.",
+        "3": "I had my eye on the office door right up to twenty past nine.",
+        "4": "If somebody had opened that office door before twenty past, I would have seen them do it.",
+        "5": "I will not pretend I never blinked, but the office door was in front of me until about twenty minutes past nine."
+      },
+      "hintJa": "office = 事務室 / in sight = 見えるところに / have an eye on = 目を離さない"
+    },
+    {
+      "id": "f_mg_b",
+      "owner": "manager",
+      "value": "no_check_in_recorded_between=09:05_and=09:25",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "Check-in. Nothing recorded. 09:05 to 09:25.",
+        "2": "No check-in was recorded between 09:05 and 09:25.",
+        "3": "Nobody checked in between five past and twenty-five past nine.",
+        "4": "The system would have a record if anybody had checked in during those twenty minutes.",
+        "5": "I have looked since, and unless the system missed it, there is no check-in at all between five past and twenty-five past nine."
+      },
+      "hintJa": "check-in = 宿泊の受付 / record = 記録する / system = 端末の記録"
+    },
+    {
+      "id": "f_br_a",
+      "owner": "breakfast_staff",
+      "value": "breakfast_doorway_view_of_lobby_from=09:10_to=09:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Doorway. I saw the lobby. 09:10 to 09:20.",
+        "2": "From the breakfast room doorway I saw the lobby from 09:10 to 09:20.",
+        "3": "I could see the lobby through the doorway from ten past to twenty past.",
+        "4": "The doorway gives me a view of the lobby, and I was standing in it from ten past to twenty past.",
+        "5": "I was busy with the buffet, but the breakfast room doorway looks out on the lobby, and I was standing there from ten past to twenty past."
+      },
+      "hintJa": "doorway = 戸口 / breakfast room = 朝食会場 / buffet = 食事の並んだ台"
+    },
+    {
+      "id": "f_br_b",
+      "owner": "breakfast_staff",
+      "value": "linen_room_locked_between=09:10_and=09:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Linen room. Locked. 09:10 to 09:20.",
+        "2": "The linen room was locked between 09:10 and 09:20.",
+        "3": "I locked the linen room at ten past and had the key on me until twenty past.",
+        "4": "That room stays shut unless I unlock it, and I did not unlock it before twenty past.",
+        "5": "I lock it out of habit whenever I leave, and the key stayed in my pocket from ten past until twenty past nine."
+      },
+      "hintJa": "linen room = リネン室 / lock = 鍵をかける / key = 鍵"
+    }
+  ],
+  "variants": [
+    {
+      "culprit": "front_desk",
+      "lie": {
+        "replaces": "f_fd_a",
+        "value": "claims_in_linen_room_at=09:15",
+        "text": {
+          "1": "Me. In the linen room. At 09:15.",
+          "2": "I was in the linen room at 09:15.",
+          "3": "I went into the linen room for a clean cloth at a quarter past.",
+          "4": "By then I was in the linen room hunting for a clean cloth, well out of sight of the lobby.",
+          "5": "I doubt I could pin down the minute, but I had gone into the linen room for a clean cloth by about a quarter past nine."
+        },
+        "hintJa": "linen room = リネン室 / cloth = 布 / go through = 通って入る"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_fd_a", "f_gu_a", "f_bs_a", "f_dr_a", "f_mg_a", "f_br_b"],
+          "requires5p": null,
+          "yields": "front_desk_alibi_broken",
+          "meaningJa": "Hanaは9時15分にリネン室にいたと言うが、Yuiは9時10分にリネン室へ鍵をかけ、その鍵を自分のポケットに入れていたと言っている。9時10分に傘がまだ傘立てにあったという証言で時間帯が絞られ、Sotaの視界とTakuの台車とEmiの視線で、その間にロビーを離れられた者がいないことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "guest",
+      "lie": {
+        "replaces": "f_gu_a",
+        "value": "claims_out_front_entrance_from=09:13",
+        "text": {
+          "1": "Me. Outside. Front entrance. From 09:13.",
+          "2": "I went out the front entrance at 09:13.",
+          "3": "I walked out through the front entrance at about thirteen past and waited outside.",
+          "4": "I was already outside getting some air by then, so whatever happened, it happened without me.",
+          "5": "The clock was the last thing on my mind, but I was already out through the front entrance by about thirteen minutes past nine."
+        },
+        "hintJa": "go out = 外へ出る / entrance = 入口 / air = 外の空気"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_gu_a", "f_fd_a", "f_bs_a", "f_dr_a", "f_mg_a", "f_br_a"],
+          "requires5p": null,
+          "yields": "guest_alibi_broken",
+          "meaningJa": "Sotaは9時13分に正面の入口から外へ出たと言うが、Takuの台車が9時13分から9時17分まで正面の出入口を塞いでいた。HanaとEmiとYuiの証言と、9時10分に傘が傘立てにあったという証言で、その時間帯に他の出口が使えなかったことも分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "bell_staff",
+      "lie": {
+        "replaces": "f_bs_a",
+        "value": "claims_upstairs_by_elevator_at=09:15",
+        "text": {
+          "1": "Me. Upstairs. Elevator. At 09:15.",
+          "2": "I took the elevator up at 09:15.",
+          "3": "I went up in the elevator at about a quarter past nine.",
+          "4": "I had taken the elevator up to the second floor, so I was not in the lobby.",
+          "5": "My rounds take me upstairs about that time, and I am fairly sure I rode the elevator up at around a quarter past nine."
+        },
+        "hintJa": "upstairs = 上の階 / elevator = エレベーター / floor = 階"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_bs_a", "f_fd_b", "f_gu_b", "f_dr_a", "f_mg_a", "f_br_a"],
+          "requires5p": null,
+          "yields": "bell_staff_alibi_broken",
+          "meaningJa": "Rioは9時15分にエレベーターで上の階へ行ったと言うが、Sotaは9時20分までエレベーターの扉が1階で開いたままだったと言っている。上の階への階段は従業員通路の先にあり、Hanaはその扉が9時20分まで施錠されていたと言う。Yuiの戸口からの視界とTakuの台車とEmiの視線で、その時間帯にロビーから抜けられなかったことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "driver",
+      "lie": {
+        "replaces": "f_dr_a",
+        "value": "claims_in_back_office_at=09:15",
+        "text": {
+          "1": "Me. In the office. At 09:15.",
+          "2": "I was in the back office at 09:15.",
+          "3": "I was in the back office waiting for a signature on my delivery sheet at a quarter past.",
+          "4": "The paperwork kept me in the back office, so I was nowhere near that umbrella stand.",
+          "5": "Whoever signed the sheet will remember better than I do, but I think I was in the back office at around a quarter past nine."
+        },
+        "hintJa": "back office = 奥の事務室 / signature = 署名 / paperwork = 事務作業"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_dr_a", "f_fd_a", "f_gu_a", "f_bs_b", "f_mg_a", "f_br_a"],
+          "requires5p": null,
+          "yields": "driver_alibi_broken",
+          "meaningJa": "Takuは9時15分に奥の事務室にいたと言うが、Emiは9時20分まで事務室の扉を見ており、誰も入っていない。持ち主が9時12分に朝食会場へ向かったという証言があり、HanaとSotaとYuiの証言で、その直後のロビーの様子が分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "manager",
+      "lie": {
+        "replaces": "f_mg_a",
+        "value": "claims_out_staff_corridor_at=09:15",
+        "text": {
+          "1": "Me. Out the back. At 09:15.",
+          "2": "I went out through the staff corridor at 09:15.",
+          "3": "I took the rubbish out along the staff corridor at about a quarter past nine.",
+          "4": "The rubbish goes out along the staff corridor, and that is where I was, not in the lobby.",
+          "5": "It is the one job I never forget, so I would say I was out along the staff corridor with the rubbish at around a quarter past nine."
+        },
+        "hintJa": "staff corridor = 従業員通路 / rubbish = ごみ / take out = 外へ出す"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_mg_a", "f_fd_b", "f_gu_a", "f_bs_a", "f_dr_b", "f_br_a"],
+          "requires5p": ["f_mg_a", "f_fd_b", "f_gu_a", "f_dr_b", "f_br_a"],
+          "yields": "manager_alibi_broken",
+          "meaningJa": "Emiは9時15分に従業員通路から外へ出たと言うが、Hanaは通路の扉が9時20分まで施錠されていたと言っている。Takuの配送車が入口の前に停まっていたこと、Sotaの視界、9時10分に傘が傘立てにあったという証言、Yuiの戸口からの視界で、その時間帯にホテルを出た者がいないことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "breakfast_staff",
+      "lie": {
+        "replaces": "f_br_a",
+        "value": "claims_at_front_desk_at=09:15",
+        "text": {
+          "1": "Me. At the front desk. At 09:15.",
+          "2": "I was at the front desk at 09:15.",
+          "3": "I was covering the front desk at about a quarter past nine.",
+          "4": "By then I had left the buffet to somebody else and was standing at the front desk.",
+          "5": "It is hardly my job, but I think I had come out to stand at the front desk at around a quarter past nine."
+        },
+        "hintJa": "front desk = フロント / cover = 代わりに担当する / hardly = ほとんど〜ない"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_br_a", "f_fd_a", "f_gu_a", "f_bs_a", "f_dr_a", "f_mg_b"],
+          "requires5p": null,
+          "yields": "breakfast_staff_alibi_broken",
+          "meaningJa": "Yuiは9時15分にフロントにいたと言うが、Hanaは9時10分以降フロントに誰も立っていなかったと言っている。Emiの受付の記録、9時10分に傘が傘立てにあったという証言、Sotaの視界、Takuの台車で、その時間帯に受付が行われていなかったことが分かる。"
+        }
+      ]
+    }
+  ],
+  "reveal": {
+    "timelineEn": [
+      "09:05 The guest left her umbrella in the stand by the door.",
+      "09:10 The umbrella was still in the stand.",
+      "09:12 The guest went through to the breakfast room.",
+      "09:15 The umbrella was taken from the stand.",
+      "09:20 The guest came back and the umbrella was gone."
+    ],
+    "keyExpressions": [
+      { "en": "Who else was in the lobby then?", "ja": "そのとき、ほかに誰がロビーにいましたか。" },
+      { "en": "Come to think of it...", "ja": "考えてみると…" },
+      { "en": "I could not put an exact time on it, but...", "ja": "正確な時刻は言えませんが…" },
+      { "en": "One of you must be mistaken.", "ja": "どちらかが間違っています。" }
+    ]
+  }
+}

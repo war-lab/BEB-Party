@@ -1,0 +1,19 @@
+{
+  "name": "@beb/server-detectives",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "generate:cases": "node scripts/generate-case-index.mjs"
+  },
+  "dependencies": {
+    "@beb/engine": "workspace:*",
+    "@beb/shared-core": "workspace:*",
+    "@beb/shared-detectives": "workspace:*"
+  }
+}

@@ -1,0 +1,342 @@
+{
+  "id": "office_cake_v1",
+  "playerCount": [5, 6],
+  "title": "The Missing Birthday Cake",
+  "briefing": {
+    "ja": "小さな会社のオフィスで、午後の誕生日会に出すはずのホールケーキが給湯室から消えた。無くなったのは15時から15時30分の間である。その時間にフロアにいた6人のうち1人が犯人であり、その人の証言カードには嘘が1枚だけ混ざっている。全員の証言を突き合わせて、誰の話が成り立たないかを見つける。",
+    "en": "A whole birthday cake, meant for the party that afternoon, was taken from the office kitchenette between 15:00 and 15:30. One of the six people on the floor is the culprit, and one card in that person's hand is a lie."
+  },
+  "characters": [
+    { "id": "receptionist", "name": "Hana (receptionist)", "recommendedLevel": 1, "merge5p": null },
+    { "id": "sales_rep", "name": "Sota (sales)", "recommendedLevel": 2, "merge5p": null },
+    { "id": "accountant", "name": "Emi (accounts)", "recommendedLevel": 3, "merge5p": null },
+    { "id": "intern", "name": "Riku (intern)", "recommendedLevel": 4, "merge5p": null },
+    { "id": "manager", "name": "Goro (department manager)", "recommendedLevel": 5, "merge5p": null },
+    { "id": "cleaner", "name": "Nao (cleaning staff)", "recommendedLevel": 3, "merge5p": "intern" }
+  ],
+  "facts": [
+    {
+      "id": "f_rc_a",
+      "owner": "receptionist",
+      "value": "front_desk_empty_from=15:10",
+      "disclosure": "free",
+      "text": {
+        "1": "Front desk. Empty. From 15:10.",
+        "2": "The front desk was empty from 15:10.",
+        "3": "I left the front desk at ten past and nobody took over.",
+        "4": "Nobody was covering the front desk after ten past, as far as I know.",
+        "5": "I could not tell you the minute I walked away, but the front desk was left empty from about ten past three."
+      },
+      "hintJa": "front desk = 受付 / empty = 誰もいない / cover = 代わりに担当する"
+    },
+    {
+      "id": "f_rc_b",
+      "owner": "receptionist",
+      "value": "fire_door_locked_until=15:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Fire door. Locked. Until 15:20.",
+        "2": "The fire door was locked until 15:20.",
+        "3": "The fire door stayed locked until twenty past three.",
+        "4": "The fire door key hangs at reception, and nobody had signed it out before twenty past.",
+        "5": "I would not stake my life on it, but I am fairly sure the fire door stayed locked until at least twenty past three."
+      },
+      "hintJa": "fire door = 非常口 / locked = 鍵がかかっている / stay = 〜のままである"
+    },
+    {
+      "id": "f_sl_a",
+      "owner": "sales_rep",
+      "value": "at_printer_in_corridor_from=15:10_to=15:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Printer. In the corridor. 15:10 to 15:20.",
+        "2": "I stood at the printer in the corridor from 15:10 to 15:20.",
+        "3": "I was at the printer in the corridor from ten past to twenty past.",
+        "4": "I had the whole corridor in front of me while I waited for my printouts, from ten past to twenty past.",
+        "5": "I was not really watching the time, but I stood at the printer in the corridor from about ten past to twenty past three."
+      },
+      "hintJa": "printer = 印刷機 / corridor = 廊下 / stand = 立つ"
+    },
+    {
+      "id": "f_sl_b",
+      "owner": "sales_rep",
+      "value": "meeting_room_locked_until=15:20",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "Meeting room. Locked. Until 15:20.",
+        "2": "The meeting room door was locked until 15:20.",
+        "3": "The meeting room stayed locked until twenty past three.",
+        "4": "Nobody could have been in there while that door was locked.",
+        "5": "I could not say who has the key, but the meeting room door stayed locked until about twenty past three."
+      },
+      "hintJa": "meeting room = 会議室 / locked = 鍵がかかっている / key = 鍵"
+    },
+    {
+      "id": "f_ac_a",
+      "owner": "accountant",
+      "value": "cake_box_in_kitchenette_at=15:10",
+      "disclosure": "free",
+      "text": {
+        "1": "Cake box. In the kitchenette. At 15:10.",
+        "2": "The cake box was still in the kitchenette at 15:10.",
+        "3": "I am sure the cake box was still on the kitchenette table at ten past.",
+        "4": "The box was certainly still there when I went in for water at ten past.",
+        "5": "The box was still sitting there when I went in for water, and that would have been around ten past three."
+      },
+      "hintJa": "cake box = ケーキの箱 / kitchenette = 給湯室 / still = まだ"
+    },
+    {
+      "id": "f_ac_b",
+      "owner": "accountant",
+      "value": "sales_chairs_pushed_in_between=15:10_and=15:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Sales chairs. Pushed in. 15:10 to 15:20.",
+        "2": "Every chair at the sales desks was pushed in from 15:10 to 15:20.",
+        "3": "All the chairs in the sales row stayed pushed in until twenty past.",
+        "4": "A chair pushed right in is a chair nobody is sitting on, and they stayed like that until twenty past.",
+        "5": "I am not going to argue about a minute or two, but every chair in the sales row stayed pushed in from ten past until twenty past three."
+      },
+      "hintJa": "chair = 椅子 / push in = 押し込む / row = 並び"
+    },
+    {
+      "id": "f_in_a",
+      "owner": "intern",
+      "value": "lift_out_of_order_between=15:05_and=15:25",
+      "disclosure": "free",
+      "text": {
+        "1": "The lift. Out of order. 15:05 to 15:25.",
+        "2": "The lift was out of order between 15:05 and 15:25.",
+        "3": "I put the out-of-order sign on the lift at five past three and took it off at twenty-five past.",
+        "4": "With my sign taped to the door, that lift was not going anywhere.",
+        "5": "I did not check it every minute, but the sign stayed on the lift from five past until twenty-five past three."
+      },
+      "hintJa": "lift = エレベーター / out of order = 故障中 / sign = 貼り紙"
+    },
+    {
+      "id": "f_in_b",
+      "owner": "intern",
+      "value": "boxes_stacked_by_fire_door_until=15:25",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "Boxes. By the fire door. Until 15:25.",
+        "2": "Delivery boxes stood by the fire door until 15:25.",
+        "3": "The boxes I unpacked stood in front of the fire door until twenty-five past.",
+        "4": "Anyone going that way would have had to climb over my boxes.",
+        "5": "I was slow clearing them away, but the delivery boxes stood in front of the fire door until about twenty-five past three."
+      },
+      "hintJa": "box = 箱 / stack = 積む / fire door = 非常口"
+    },
+    {
+      "id": "f_mg_a",
+      "owner": "manager",
+      "value": "cake_box_gone_at=15:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Kitchenette. The box. Gone. At 15:20.",
+        "2": "The cake box was gone at 15:20.",
+        "3": "I went to the kitchenette at twenty past and the box had gone.",
+        "4": "By the time I looked in, there was nothing on that table at all.",
+        "5": "I would hesitate to give an exact time, but the cake box had already gone when I looked in at about twenty past three."
+      },
+      "hintJa": "gone = なくなっている / look in = のぞく / table = 台"
+    },
+    {
+      "id": "f_mg_b",
+      "owner": "manager",
+      "value": "no_calls_logged_between=15:05_and=15:25",
+      "disclosure": "on_question_only",
+      "text": {
+        "1": "Phone log. No calls. 15:05 to 15:25.",
+        "2": "No calls came in between 15:05 and 15:25.",
+        "3": "The phone log shows no calls between five past and twenty-five past.",
+        "4": "If a call had come in, it would be sitting in the log with a time next to it.",
+        "5": "The log is not something I read for pleasure, but it shows no call came in between five past and twenty-five past three."
+      },
+      "hintJa": "call = 電話 / log = 記録 / show = 示す"
+    },
+    {
+      "id": "f_cl_a",
+      "owner": "cleaner",
+      "value": "mop_bucket_in_back_corridor_until=15:20",
+      "disclosure": "free",
+      "text": {
+        "1": "My bucket. In the back corridor. Until 15:20.",
+        "2": "My mop bucket stood in the back corridor until 15:20.",
+        "3": "My bucket and my wet-floor sign stood in the back corridor until twenty past.",
+        "4": "Nobody goes down that corridor while the wet-floor sign is out, and mine was out until twenty past.",
+        "5": "I never put it away as soon as I should, but my bucket and wet-floor sign stood in the back corridor until about twenty past three."
+      },
+      "hintJa": "bucket = バケツ / corridor = 廊下 / wet-floor sign = 床が濡れている表示"
+    },
+    {
+      "id": "f_cl_b",
+      "owner": "cleaner",
+      "value": "storeroom_locked_between=15:10_and=15:20",
+      "disclosure": "free",
+      "text": {
+        "1": "Storeroom. Locked. 15:10 to 15:20.",
+        "2": "The storeroom was locked between 15:10 and 15:20.",
+        "3": "I locked the storeroom at ten past and kept the key in my pocket.",
+        "4": "The only key was on me, so that room stayed shut from ten past to twenty past.",
+        "5": "I always lock it when I leave, and I had the key in my pocket from ten past until twenty past three."
+      },
+      "hintJa": "storeroom = 倉庫 / lock = 鍵をかける / key = 鍵"
+    }
+  ],
+  "variants": [
+    {
+      "culprit": "receptionist",
+      "lie": {
+        "replaces": "f_rc_a",
+        "value": "claims_in_storeroom_at=15:15",
+        "text": {
+          "1": "Me. In the storeroom. At 15:15.",
+          "2": "I was in the storeroom at 15:15.",
+          "3": "I went into the storeroom to fetch paper cups at a quarter past.",
+          "4": "I had gone through to the storeroom by then, so I saw nothing of the floor.",
+          "5": "I honestly could not name the minute, but I had gone through into the storeroom by about a quarter past three."
+        },
+        "hintJa": "storeroom = 倉庫 / fetch = 取りに行く / paper cup = 紙コップ"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_rc_a", "f_sl_a", "f_ac_a", "f_in_a", "f_mg_a", "f_cl_b"],
+          "requires5p": null,
+          "yields": "receptionist_alibi_broken",
+          "meaningJa": "Hanaは15:15に倉庫にいたと言うが、倉庫は15:10に施錠され、鍵はかけた本人が持っていたという証言がある。Emiの15:10の証言とGoroの15:20の証言で無くなった時間帯が絞られ、Sotaの廊下での位置とRikuのエレベーターの貼り紙で、その間にフロアを離れられた者がいないことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "sales_rep",
+      "lie": {
+        "replaces": "f_sl_a",
+        "value": "claims_at_own_desk_at=15:15",
+        "text": {
+          "1": "Me. At my desk. At 15:15.",
+          "2": "I was at my desk at 15:15.",
+          "3": "I was sitting at my own desk at about a quarter past three.",
+          "4": "I had gone back to my desk by then and never got up again.",
+          "5": "You will have to take my word on the timing, but I was back at my own desk by about a quarter past three."
+        },
+        "hintJa": "own = 自分の / desk = 机 / sit = 座る"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_sl_a", "f_rc_b", "f_ac_b", "f_in_a", "f_mg_a", "f_cl_a"],
+          "requires5p": null,
+          "yields": "sales_rep_alibi_broken",
+          "meaningJa": "Sotaは15:15に自分の机にいたと言うが、Emiは15:10から15:20の間、営業の机の椅子はどれも押し込まれたままだったと言っている。Hanaの非常口の施錠とRikuのエレベーターの貼り紙でフロアの外へ出た者がいないことが分かり、掃除のバケツが裏の廊下をふさいでいたことと、Goroの15:20の証言で残りの経路と時間帯が絞られる。"
+        }
+      ]
+    },
+    {
+      "culprit": "accountant",
+      "lie": {
+        "replaces": "f_ac_a",
+        "value": "claims_in_meeting_room_at=15:15",
+        "text": {
+          "1": "Me. In the meeting room. At 15:15.",
+          "2": "I was in the meeting room at 15:15.",
+          "3": "I went into the meeting room to lay out the plates at a quarter past.",
+          "4": "I had gone in to set the table by then, so I was not on the floor.",
+          "5": "I was in and out with the plates, so I could only say I had gone into the meeting room by around a quarter past three."
+        },
+        "hintJa": "meeting room = 会議室 / lay out = 並べる / plate = 皿"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_ac_a", "f_rc_a", "f_sl_b", "f_in_b", "f_mg_a", "f_cl_a"],
+          "requires5p": null,
+          "yields": "accountant_alibi_broken",
+          "meaningJa": "Emiは15:15に会議室で皿を並べていたと言うが、Sotaは15:20まで会議室の扉が施錠されていたと言っている。Hanaの受付が空だったという証言、Rikuの非常口をふさいだ箱、掃除のバケツがふさいだ裏の廊下で他の経路も使えず、Goroの15:20の証言で無くなった時間帯の終わりが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "intern",
+      "lie": {
+        "replaces": "f_in_a",
+        "value": "claims_at_front_desk_at=15:15",
+        "text": {
+          "1": "Me. Front desk. A call. At 15:15.",
+          "2": "I was at the front desk taking a call at 15:15.",
+          "3": "I was covering the front desk and took a call at a quarter past.",
+          "4": "I was on the phone at the front desk, so I was nowhere near the kitchenette.",
+          "5": "I would have to check with the caller, but I believe I was answering the phone at the front desk at around a quarter past three."
+        },
+        "hintJa": "front desk = 受付 / take a call = 電話に出る / cover = 代わりに担当する"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_in_a", "f_rc_a", "f_sl_a", "f_ac_a", "f_mg_b", "f_cl_a"],
+          "requires5p": ["f_in_a", "f_rc_a", "f_sl_a", "f_ac_a", "f_mg_b"],
+          "yields": "intern_alibi_broken",
+          "meaningJa": "Rikuは15:15に受付で電話に出ていたと言うが、Hanaは15:10以降、受付には誰もいなかったと言っている。Goroの電話の記録にもその時間帯の着信はない。Emiの15:10の証言、Sotaの廊下での位置、掃除のバケツがふさいだ裏の廊下で、その間のフロアの様子が分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "manager",
+      "lie": {
+        "replaces": "f_mg_a",
+        "value": "claims_out_fire_door_at=15:15",
+        "text": {
+          "1": "Me. Out the fire door. At 15:15.",
+          "2": "I went out through the fire door at 15:15.",
+          "3": "I stepped out through the fire door for some air at a quarter past.",
+          "4": "I had stepped outside for a moment, so I was not in the office at all.",
+          "5": "Most afternoons I take a moment outside, and I think I was out through the fire door at around a quarter past three."
+        },
+        "hintJa": "fire door = 非常口 / step out = 外へ出る / air = 外の空気"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_mg_a", "f_rc_b", "f_sl_a", "f_ac_a", "f_in_b", "f_cl_a"],
+          "requires5p": null,
+          "yields": "manager_alibi_broken",
+          "meaningJa": "Goroは15:15に非常口から外へ出たと言うが、Hanaは非常口が15:20まで施錠されていたと言っている。Rikuの箱もその扉の前に積まれていた。Emiの15:10の証言、Sotaの廊下での位置、掃除のバケツがふさいだ裏の廊下で、その時間帯にフロアを離れた者がいないことが分かる。"
+        }
+      ]
+    },
+    {
+      "culprit": "cleaner",
+      "lie": {
+        "replaces": "f_cl_a",
+        "value": "claims_in_lift_at=15:15",
+        "text": {
+          "1": "Me. In the lift. At 15:15.",
+          "2": "I was in the lift at 15:15.",
+          "3": "I took the rubbish down in the lift at about a quarter past three.",
+          "4": "I had gone down with the rubbish by then, so I was not on this floor.",
+          "5": "It is what I always do after lunch, and I am fairly sure I took the rubbish down in the lift at around a quarter past three."
+        },
+        "hintJa": "lift = エレベーター / rubbish = ごみ / take down = 下へ運ぶ"
+      },
+      "contradictions": [
+        {
+          "requires": ["f_cl_a", "f_rc_a", "f_sl_a", "f_ac_a", "f_in_a", "f_mg_a"],
+          "requires5p": null,
+          "yields": "cleaner_alibi_broken",
+          "meaningJa": "Naoは15:15にエレベーターでごみを下ろしたと言うが、Rikuは15:05から15:25までエレベーターに故障中の貼り紙を出していたと言っている。Emiの15:10の証言とGoroの15:20の証言で時間帯が絞られ、Hanaの受付の証言とSotaの廊下での位置で、その間のフロアの様子が分かる。"
+        }
+      ]
+    }
+  ],
+  "reveal": {
+    "timelineEn": [
+      "15:05 The intern put an out-of-order sign on the lift.",
+      "15:10 The cake box was still in the kitchenette.",
+      "15:15 Someone carried the cake box out of the kitchenette.",
+      "15:20 The manager looked in and the box had gone.",
+      "15:25 The party started with no cake on the table."
+    ],
+    "keyExpressions": [
+      { "en": "Where were you at a quarter past?", "ja": "15分ごろ、どこにいましたか。" },
+      { "en": "Somebody told me that...", "ja": "誰かが言っていたのですが…" },
+      { "en": "It must have been around then.", "ja": "たしかその頃だったはずです。" },
+      { "en": "That cannot be right, because...", "ja": "それはおかしいです。なぜなら…" }
+    ]
+  }
+}

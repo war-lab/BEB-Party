@@ -1,0 +1,22 @@
+{
+  "name": "@beb/server-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {
+    "@beb/server-detectives": "workspace:*",
+    "@beb/shared-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.21.2",
+    "wrangler": "4.122.0"
+  }
+}

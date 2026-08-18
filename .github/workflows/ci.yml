@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: check / test / validate:content
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.21.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm check
+
+      - run: pnpm test
+
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - run: pnpm e2e
+
+      - run: pnpm validate:content
+
+      - name: 事件インデックスの再生成と差分チェック
+        # content/detectives/ の走査結果(server/games/detectives/src/cases.generated.ts)はコミットする。
+        # 事件追加PRで再生成を忘れると、その事件がWorkerのバンドルに入らない（04、01のコンテンツの読み込み）
+        run: |
+          pnpm --filter @beb/server-detectives run generate:cases
+          git diff --exit-code -- server/games/detectives/src/cases.generated.ts
+
+      - name: フォントサブセットの再生成と差分チェック
+        # 生成物(client/public/fonts/*.subset.woff2)はコミットする。事件追加PRで再生成を
+        # 忘れると差分が残り、このステップが失敗する（04_事件データと検証.md、07）
+        run: |
+          pnpm --filter @beb/client-app run fonts:generate
+          git diff --exit-code -- client/public/fonts
+
+      - name: wrangler.jsonc文字列検査（new_classesの不在）
+        # 無料プランはSQLiteバックエンドのみ利用可（ADR-0002）。new_sqlite_classes以外の
+        # 旧マイグレーションキーがwrangler.jsoncに紛れ込んでいないことを確認する
+        run: |
+          if grep -n "new_classes" server/core/wrangler.jsonc; then
+            echo "::error::wrangler.jsonc に旧マイグレーションキーの文字列が含まれている（無料プランはSQLiteバックエンドのみ利用可、ADR-0002）"
+            exit 1
+          fi
+
+  deploy:
+    name: deploy (main merge)
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.21.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @beb/client-app run build
+
+      - name: Cloudflare Secretsの有無を確認
+        id: guard
+        run: |
+          if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ] || [ -z "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
+            echo "::notice::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID が未設定のためデプロイをスキップする"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy
+        if: steps.guard.outputs.skip == 'false'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: server/core

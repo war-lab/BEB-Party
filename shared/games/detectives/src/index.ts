@@ -1,0 +1,38 @@
+// 事件データのスキーマ型（正本）とDETECTIVESのランタイム型・表示文言の定数
+export type {
+  Case,
+  Character,
+  Contradiction,
+  Disclosure,
+  Fact,
+  KeyExpression,
+  LevelText,
+  Lie,
+  PlayerCountVariant,
+  Reveal,
+  Variant,
+} from "./case";
+
+export {
+  ACTIONS,
+  CONSTRAINTS,
+  ERROR_CODES,
+  INVESTIGATION_SECONDS,
+  QUESTION_TEMPLATES,
+  RANDOM_CASE_ID,
+  STAGES,
+  STAGE_DEADLINE_SECONDS,
+  questionTemplatesFor,
+  type ActionName,
+  type CaseSummary,
+  type CastEntry,
+  type ContradictionExplanation,
+  type DetectivesPublic,
+  type DetectivesResult,
+  type DetectivesSecret,
+  type DetectivesSettings,
+  type ErrorCode,
+  type Stage,
+  type TestimonyCard,
+  type VotePayload,
+} from "./game";

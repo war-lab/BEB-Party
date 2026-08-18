@@ -1,0 +1,28 @@
+{
+  "name": "beb-party",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": "^24"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @beb/client-app run build && pnpm --parallel --filter @beb/client-app --filter @beb/server-core run dev",
+    "check": "eslint . && tsc --noEmit && pnpm -r run check",
+    "test": "pnpm -r run test",
+    "validate:content": "pnpm --filter @beb/tools run validate:content",
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.62.1",
+    "@types/node": "24.13.3",
+    "eslint": "10.8.1",
+    "eslint-plugin-svelte": "3.23.0",
+    "globals": "17.11.0",
+    "svelte-eslint-parser": "1.8.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.67.0",
+    "vitest": "4.1.10"
+  }
+}
