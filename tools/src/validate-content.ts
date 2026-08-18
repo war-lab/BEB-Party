@@ -1,4 +1,4 @@
-// 事件データ検証のCLIエントリ。実装は validate/run.ts にある。
+// コンテンツ検証のCLIエントリ。実装は validate/run.ts にある。
 // ゲームを追加するときは validators に1行足す（05_ゲームモジュール.md「ゲームを追加する手順」）
 //
 // 引数にファイルパスを渡すと、そのファイルだけを検証する（執筆時の確認用）。
@@ -6,12 +6,23 @@
 import { existsSync } from "node:fs";
 import { isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { validateCase } from "@beb/server-detectives";
-import { runValidation, runValidationOnFile, type GameValidator } from "./validate/run";
+import { formatFinding as formatCaseFinding, validateCase } from "@beb/server-detectives";
+import { formatFinding as formatSetFinding, validateSet } from "@beb/server-dontsayit";
+import { runValidation, runValidationOnFile, toGameReport, type GameValidator } from "./validate/run";
 
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 
-const validators: GameValidator[] = [{ contentPath: "content/detectives", validate: validateCase }];
+// 反例の欄はゲームごとに違うため、整形関数もゲーム側から渡す（run.tsはFinding型を知らない）
+const validators: GameValidator[] = [
+  {
+    contentPath: "content/detectives",
+    validate: (content) => toGameReport(validateCase(content), formatCaseFinding),
+  },
+  {
+    contentPath: "content/dontsayit",
+    validate: (content) => toGameReport(validateSet(content), formatSetFinding),
+  },
+];
 
 /**
  * 引数のパスを解決する。
@@ -28,9 +39,7 @@ function resolveTarget(target: string): string {
 }
 
 const target = process.argv[2];
-const result = target
-  ? runValidationOnFile(resolveTarget(target), validateCase)
-  : runValidation(repoRoot, validators);
+const result = target ? runValidationOnFile(resolveTarget(target), validators) : runValidation(repoRoot, validators);
 
 for (const line of result.lines) {
   if (line.startsWith("[ERROR]")) {

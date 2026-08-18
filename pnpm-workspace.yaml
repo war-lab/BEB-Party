@@ -5,6 +5,7 @@ packages:
   - shared/games/dontsayit
   - server/core
   - server/games/detectives
+  - server/games/dontsayit
   - client/core
   - client/games/detectives
   - client/app

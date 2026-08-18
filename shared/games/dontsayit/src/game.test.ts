@@ -24,6 +24,7 @@ function publicStateWith(playerCount: number, roundIndex: number): DontSayItPubl
     scores: [],
     rounds: [],
     solvedThisRound: 0,
+    violatedThisRound: 0,
     skipUsedThisRound: false,
     roundSeconds: ROUND_SECONDS.default,
   };

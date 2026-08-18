@@ -95,6 +95,8 @@ export interface DontSayItPublic {
   /** 終了したラウンドの記録 */
   rounds: RoundSummary[];
   solvedThisRound: number;
+  /** 現ラウンドの違反件数。監視役が全員の前で押した操作であり、伏せる理由がない */
+  violatedThisRound: number;
   skipUsedThisRound: boolean;
   /** 確定した1ラウンドの秒数。handleActionにRoomのsettingsが渡らないため公開状態に持つ */
   roundSeconds: number;

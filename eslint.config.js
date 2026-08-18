@@ -5,15 +5,22 @@ import svelteParser from "svelte-eslint-parser";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
-// 'detectives'リテラルの検出（07_リポジトリとツールチェーン.md 検査3）。registry.tsとclient/appにのみ許可する
-const noDetectivesLiteral = {
-  selector: "Literal[value='detectives']",
-  message: "'detectives'リテラルはregistry.tsとclient/appにのみ許可する（07_リポジトリとツールチェーン.md）",
+// 収録済みゲームのgameId。ゲームを追加したらここへ足す（07_リポジトリとツールチェーン.md 検査1・検査3）。
+// 検査をゲームごとに複製せず、この一覧から規則を組む
+const GAME_IDS = ["detectives", "dontsayit"];
+
+// ゲームモジュールのパッケージ名パターン（@beb/server-detectives 等）
+const GAME_MODULE_PATTERNS = GAME_IDS.map((id) => `@beb/*-${id}`);
+
+// gameIdリテラルの検出（07_リポジトリとツールチェーン.md 検査3）。registry.tsとclient/appにのみ許可する
+const noGameIdLiteral = {
+  selector: `Literal[value=/^(${GAME_IDS.join("|")})$/]`,
+  message: "gameIdリテラルはregistry.tsとclient/appにのみ許可する（07_リポジトリとツールチェーン.md）",
 };
 
-// @beb/*-detectivesの動的importの検出。no-restricted-importsは動的import()を検出しないため補う（実測済み）
-const noDynamicDetectivesImport = {
-  selector: "ImportExpression[source.value=/^@beb\\/.*-detectives$/]",
+// ゲームモジュールの動的importの検出。no-restricted-importsは動的import()を検出しないため補う（実測済み）
+const noDynamicGameModuleImport = {
+  selector: `ImportExpression[source.value=/^@beb\\/.*-(${GAME_IDS.join("|")})$/]`,
   message: "ゲームモジュールを動的importできるのはregistry.tsだけ（不変条件4、ADR-0009）",
 };
 
@@ -25,7 +32,7 @@ const noToolsImportPattern = {
 };
 
 const noGameModuleImportPattern = {
-  group: ["@beb/*-detectives"],
+  group: GAME_MODULE_PATTERNS,
   message: "server/core/ でゲームモジュールをimportできるのはregistry.tsだけ（不変条件4、ADR-0009）",
 };
 
@@ -109,15 +116,15 @@ export default tseslint.config(
     },
   },
   // server/core/（registry.ts、テストコード以外）
-  // 検査1: @beb/*-detectivesのimportはregistry.tsだけ（静的・動的とも。不変条件4、ADR-0009）
-  // 検査3: 'detectives'リテラル禁止
+  // 検査1: ゲームモジュールのimportはregistry.tsだけ（静的・動的とも。不変条件4、ADR-0009）
+  // 検査3: gameIdリテラル禁止
   // 検査4: ws.accept()禁止（ADR-0002、CLAUDE.md不変条件6）
   {
     files: ["server/core/src/**/*.ts"],
     ignores: ["server/core/src/registry.ts", "server/core/src/**/*.test.ts", "server/core/src/test-support/**"],
     rules: {
       "no-restricted-imports": ["error", { patterns: [noGameModuleImportPattern, noToolsImportPattern] }],
-      "no-restricted-syntax": ["error", noDynamicDetectivesImport, noDetectivesLiteral, noWsAccept],
+      "no-restricted-syntax": ["error", noDynamicGameModuleImport, noGameIdLiteral, noWsAccept],
     },
   },
   // registry.tsはゲームモジュールのimportだけが許される。tools/への依存は他と同じく禁止する
@@ -128,32 +135,32 @@ export default tseslint.config(
     },
   },
   // server/games/*（server/core・テストコード以外のserver/配下）
-  // 検査3: 'detectives'リテラル禁止 / 検査4: ws.accept()禁止
+  // 検査3: gameIdリテラル禁止 / 検査4: ws.accept()禁止
   {
     files: ["server/**/*.ts"],
     ignores: ["server/core/src/**/*.ts", "server/**/*.test.ts", "server/**/test-support/**"],
     rules: {
       "no-restricted-imports": ["error", { patterns: [noToolsImportPattern] }],
-      "no-restricted-syntax": ["error", noDetectivesLiteral, noWsAccept],
+      "no-restricted-syntax": ["error", noGameIdLiteral, noWsAccept],
     },
   },
   // server/**のテストコード: ws.accept()禁止はDurable Object側の実装(Hibernation API)の話であり、
   // テストヘルパーがクライアント側WebSocketPairで呼ぶ.accept()とは無関係のため対象外とする。
-  // detectivesリテラル・動的import禁止はテストコードにも適用する
+  // gameIdリテラル・動的import禁止はテストコードにも適用する
   {
     files: ["server/core/src/**/*.test.ts", "server/core/src/test-support/**/*.ts"],
     rules: {
       "no-restricted-imports": ["error", { patterns: [noGameModuleImportPattern, noToolsImportPattern] }],
-      "no-restricted-syntax": ["error", noDynamicDetectivesImport, noDetectivesLiteral],
+      "no-restricted-syntax": ["error", noDynamicGameModuleImport, noGameIdLiteral],
     },
   },
   // server/games/* のテストコード: 自分のパッケージが依存してよい@beb/shared-detectivesを使うため、
-  // ゲームモジュールのimport禁止は課さない。tools/への逆流とdetectivesリテラルのみ禁止する
+  // ゲームモジュールのimport禁止は課さない。tools/への逆流とgameIdリテラルのみ禁止する
   {
     files: ["server/games/**/*.test.ts", "server/games/**/test-support/**/*.ts"],
     rules: {
       "no-restricted-imports": ["error", { patterns: [noToolsImportPattern] }],
-      "no-restricted-syntax": ["error", noDetectivesLiteral],
+      "no-restricted-syntax": ["error", noGameIdLiteral],
     },
   },
   // shared/core/ client/core/: ゲームモジュールをimportしない（検査2、静的・動的とも）+ 検査3 + 検査5
@@ -165,7 +172,7 @@ export default tseslint.config(
         {
           patterns: [
             {
-              group: ["@beb/*-detectives", "**/games/**"],
+              group: [...GAME_MODULE_PATTERNS, "**/games/**"],
               message: "共通コアはゲームモジュールをimportしない（不変条件4）",
             },
           ],
@@ -173,8 +180,8 @@ export default tseslint.config(
       ],
       "no-restricted-syntax": [
         "error",
-        noDynamicDetectivesImport,
-        noDetectivesLiteral,
+        noDynamicGameModuleImport,
+        noGameIdLiteral,
         noOnDirective,
         noSlotElement,
       ],
@@ -184,7 +191,7 @@ export default tseslint.config(
   {
     files: ["shared/games/**/*.ts", "shared/engine/**/*.ts", "tools/**/*.ts"],
     rules: {
-      "no-restricted-syntax": ["error", noDetectivesLiteral],
+      "no-restricted-syntax": ["error", noGameIdLiteral],
     },
   },
   // shared/engine/: 汎用推論エンジンはどのパッケージにも依存しない（ADR-0014）。
@@ -209,10 +216,10 @@ export default tseslint.config(
   {
     files: ["client/games/**/*.{ts,svelte}"],
     rules: {
-      "no-restricted-syntax": ["error", noDetectivesLiteral, noOnDirective, noSlotElement],
+      "no-restricted-syntax": ["error", noGameIdLiteral, noOnDirective, noSlotElement],
     },
   },
-  // client/app: 'detectives'リテラルを許可する唯一のクライアント側パッケージ。検査5のみ適用
+  // client/app: gameIdリテラルを許可する唯一のクライアント側パッケージ。検査5のみ適用
   {
     files: ["client/app/**/*.{ts,svelte}"],
     rules: {

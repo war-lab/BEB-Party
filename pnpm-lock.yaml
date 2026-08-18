@@ -113,6 +113,9 @@ importers:
       '@beb/server-detectives':
         specifier: workspace:*
         version: link:../games/detectives
+      '@beb/server-dontsayit':
+        specifier: workspace:*
+        version: link:../games/dontsayit
       '@beb/shared-core':
         specifier: workspace:*
         version: link:../../shared/core
@@ -135,6 +138,15 @@ importers:
       '@beb/shared-detectives':
         specifier: workspace:*
         version: link:../../../shared/games/detectives
+
+  server/games/dontsayit:
+    dependencies:
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../../shared/core
+      '@beb/shared-dontsayit':
+        specifier: workspace:*
+        version: link:../../../shared/games/dontsayit
 
   shared/core: {}
 
@@ -160,12 +172,18 @@ importers:
       '@beb/server-detectives':
         specifier: workspace:*
         version: link:../server/games/detectives
+      '@beb/server-dontsayit':
+        specifier: workspace:*
+        version: link:../server/games/dontsayit
       '@beb/shared-core':
         specifier: workspace:*
         version: link:../shared/core
       '@beb/shared-detectives':
         specifier: workspace:*
         version: link:../shared/games/detectives
+      '@beb/shared-dontsayit':
+        specifier: workspace:*
+        version: link:../shared/games/dontsayit
     devDependencies:
       '@types/node':
         specifier: 24.13.3
