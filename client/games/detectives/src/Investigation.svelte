@@ -1,9 +1,10 @@
 <!-- 捜査HUD（ビジュアルデザイン.mdのモック `.s-inv`）。深紺の地、上部に太いタイマー、白カードで可読性最優先 -->
 <script lang="ts">
   import type { Room } from "@beb/shared-core";
-  import { ACTIONS, type DetectivesPublic, type DetectivesSecret } from "@beb/shared-detectives";
+  import { ACTIONS, STAGES, type DetectivesPublic, type DetectivesSecret } from "@beb/shared-detectives";
   import RoleCutIn from "./RoleCutIn.svelte";
   import StageTimer from "./StageTimer.svelte";
+  import { stageLabels } from "./stage-labels";
   import TestimonyCardView from "./TestimonyCardView.svelte";
   import { acquireWakeLock } from "./wake-lock.svelte";
   import { sendAction, ui } from "@beb/client-core";
@@ -27,7 +28,7 @@
 </script>
 
 <main class="investigation">
-  <StageTimer deadline={room.deadline} label="捜査フェーズ" />
+  <StageTimer deadline={room.deadline} label={stageLabels[STAGES.investigation]} />
 
   <div class="body">
     <header>

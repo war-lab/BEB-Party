@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./guide": "./src/guide.ts"
+    "./guide": "./src/guide.ts",
+    "./stage-labels": "./src/stage-labels.ts"
   },
   "scripts": {
     "check": "svelte-check --tsconfig ./tsconfig.json",

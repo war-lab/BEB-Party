@@ -16,7 +16,6 @@
   let catalog = $state<GameSummary[]>([]);
   let qrSvg = $state<string | null>(null);
   let investigationSeconds = $state(600);
-  let contentId = $state<string | null>(null);
   let showQr = $state(false);
 
   $effect(() => {
@@ -44,14 +43,20 @@
   const emptySlots = $derived(Math.max(0, MAX_TILES - (room?.players.length ?? 0)));
 
   function selectGame(gameId: string): void {
-    contentId = null;
     sendCommon({ type: "selectGame", gameId });
   }
 
   // コンテンツと設定は同じconfigureで送る。コンテンツ未選択のstartはサーバが拒否する（基本設計/01）
   function configure(id: string): void {
-    contentId = id;
     sendCommon({ type: "configure", contentId: id, settings: { investigationSeconds } });
+  }
+
+  // 設定だけを変えるときは、サーバが持っているコンテンツ選択をそのまま送り直す。
+  // クライアント側の控えを条件にすると、リロードやホスト移譲のあとに送信されなくなる
+  function reconfigure(): void {
+    if (room?.contentId) {
+      configure(room.contentId);
+    }
   }
 
   // ゲームを選んだ直後は先頭のコンテンツ（おまかせ）を既定にする。
@@ -130,7 +135,7 @@
             min="300"
             max="1200"
             step="60"
-            onchange={() => (contentId ? configure(contentId) : undefined)}
+            onchange={reconfigure}
           />
         </label>
 
@@ -206,7 +211,7 @@
 
   .roster {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.55rem;
   }
 

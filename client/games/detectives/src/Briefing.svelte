@@ -1,10 +1,11 @@
 <!-- 事件概要 → 配役カットイン → ready（基本設計/02の画面対応、08）。地はステージ共通の深紺 -->
 <script lang="ts">
   import type { Room } from "@beb/shared-core";
-  import { ACTIONS, type DetectivesPublic, type DetectivesSecret } from "@beb/shared-detectives";
+  import { ACTIONS, STAGES, type DetectivesPublic, type DetectivesSecret } from "@beb/shared-detectives";
   import { faceColor, sendAction, ui } from "@beb/client-core";
   import RoleCutIn from "./RoleCutIn.svelte";
   import StageTimer from "./StageTimer.svelte";
+  import { stageLabels } from "./stage-labels";
 
   interface Props {
     room: Room;
@@ -31,7 +32,7 @@
 </script>
 
 <main class="briefing">
-  <StageTimer deadline={room.deadline} label="ブリーフィング" />
+  <StageTimer deadline={room.deadline} label={stageLabels[STAGES.briefing]} />
 
   <div class="body">
     <h1 class="case-title">事件の概要</h1>

@@ -1,9 +1,10 @@
 <!-- 投票VS画面（ビジュアルデザイン.mdのモック `.s-vote`）。赤青の斜め分割、選択タイルは黄色の太枠 -->
 <script lang="ts">
   import type { Room } from "@beb/shared-core";
-  import { ACTIONS, type DetectivesPublic } from "@beb/shared-detectives";
+  import { ACTIONS, STAGES, type DetectivesPublic } from "@beb/shared-detectives";
   import { faceColor, sendAction, ui } from "@beb/client-core";
   import StageTimer from "./StageTimer.svelte";
+  import { stageLabels } from "./stage-labels";
   import { acquireWakeLock } from "./wake-lock.svelte";
 
   interface Props {
@@ -34,7 +35,7 @@
 </script>
 
 <main class="voting">
-  <StageTimer deadline={room.deadline} label="投票フェーズ" />
+  <StageTimer deadline={room.deadline} label={stageLabels[STAGES.voting]} />
 
   <div class="body">
     <p class="vs-title">WHO IS THE CULPRIT?</p>

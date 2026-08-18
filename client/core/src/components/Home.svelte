@@ -1,20 +1,24 @@
 <!-- ホーム。空色グラデ＋斜めスピードライン、丸ボタン2択（ビジュアルデザイン.mdのモック） -->
 <script lang="ts">
+  import { untrack } from "svelte";
   import type { Level } from "@beb/shared-core";
   import { connect } from "../connection";
 
   interface Props {
     onEnter: (code: string) => void;
+    /** URLで指定された部屋コード。QR・共有リンクから開いたときに埋めておく */
+    initialCode?: string | null;
   }
-  let { onEnter }: Props = $props();
+  let { onEnter, initialCode = null }: Props = $props();
 
   const LEVELS: Level[] = [1, 2, 3, 4, 5];
 
   let name = $state("");
   let level = $state<Level>(3);
-  let codeInput = $state("");
+  // 初期表示のときだけ使う値であり、以後の変化は追わない
+  let codeInput = $state(untrack(() => initialCode) ?? "");
   let creating = $state(false);
-  let joining = $state(false);
+  let joining = $state(untrack(() => initialCode) !== null);
   let errorMessage = $state<string | null>(null);
 
   function enterRoom(code: string): void {

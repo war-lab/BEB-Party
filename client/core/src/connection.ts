@@ -11,6 +11,11 @@ const RECONNECT_BACKOFF_MS = [1_000, 2_000, 4_000, 8_000, 10_000]; // 上限10�
 // ブラウザのWebSocket APIはハンドシェイク失敗の実HTTPステータスを渡さないため、
 // 「一度もopenしないまま閉じた」ことをもって429相当の可能性として扱い、最低30秒待つ
 const CONNECT_FAILURE_BACKOFF_MS = 30_000;
+// 再試行しても状況が変わらないエラー。受けたら再接続をやめ、画面に理由を出す（基本設計/02）
+const FATAL_ERROR_CODES = new Set(["spectator_limit", "room_full", "game_in_progress"]);
+// ハンドシェイクが一度も成立しない状態。部屋コードの誤り（404）と混雑（429）を
+// ブラウザのWebSocket APIでは区別できないため、両方を含む文言で知らせる
+export const CONNECT_FAILED = "connect_failed";
 
 let socket: WebSocket | null = null;
 let heartbeatTimer: ReturnType<typeof setInterval> | undefined;
@@ -20,10 +25,38 @@ let reconnectAttempt = 0;
 let hasOpenedOnce = false;
 let currentCode: string | null = null;
 let pendingJoin: { name: string; level: Level } | null = null;
+// 接続直後に送るメッセージ。ホスト画面は参加者ではなく観戦ソケットとして入る（基本設計/02）
+let entryMode: "join" | "spectate" = "join";
 let closedByClient = false;
 
 function sessionKey(code: string): string {
   return `beb-party:reconnectToken:${code}`;
+}
+
+function identityKey(code: string): string {
+  return `beb-party:identity:${code}`;
+}
+
+/**
+ * その部屋で名乗った名前とレベル。リロード・タブ復帰の復帰時に使う。
+ *
+ * これが無い状態で自動接続すると、URLやQRから直接開いた人が
+ * 名前もレベルも申告しないまま参加者として登録される
+ */
+export function storedIdentity(code: string): { name: string; level: Level } | null {
+  const raw = sessionStorage.getItem(identityKey(code));
+  if (!raw) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(raw) as { name?: unknown; level?: unknown };
+    if (typeof parsed.name !== "string" || typeof parsed.level !== "number") {
+      return null;
+    }
+    return { name: parsed.name, level: parsed.level as Level };
+  } catch {
+    return null;
+  }
 }
 
 function loadReconnectToken(code: string): string | undefined {
@@ -42,6 +75,24 @@ function wsUrl(code: string): string {
 export function connect(code: string, name: string, level: Level): void {
   currentCode = code;
   pendingJoin = { name, level };
+  sessionStorage.setItem(identityKey(code), JSON.stringify({ name, level }));
+  entryMode = "join";
+  closedByClient = false;
+  reconnectAttempt = 0;
+  hasOpenedOnce = false;
+  openSocket();
+}
+
+/**
+ * 観戦ソケットとして接続する（ホスト画面）。
+ *
+ * `join` を送らないため部屋の参加者にならず、`secret` の配信対象にもならない（基本設計/01）。
+ * 再接続の手順は参加者と同じで、`reconnectToken` は扱わない。
+ */
+export function spectate(code: string): void {
+  currentCode = code;
+  pendingJoin = null;
+  entryMode = "spectate";
   closedByClient = false;
   reconnectAttempt = 0;
   hasOpenedOnce = false;
@@ -58,6 +109,7 @@ export function disconnect(): void {
   socket = null;
   currentCode = null;
   pendingJoin = null;
+  entryMode = "join";
   clearServerState();
   clearSecret();
   clearResult();
@@ -96,8 +148,11 @@ function openSocket(): void {
   instance.addEventListener("open", () => {
     hasOpenedOnce = true;
     reconnectAttempt = 0;
+    if (ui.lastErrorCode === CONNECT_FAILED) {
+      ui.lastErrorCode = null;
+    }
     ui.connectionStatus = "connected";
-    sendJoin();
+    sendEntry();
     startHeartbeat();
     resetNoMessageTimer();
   });
@@ -119,6 +174,11 @@ function openSocket(): void {
     if (closedByClient) {
       return;
     }
+    if (!hasOpenedOnce) {
+      // 一度もopenしていない = 部屋が存在しないか、レート制限に掛かっている。
+      // 黙って30秒ごとに再試行し続けると、参加できていないことに気付けない
+      ui.lastErrorCode = CONNECT_FAILED;
+    }
     scheduleReconnect();
   });
 
@@ -127,8 +187,15 @@ function openSocket(): void {
   });
 }
 
-function sendJoin(): void {
-  if (!pendingJoin || !currentCode) {
+function sendEntry(): void {
+  if (!currentCode) {
+    return;
+  }
+  if (entryMode === "spectate") {
+    send({ v: PROTOCOL_VERSION, type: "spectate" });
+    return;
+  }
+  if (!pendingJoin) {
     return;
   }
   const reconnectToken = loadReconnectToken(currentCode);
@@ -172,6 +239,18 @@ function handleServerMessage(raw: string): void {
     }
     case "error": {
       ui.lastErrorCode = message.code;
+      if (FATAL_ERROR_CODES.has(message.code)) {
+        // 再試行しても結果が変わらないエラー。バックオフで叩き続けると、
+        // 同室の全員が同じIPを共有しているため再接続の予算まで食い潰す
+        closedByClient = true;
+        clearTimers();
+        if (reconnectTimer) {
+          clearTimeout(reconnectTimer);
+        }
+        socket?.close();
+        ui.connectionStatus = "disconnected";
+        break;
+      }
       if (message.code === "unsupported_version") {
         // バックオフ再試行を続けると古いSPAのまま無限にエラーを受け続けるため、リロードで新しいSPAを取得する
         closedByClient = true;

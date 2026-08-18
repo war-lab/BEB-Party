@@ -13,6 +13,9 @@
   let { deadline, label }: Props = $props();
 
   let now = $state(Date.now());
+  // 端末時計とサーバ時刻のずれ。stateを受けた時点で1回だけ測る。
+  // 毎秒測り直すと補正後の時刻が受信時のサーバ時刻に固定され、残り時間が減らない
+  let clockOffset = $state(0);
 
   $effect(() => {
     const timer = setInterval(() => {
@@ -21,10 +24,15 @@
     return () => clearInterval(timer);
   });
 
-  // 端末時計のずれをサーバ時刻で補正する
-  const offset = $derived(serverState.serverNow === null ? 0 : serverState.serverNow - now);
+  $effect(() => {
+    const serverNow = serverState.serverNow;
+    if (serverNow !== null) {
+      clockOffset = serverNow - Date.now();
+    }
+  });
+
   const remainingSeconds = $derived(
-    deadline === undefined ? null : Math.max(0, Math.ceil((deadline - (now + offset)) / 1000)),
+    deadline === undefined ? null : Math.max(0, Math.ceil((deadline - (now + clockOffset)) / 1000)),
   );
 
   function format(seconds: number): string {

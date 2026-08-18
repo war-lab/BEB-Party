@@ -12,6 +12,11 @@
   const gameGuides: Record<string, () => Promise<{ default: Component }>> = {
     detectives: () => import("@beb/client-detectives/guide") as Promise<{ default: Component }>,
   };
+
+  // gameId→ステージ表示文言のローダー。ホスト画面がステージ名を出すために使う（基本設計/02）
+  const gameStageLabels: Record<string, () => Promise<{ default: Record<string, string> }>> = {
+    detectives: () => import("@beb/client-detectives/stage-labels"),
+  };
 </script>
 
-<ClientCoreApp {gameScreens} {gameGuides} />
+<ClientCoreApp {gameScreens} {gameGuides} {gameStageLabels} />

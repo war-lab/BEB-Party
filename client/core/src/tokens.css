@@ -173,6 +173,8 @@ body {
   font-size: 0.78rem;
   font-weight: 700;
   line-height: 1.2;
+  /* 24文字までの名前を許すため、途中でも折り返してタイル幅を守る */
+  overflow-wrap: anywhere;
 }
 
 .beb-tile .lv {
