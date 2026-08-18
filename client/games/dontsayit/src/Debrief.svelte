@@ -7,6 +7,7 @@
 <script lang="ts">
   import type { Room } from "@beb/shared-core";
   import { STAGES, type DontSayItPublic, type DontSayItResult } from "@beb/shared-dontsayit";
+  import { sendCommon } from "@beb/client-core";
   import ScoreBoard from "./ScoreBoard.svelte";
   import StageGuide from "./StageGuide.svelte";
   import StageTimer from "./StageTimer.svelte";
@@ -76,9 +77,14 @@
       <p class="waiting">結果を待っています…</p>
     {/if}
 
-    <button class="beb-btn ghost" onclick={onLeave}>
-      <span>部屋を出る</span>
-    </button>
+    <div class="after">
+      <button class="beb-btn yellow" onclick={() => sendCommon({ type: "nextGame" })}>
+        <span>ロビーへ戻る</span>
+      </button>
+      <button class="beb-btn ghost" onclick={onLeave}>
+        <span>部屋を出る</span>
+      </button>
+    </div>
   </div>
 </main>
 
@@ -203,7 +209,9 @@
     color: var(--mist);
   }
 
-  .beb-btn {
+  .after {
+    display: grid;
+    gap: 0.5rem;
     margin-top: 1.2rem;
   }
 </style>
