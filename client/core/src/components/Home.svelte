@@ -57,7 +57,8 @@
 
 <main class="home beb-speedlines-light">
   <div class="logo">BEB<br /><em>PARTY!</em></div>
-  <span class="tagline">えいごで すいり パーティ</span>
+  <p class="catch">SPEAK. GUESS. WIN.</p>
+  <span class="tagline">英語でしゃべって遊ぶ、5〜6人のパーティゲーム集</span>
 
   <div class="entry">
     <label class="field">
@@ -119,6 +120,18 @@
   .logo em {
     font-style: normal;
     color: var(--yellow);
+  }
+
+  .catch {
+    align-self: flex-start;
+    margin: 0.1rem 0 0.45rem;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    line-height: 1;
+    color: var(--yellow);
+    transform: skew(var(--skew-angle));
+    text-shadow: 0 3px 0 rgba(13, 20, 46, 0.45);
+    letter-spacing: 0.02em;
   }
 
   .tagline {

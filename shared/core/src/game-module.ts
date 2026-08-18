@@ -21,6 +21,10 @@ export interface GameTransition<TPublic, TResult, TGameSecret = unknown> {
 // gameIdはregistryのキーが正である。モジュール側に持たせると二重管理になるため持たせない
 export interface GameModule<TPublic, TSecret, TResult, TGameSecret = unknown> {
   title: string;
+  /** 選択画面に出す1行の説明。何をする遊びかが分かる長さにする */
+  tagline: string;
+  /** 選択画面のアイコン（絵文字1〜2字）。画像を持たないため書体で描ける文字に限る */
+  icon: string;
   playerCount: [number, number];
 
   listContents(): ContentSummary[];

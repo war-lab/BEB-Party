@@ -26,6 +26,8 @@ export const STUB_CONTENT_ID = "stub-content";
 
 export const stubGameModule: GameModule<StubPublicState, StubSecret, StubResult, StubGameSecret> = {
   title: "Stub Game",
+  tagline: "テスト用のスタブ",
+  icon: "🧪",
   playerCount: [1, 8],
 
   listContents: () => [{ id: STUB_CONTENT_ID, title: "Stub Content" }],

@@ -78,6 +78,8 @@ function handleCatalog(): Response {
   const games: GameSummary[] = Object.entries(registry).map(([gameId, gameModule]) => ({
     id: gameId,
     title: gameModule.title,
+    tagline: gameModule.tagline,
+    icon: gameModule.icon,
     playerCount: gameModule.playerCount,
     contents: gameModule.listContents(),
   }));

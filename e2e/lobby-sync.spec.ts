@@ -9,6 +9,13 @@ test("6 browser contexts sync to the same lobby state", async ({ browser, baseUR
 
   try {
     expect(table.code).toMatch(/^[A-Z2-9]{4}$/);
+
+    // ゲーム選択カードは、アイコン・タイトル・一行説明・人数を出す（ホストにのみ表示）
+    const card = table.pages[0]!.locator(".title-card");
+    await expect(card).toContainText("ENGLISH DETECTIVES");
+    await expect(card).toContainText("英語で聞き込み");
+    await expect(card).toContainText("5〜6人");
+    await expect(card.locator(".title-card-icon")).toHaveText("🔍");
     for (const page of table.pages) {
       await expect(page.locator(".roster .beb-tile:not(.empty)")).toHaveCount(6, { timeout: 10_000 });
     }
