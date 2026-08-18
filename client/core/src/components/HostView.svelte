@@ -6,6 +6,7 @@
 <script lang="ts">
   import { serverState } from "../stores/server-state.svelte";
   import { faceColor } from "../face-color";
+  import { createServerClock, formatClock } from "../server-clock.svelte";
 
   interface Props {
     code: string;
@@ -15,24 +16,7 @@
   let { code, gameStageLabels }: Props = $props();
 
   let labels = $state<Record<string, string>>({});
-  let now = $state(Date.now());
-  // 端末時計とサーバ時刻のずれ。stateを受けた時点で1回だけ測る。
-  // 毎秒測り直すと補正後の時刻がサーバ時刻に固定され、残り時間が減らない
-  let clockOffset = $state(0);
-
-  $effect(() => {
-    const timer = setInterval(() => {
-      now = Date.now();
-    }, 1000);
-    return () => clearInterval(timer);
-  });
-
-  $effect(() => {
-    const serverNow = serverState.serverNow;
-    if (serverNow !== null) {
-      clockOffset = serverNow - Date.now();
-    }
-  });
+  const clock = createServerClock();
 
   const room = $derived(serverState.room);
 
@@ -53,9 +37,7 @@
   });
 
   // タイマーはサーバ権威。受信したdeadlineを描くだけで、時間切れの判定はしない（基本設計/02）
-  const remainingSeconds = $derived(
-    room?.deadline === undefined ? null : Math.max(0, Math.ceil((room.deadline - (now + clockOffset)) / 1000)),
-  );
+  const remainingSeconds = $derived(clock.remaining(room?.deadline));
 
   const stageName = $derived.by(() => {
     if (!room) {
@@ -67,10 +49,6 @@
     return (room.stage && labels[room.stage]) || room.stage || "";
   });
 
-  function format(seconds: number): string {
-    const minutes = Math.floor(seconds / 60);
-    return `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-  }
 </script>
 
 <main class="host" data-testid="host-view">
@@ -82,7 +60,7 @@
   <section class="stage">
     <p class="stage-name" data-testid="host-stage">{stageName}</p>
     {#if remainingSeconds !== null}
-      <p class="timer" data-testid="host-timer">{format(remainingSeconds)}</p>
+      <p class="timer" data-testid="host-timer">{formatClock(remainingSeconds)}</p>
     {/if}
   </section>
 

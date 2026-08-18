@@ -53,16 +53,48 @@
       <button class="close" onclick={onClose}>閉じる</button>
     </header>
 
-    <section>
-      <h2>はじめに</h2>
+    <details open>
+      <summary><h2>英語に詰まったら</h2></summary>
+      <p class="lead">どのゲームでも使える。読み上げるのは英文のほうとする。</p>
+      <ul class="phrases">
+        <li><b>Say that again, please.</b><span>もう一度お願い</span></li>
+        <li><b>Slowly, please.</b><span>ゆっくりお願い</span></li>
+        <li><b>What does "＿＿" mean?</b><span>「＿＿」ってどういう意味？</span></li>
+        <li><b>How do you say "＿＿" in English?</b><span>「＿＿」は英語で何て言う？</span></li>
+        <li><b>Wait a moment.</b><span>ちょっと待って</span></li>
+        <li><b>I do not know.</b><span>わからない</span></li>
+        <li><b>Your turn.</b><span>あなたの番</span></li>
+        <li><b>Me?</b><span>私？</span></li>
+      </ul>
+      <p class="note">
+        言い方が出てこないときは、単語だけでもよい。まわりは英語で聞き返して助ける。
+        日本語で説明してしまうと、そのゲームの目的（英語で話す）が消える。
+      </p>
+    </details>
+
+    <details>
+      <summary><h2>はじめに</h2></summary>
       <ul>
         <li>同じ部屋にいる5〜6人で遊ぶ。会話は声で行い、スマホは各自1台使う</li>
         <li>1人が「部屋を作る」を押し、残りは部屋コードかQRコードで参加する</li>
         <li>なまえと英語レベル（1〜5）は自己申告する。レベルは役の割り当てと英文の難度に使う</li>
         <li>画面はサーバが進める。自分で先へ進める操作は要らない</li>
+        <li>各ステージの画面上部に「いまやること」が出る。進行役が仕切らなくても進む</li>
         <li>通信が切れても自動でつながり直す。表示は切れる直前のまま残る</li>
       </ul>
-    </section>
+    </details>
+
+    <details>
+      <summary><h2>困ったとき</h2></summary>
+      <ul>
+        <li><b>画面が止まった・接続が切れた</b>: そのまま待つ。自動で戻る。戻らなければブラウザを再読み込みする。同じ端末なら席はそのまま</li>
+        <li><b>途中で人が抜けた</b>: 抜けた人は「切断中」と表示される。ゲームは続く。ホストが抜けた場合は次の人へ自動で移る</li>
+        <li><b>名前やレベルを間違えた</b>: ロビーのうちに部屋を出て入り直す</li>
+        <li><b>部屋に入れない</b>: 部屋コードは4文字。紛らわしい文字（O・0・I・1）は使っていない。人数が上限に達している場合も入れない</li>
+        <li><b>時間が足りない・余った</b>: 捜査の長さはロビーでホストが決める。捜査中はホストが早めに切り上げられる</li>
+        <li><b>大きな画面に出したい</b>: ホスト画面（<code>/room/部屋コード?mode=host</code>）を別の端末で開く。ステージ名・残り時間・参加者だけが大きく出る</li>
+      </ul>
+    </details>
 
     {#if catalog.length > 1}
       <nav class="game-tabs">
@@ -76,10 +108,10 @@
 
     {#if guide}
       {@const Guide = guide}
-      <section class="game-guide">
-        <h2>{selectedTitle}</h2>
+      <details open class="game-guide">
+        <summary><h2>{selectedTitle}</h2></summary>
         <Guide />
-      </section>
+      </details>
     {/if}
   </div>
 </div>
@@ -136,6 +168,64 @@
   ul {
     padding-left: 1.2rem;
     line-height: 1.8;
+  }
+  details {
+    border-bottom: 1px solid rgba(22, 27, 51, 0.15);
+    padding-bottom: 0.5rem;
+  }
+  summary {
+    cursor: pointer;
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  /* 見出しを開閉のトリガーにする。開いているかは記号で示す */
+  summary h2::before {
+    content: "＋ ";
+    color: var(--blue);
+  }
+  details[open] summary h2::before {
+    content: "− ";
+  }
+  summary h2 {
+    display: inline-block;
+  }
+  .lead {
+    margin: 0 0 0.4rem;
+    line-height: 1.7;
+  }
+  .note {
+    font-size: 0.85rem;
+    line-height: 1.7;
+  }
+  code {
+    background: rgba(22, 27, 51, 0.08);
+    border-radius: 4px;
+    padding: 0 0.25rem;
+    font-size: 0.85em;
+    overflow-wrap: anywhere;
+  }
+  .phrases {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .phrases li {
+    display: flex;
+    flex-direction: column;
+    border-left: 3px solid var(--blue);
+    padding: 0.15rem 0 0.15rem 0.6rem;
+    line-height: 1.5;
+  }
+  .phrases b {
+    font-size: 0.95rem;
+  }
+  .phrases span {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
   }
   .game-tabs {
     display: flex;

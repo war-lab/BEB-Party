@@ -27,6 +27,8 @@ test("6人で部屋作成から開示まで通しで進める", async ({ browser
     for (const page of table.pages) {
       await expect(page.locator("[data-testid='stage-timer']:has-text('捜査フェーズ')")).toBeVisible({ timeout: 10_000 });
       await expect(page.locator("[data-testid='constraints']")).toContainText("証言は英語で読み上げる");
+      // 進行の案内は画面が出す（進行役が台本を読まなくても進む）
+      await expect(page.locator("[data-testid='stage-guide']")).toContainText("読み上げてください");
       await expect(page.locator("[data-testid='testimony-card']").first()).toBeVisible();
     }
 
@@ -44,7 +46,8 @@ test("6人で部屋作成から開示まで通しで進める", async ({ browser
     }
 
     // voting: ホストが捜査を切り上げる
-    await host.click("text=投票へ進む");
+    // 「いまやること」の案内文にも同じ語が出るため、ボタンを明示して選ぶ
+    await host.click(".beb-btn:has-text('投票へ進む')");
     for (const page of table.pages) {
       await expect(page.locator("[data-testid='stage-timer']:has-text('投票フェーズ')")).toBeVisible({ timeout: 10_000 });
     }
@@ -149,6 +152,9 @@ test("遊び方から収録ゲームのルールを読める", async ({ page, ba
   await expect(sheet).toContainText("ENGLISH DETECTIVES", { timeout: 10_000 });
   await expect(sheet).toContainText("嘘は1人の証言だけでは割れない");
   await expect(sheet).toContainText("同数で並んだ場合は犯人の勝ち");
+  // 英語で詰まったときの言い方（共通）とゲーム側のフレーズ集
+  await expect(sheet).toContainText("Say that again, please.");
+  await expect(sheet).toContainText("Where were you at 2:15?");
 
   await page.click("text=閉じる");
   await expect(sheet).toHaveCount(0);
