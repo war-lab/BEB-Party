@@ -28,9 +28,42 @@ import { generatePlayerId, generateReconnectToken, generateSeed } from "./ids";
 // ソケット⇔プレイヤーの対応。serializeAttachmentで保持し、インメモリのMapに依存しない（不変条件6）。
 // connectedAtは、一度もハートビートを送っていない接続(getWebSocketAutoResponseTimestampがnull)を
 // 死活判定するためのフォールバック起点として使う
-type Attachment = { playerId: string; connectedAt: number } | { spectator: true };
+type Attachment = { playerId: string; connectedAt: number } | { spectator: true; connectedAt: number };
 
 const SPECTATOR_LIMIT = 2;
+
+// ソケット1本あたりのメッセージ流量。通常のプレイは1分間に数回であり、
+// 連打・自動化だけがこの値に届く（基本設計/01のレート制限）
+const MESSAGE_RATE_WINDOW_MS = 10_000;
+const MESSAGE_RATE_LIMIT = 20;
+
+// 流量カウンタ。Hibernationで消えるが、消えても制限が緩む方向にしか働かず
+// 部屋の状態には影響しない（ADR-0017）。storageに書くと「書き込みを抑える仕組みが
+// 書き込みを増やす」ことになるため、あえてインメモリに置く
+const messageRates = new WeakMap<WebSocket, { windowStart: number; count: number }>();
+
+/** 直近の窓での流量が上限を超えたか。超えていればtrue */
+function exceedsMessageRate(ws: WebSocket): boolean {
+  const now = Date.now();
+  const current = messageRates.get(ws);
+  if (!current || now - current.windowStart >= MESSAGE_RATE_WINDOW_MS) {
+    messageRates.set(ws, { windowStart: now, count: 1 });
+    return false;
+  }
+  current.count += 1;
+  return current.count > MESSAGE_RATE_LIMIT;
+}
+
+// ゲーム未選択のロビーで使う人数上限。レジストリ内の最大値を上限とし、
+// ゲームが決まったらそのゲームの上限に切り替える（基本設計/01）
+function roomCapacity(gameId: string | undefined): number {
+  const selected = gameId ? registry[gameId] : undefined;
+  if (selected) {
+    return selected.playerCount[1];
+  }
+  const all = Object.values(registry).map((module) => module.playerCount[1]);
+  return all.length > 0 ? Math.max(...all) : 0;
+}
 
 // 90秒(ハートビート間隔25秒の3倍を超える値)より古い自動応答は切断済みとみなす（基本設計/01_サーバ.md、ADR-0013）
 const HEARTBEAT_DEAD_THRESHOLD_MS = 90_000;
@@ -86,6 +119,23 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   async webSocketMessage(ws: WebSocket, raw: ArrayBuffer | string): Promise<void> {
+    // ハンドラ内の想定外の例外でソケットを落とさない。落とすとクライアントが再接続を繰り返し、
+    // 同じ入力で同じ例外を踏み続ける（ゲームモジュールのstartが投げる例外など）
+    // ハートビートは自動応答で返るためここへは来ない。到達するのはクライアントの明示的な操作だけである
+    if (exceedsMessageRate(ws)) {
+      this.sendError(ws, ERROR_CODES.RATE_LIMITED, "too many messages");
+      return;
+    }
+
+    try {
+      await this.handleMessage(ws, raw);
+    } catch (error) {
+      console.error("webSocketMessageで未捕捉の例外", error);
+      this.sendError(ws, ERROR_CODES.INVALID_PAYLOAD, "internal error");
+    }
+  }
+
+  private async handleMessage(ws: WebSocket, raw: ArrayBuffer | string): Promise<void> {
     // 別の理由でDOが起きたときにまとめて死活判定を行う（ADR-0013）
     await this.detectDeadSockets();
 
@@ -134,6 +184,11 @@ export class RoomDO extends DurableObject<Env> {
     if (!playerId) {
       return;
     }
+    // 再接続で新しいソケットに切り替わったあとに古いソケットのcloseが届くことがある。
+    // そのまま処理すると復帰直後のプレイヤーをconnected: falseに戻し、ホスト権限まで移譲してしまう
+    if (this.hasOtherSocket(ws, playerId)) {
+      return;
+    }
     const room = await this.getRoom();
     const player = room.players.find((p) => p.id === playerId);
     if (player) {
@@ -168,6 +223,12 @@ export class RoomDO extends DurableObject<Env> {
   // --- メッセージハンドラ ---
 
   private async handleJoin(ws: WebSocket, message: JoinMessage): Promise<void> {
+    // 1ソケット1席。身元が確定したソケットからの再申告を通すと、席だけが増えて
+    // 対応するソケットを失う（幽霊席）。幽霊席は切断も死活判定も効かず、部屋が操作不能になる
+    if (this.deserializeAttachment(ws) !== null) {
+      return this.sendError(ws, ERROR_CODES.INVALID_LIFECYCLE, "already joined on this socket");
+    }
+
     const room = await this.getRoom();
     const secrets = await this.getSecrets();
 
@@ -192,6 +253,10 @@ export class RoomDO extends DurableObject<Env> {
     if (room.lifecycle !== "lobby") {
       this.sendError(ws, ERROR_CODES.GAME_IN_PROGRESS, "room is not accepting new players");
       return;
+    }
+
+    if (room.players.length >= roomCapacity(room.gameId)) {
+      return this.sendError(ws, ERROR_CODES.ROOM_FULL, "room is full");
     }
 
     const playerId = generatePlayerId();
@@ -229,6 +294,9 @@ export class RoomDO extends DurableObject<Env> {
     await this.updateAlarm(room);
 
     ws.serializeAttachment({ playerId: player.id, connectedAt: Date.now() } satisfies Attachment);
+    // 同じ席の古いソケットは閉じる。残すと死活判定（detectDeadSockets）が古い方の無応答を見て
+    // 復帰済みのプレイヤーをconnected: falseにする
+    this.closeSupersededSockets(ws, player.id);
     this.send(ws, { v: PROTOCOL_VERSION, type: "joined", playerId: player.id, reconnectToken });
     this.broadcastState(room);
 
@@ -238,9 +306,16 @@ export class RoomDO extends DurableObject<Env> {
         this.send(ws, { v: PROTOCOL_VERSION, type: "secret", gameId: room.gameId, payload });
       }
     }
+    this.sendLastResult(ws, room, secrets);
   }
 
   private async handleSpectate(ws: WebSocket): Promise<void> {
+    // 参加者のソケットを観戦へ転向させない。転向するとattachmentからplayerIdが消え、
+    // その席は切断も死活判定も効かないまま connected: true で残る
+    if (this.deserializeAttachment(ws) !== null) {
+      return this.sendError(ws, ERROR_CODES.INVALID_LIFECYCLE, "already joined on this socket");
+    }
+
     const spectatorCount = this.ctx.getWebSockets().filter((socket) => {
       const attachment = this.deserializeAttachment(socket);
       return attachment !== null && "spectator" in attachment;
@@ -252,9 +327,11 @@ export class RoomDO extends DurableObject<Env> {
       return;
     }
 
-    ws.serializeAttachment({ spectator: true } satisfies Attachment);
+    ws.serializeAttachment({ spectator: true, connectedAt: Date.now() } satisfies Attachment);
     const room = await this.getRoom();
     this.send(ws, this.buildStateMessage(room));
+    // 開示中に表示端末を切り替えた場合も、その回の開示を出せるようにする
+    this.sendLastResult(ws, room, await this.getSecrets());
   }
 
   private async handleSelectGame(ws: WebSocket, message: SelectGameMessage): Promise<void> {
@@ -460,19 +537,32 @@ export class RoomDO extends DurableObject<Env> {
 
     for (const socket of this.ctx.getWebSockets()) {
       const attachment = this.deserializeAttachment(socket);
-      if (!attachment || !("playerId" in attachment)) {
-        continue; // 観戦ソケットは対象外
+      if (!attachment) {
+        continue; // join/spectateを送っていないソケットはまだ席を持たない
+      }
+      const lastActivityOf = (): number => {
+        const lastResponse = this.ctx.getWebSocketAutoResponseTimestamp(socket);
+        return lastResponse !== null ? lastResponse.getTime() : attachment.connectedAt;
+      };
+      if (!("playerId" in attachment)) {
+        // 観戦ソケットも回収する。終了フレームが届かない切断で枠が埋まったままになると、
+        // 部屋が終わるまでホスト画面を開けない（上限2本）
+        if (now - lastActivityOf() > HEARTBEAT_DEAD_THRESHOLD_MS) {
+          staleSockets.push(socket);
+        }
+        continue;
       }
       const playerId = attachment.playerId;
       // 一度もハートビートを送っていない接続はgetWebSocketAutoResponseTimestampがnullを返すため、
       // 接続時刻(connectedAt)を起点にする。webSocketClose/Errorが発火しない無応答切断を捕捉するため
-      const lastResponse = this.ctx.getWebSocketAutoResponseTimestamp(socket);
-      const lastActivity = lastResponse !== null ? lastResponse.getTime() : attachment.connectedAt;
-      if (now - lastActivity > HEARTBEAT_DEAD_THRESHOLD_MS) {
-        const player = room.players.find((p) => p.id === playerId);
-        if (player?.connected) {
-          player.connected = false;
-          changed = true;
+      if (now - lastActivityOf() > HEARTBEAT_DEAD_THRESHOLD_MS) {
+        // 同じ席に生きたソケットが別にあれば、その席は落とさない（再接続直後の誤判定を避ける）
+        if (!this.hasOtherSocket(socket, playerId)) {
+          const player = room.players.find((p) => p.id === playerId);
+          if (player?.connected) {
+            player.connected = false;
+            changed = true;
+          }
         }
         staleSockets.push(socket);
       }
@@ -509,8 +599,12 @@ export class RoomDO extends DurableObject<Env> {
 
   // アラームをmin(stageDeadline, expireAt)で再設定する。expireAtは最終アクセスのたびに現在+2時間で更新する
   private async updateAlarm(room: InternalRoomState): Promise<void> {
+    // 過去の締切をそのまま採用しない。setAlarmは現在時刻以前を渡すと即座に発火するため、
+    // 締切処理が空振りする状況（未登録gameId・rejectの戻り）では毎秒何百回も再発火する。
+    // そのループ中もexpireAtが延び続けるため、部屋が破棄されなくなる
+    const stageDeadline = room.deadline !== undefined && room.deadline > Date.now() ? room.deadline : undefined;
     const alarms: AlarmsState = {
-      stageDeadline: room.deadline,
+      stageDeadline,
       expireAt: Date.now() + ROOM_EXPIRE_MS,
     };
     await this.ctx.storage.put("alarms", alarms);
@@ -557,6 +651,10 @@ export class RoomDO extends DurableObject<Env> {
     this.broadcastState(room);
 
     if (transition.result !== undefined && room.gameId) {
+      // 開示中の切断・DO再起動から戻った人にも同じ開示を届けられるよう保存する
+      const secrets = await this.getSecrets();
+      secrets.lastResult = { gameId: room.gameId, payload: transition.result };
+      await this.ctx.storage.put("secrets", secrets);
       this.broadcastResult(room.gameId, transition.result);
     }
   }
@@ -573,6 +671,32 @@ export class RoomDO extends DurableObject<Env> {
 
   private deserializeAttachment(ws: WebSocket): Attachment | null {
     return (ws.deserializeAttachment() as Attachment | null) ?? null;
+  }
+
+  /** 同じプレイヤーに紐づく別のソケットがあるか */
+  private hasOtherSocket(ws: WebSocket, playerId: string): boolean {
+    return this.ctx
+      .getWebSockets()
+      .some((socket) => socket !== ws && this.getAttachedPlayerId(socket) === playerId);
+  }
+
+  /** 再接続で置き換えられた同じ席の古いソケットを閉じる */
+  private closeSupersededSockets(current: WebSocket, playerId: string): void {
+    for (const socket of this.ctx.getWebSockets()) {
+      if (socket !== current && this.getAttachedPlayerId(socket) === playerId) {
+        socket.close(1000, "superseded");
+      }
+    }
+  }
+
+  /**
+   * ブロードキャストの宛先。`join` / `spectate` を済ませて身元が確定したソケットに限る。
+   *
+   * 接続しただけのソケットへ配ると、再接続の途中（新しいソケットを開いてからjoinを送るまで）に
+   * `joined` より先に `state` が届き、クライアントが自分のplayerIdを知らないまま状態を受け取る
+   */
+  private identifiedSockets(): WebSocket[] {
+    return this.ctx.getWebSockets().filter((socket) => this.deserializeAttachment(socket) !== null);
   }
 
   private getAttachedPlayerId(ws: WebSocket): string | null {
@@ -597,7 +721,7 @@ export class RoomDO extends DurableObject<Env> {
 
   private broadcastState(room: InternalRoomState): void {
     const message = this.buildStateMessage(room);
-    for (const socket of this.ctx.getWebSockets()) {
+    for (const socket of this.identifiedSockets()) {
       this.send(socket, message);
     }
   }
@@ -606,14 +730,30 @@ export class RoomDO extends DurableObject<Env> {
     return { ...toPublicRoom(room), v: PROTOCOL_VERSION, type: "state", serverNow: Date.now() };
   }
 
+  /** finishedのまま接続した人へ、開示済みのresultを再送する */
+  private sendLastResult(ws: WebSocket, room: InternalRoomState, secrets: SecretsState): void {
+    if (room.lifecycle !== "finished" || !secrets.lastResult) {
+      return;
+    }
+    const { gameId, payload } = secrets.lastResult;
+    this.send(ws, { v: PROTOCOL_VERSION, type: "result", gameId, payload });
+  }
+
   private broadcastResult(gameId: string, payload: unknown): void {
     const message: ServerMessage = { v: PROTOCOL_VERSION, type: "result", gameId, payload };
-    for (const socket of this.ctx.getWebSockets()) {
+    for (const socket of this.identifiedSockets()) {
       this.send(socket, message);
     }
   }
 
   private send(ws: WebSocket, message: ServerMessage): void {
+    // 閉じたソケットへのsendは例外になる。再接続で置き換えた古いソケットが
+    // getWebSockets()の一覧にまだ残っている間があるため、状態を見てから送る。
+    // 黙って捨てると配信欠落が観測できなくなるため、破棄したことは記録する（observabilityで拾う）
+    if (ws.readyState !== WebSocket.OPEN) {
+      console.warn(`closed socket にメッセージを送ろうとした: type=${message.type} readyState=${ws.readyState}`);
+      return;
+    }
     ws.send(JSON.stringify(message));
   }
 

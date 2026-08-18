@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseClientMessage } from "./validate";
+import { NAME_MAX_LENGTH, SETTINGS_MAX_CHARS, parseClientMessage } from "./validate";
 
 describe("parseClientMessage", () => {
   it("非オブジェクトを拒否する", () => {
@@ -20,6 +20,30 @@ describe("parseClientMessage", () => {
   it("joinを正しく検証する", () => {
     const result = parseClientMessage({ v: 1, type: "join", name: "Alice", level: 3 });
     expect(result).toEqual({ v: 1, type: "join", name: "Alice", level: 3, reconnectToken: undefined });
+  });
+
+  it("空の名前を拒否する", () => {
+    expect(parseClientMessage({ v: 1, type: "join", name: "", level: 3 })).toBeNull();
+    expect(parseClientMessage({ v: 1, type: "join", name: "   ", level: 3 })).toBeNull();
+  });
+
+  it("長すぎる名前を拒否する（stateブロードキャストで増幅されるため）", () => {
+    const long = "あ".repeat(NAME_MAX_LENGTH + 1);
+    expect(parseClientMessage({ v: 1, type: "join", name: long, level: 3 })).toBeNull();
+
+    const limit = "あ".repeat(NAME_MAX_LENGTH);
+    expect(parseClientMessage({ v: 1, type: "join", name: limit, level: 3 })).not.toBeNull();
+  });
+
+  it("名前の前後の空白を落とす", () => {
+    const result = parseClientMessage({ v: 1, type: "join", name: "  Alice  ", level: 3 });
+    expect(result).toMatchObject({ name: "Alice" });
+  });
+
+  it("大きすぎるsettingsのconfigureを拒否する", () => {
+    const huge = { note: "x".repeat(SETTINGS_MAX_CHARS) };
+    expect(parseClientMessage({ v: 1, type: "configure", contentId: "c", settings: huge })).toBeNull();
+    expect(parseClientMessage({ v: 1, type: "configure", contentId: "c", settings: { note: "ok" } })).not.toBeNull();
   });
 
   it("joinのreconnectToken付きを正しく検証する", () => {

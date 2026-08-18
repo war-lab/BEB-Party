@@ -11,6 +11,7 @@ export const ERROR_CODES = {
   UNKNOWN_GAME: "unknown_game",
   PLAYER_COUNT_MISMATCH: "player_count_mismatch",
   UNSUPPORTED_VERSION: "unsupported_version",
+  RATE_LIMITED: "rate_limited",
 } as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];

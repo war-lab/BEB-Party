@@ -7,6 +7,9 @@ export interface InternalRoomState extends Room {
 }
 
 export interface SecretsState {
+  // 開示済みのresultペイロード。finished中の再接続と観戦開始で再送する。
+  // stateブロードキャストには載せないため、公開状態ではなくこちら側に置く
+  lastResult?: { gameId: string; payload: unknown };
   // playerId -> reconnectToken
   reconnectTokens: Record<string, string>;
   // playerId -> 直近に配布したsecret.payload（再接続時の再送用）
