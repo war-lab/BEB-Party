@@ -204,7 +204,7 @@
           "requires": ["f_ca_a", "f_br_a", "f_gr_a", "f_cm_a", "f_te_a", "f_co_b"],
           "requires5p": null,
           "yields": "cashier_alibi_broken",
-          "meaningJa": "Hinaは11:15に調理テントにいたと言うが、Sotaは予備の三角巾が11:20の時点でまだ未開封だったと言っている。三角巾なしで食品のテントへ入る者はいないため、この2つは同時に成り立たない。Kaitoの11:10の証言で釣銭袋が消えた時間帯が絞られ、Rinの視界とNaoの台車とMr. Itoの視線で、その間に校庭を離れられた者がいないことが分かる。"
+          "meaningJa": "Hinaは11:15に調理テントにいたと言うが、予備の三角巾は11:20の時点でまだ未開封だったという証言がある。三角巾なしで食品のテントへ入る者はいないため、この2つは同時に成り立たない。Kaitoの11:10の証言で釣銭袋が消えた時間帯が絞られ、Rinの視界とNaoの台車とMr. Itoの視線で、その間に校庭を離れられた者がいないことが分かる。"
         }
       ]
     },
@@ -227,7 +227,7 @@
           "requires": ["f_br_a", "f_ca_a", "f_gr_a", "f_cm_a", "f_te_a", "f_co_a"],
           "requires5p": null,
           "yields": "broadcaster_alibi_broken",
-          "meaningJa": "Rinは11:13に校庭の門から外へ出たと言うが、Naoの台車が11:13から11:17まで門の出入口を塞いでいた。HinaとKaitoとMr. ItoとSotaの証言で、その時間帯に他の経路も使えなかったことが分かる。"
+          "meaningJa": "Rinは11:13に校庭の門から外へ出たと言うが、Naoの台車が11:13から11:17まで門の出入口を塞いでいた。HinaとKaitoとMr. Itoの証言と、テントの裏の垂れ幕で、その時間帯に他の経路も使えなかったことが分かる。"
         }
       ]
     },
@@ -250,7 +250,7 @@
           "requires": ["f_gr_a", "f_ca_a", "f_br_b", "f_cm_a", "f_te_a", "f_co_a"],
           "requires5p": null,
           "yields": "graduate_alibi_broken",
-          "meaningJa": "Kaitoは11:15に渡り廊下を通って体育館へ渡ったと言うが、Rinは渡り廊下が11:20まで立入禁止のロープで塞がれていたと言っている。Sotaのテントの裏の垂れ幕とNaoの台車とMr. Itoの視線とHinaの会計台の証言で、その時間帯に屋台のまわりから抜けられなかったことが分かる。"
+          "meaningJa": "Kaitoは11:15に渡り廊下を通って体育館へ渡ったと言うが、Rinは渡り廊下が11:20まで立入禁止のロープで塞がれていたと言っている。テントの裏の垂れ幕とNaoの台車とMr. Itoの視線とHinaの会計台の証言で、その時間帯に屋台のまわりから抜けられなかったことが分かる。"
         }
       ]
     },
@@ -273,7 +273,7 @@
           "requires": ["f_cm_a", "f_ca_a", "f_br_a", "f_gr_b", "f_te_a", "f_co_a"],
           "requires5p": null,
           "yields": "committee_alibi_broken",
-          "meaningJa": "Naoは11:15に実行委員本部にいたと言うが、Mr. Itoは11:20まで本部の扉を見ており、誰も入っていない。Kaitoが11:12に行列がはけたと言い、HinaとRinとSotaの証言で、その直後の屋台のまわりの様子が分かる。"
+          "meaningJa": "Naoは11:15に実行委員本部にいたと言うが、Mr. Itoは11:20まで本部の扉を見ており、誰も入っていない。Kaitoが11:12に行列がはけたと言い、HinaとRinの証言と、テントの裏の垂れ幕で、その直後の屋台のまわりの様子が分かる。"
         }
       ]
     },
@@ -294,9 +294,9 @@
       "contradictions": [
         {
           "requires": ["f_te_a", "f_ca_b", "f_br_a", "f_gr_a", "f_cm_b", "f_co_a"],
-          "requires5p": null,
+          "requires5p": ["f_te_a", "f_ca_b", "f_br_a", "f_gr_a", "f_cm_b"],
           "yields": "teacher_alibi_broken",
-          "meaningJa": "Mr. Itoは11:15に倉庫にいたと言うが、Hinaは倉庫のシャッターが11:20まで施錠されていたと言っている。Naoの横断幕の枠が門を塞いでいたこと、Rinの視界、Kaitoの11:10の証言、Sotaのテントの裏の垂れ幕で、その時間帯に校庭を離れた者がいないことが分かる。"
+          "meaningJa": "Mr. Itoは11:15に倉庫にいたと言うが、Hinaは倉庫のシャッターが11:20まで施錠されていたと言っている。Naoの横断幕の枠が門を塞いでいたこと、Rinの視界、Kaitoの11:10の証言、テントの裏の垂れ幕で、その時間帯に校庭を離れた者がいないことが分かる。"
         }
       ]
     },

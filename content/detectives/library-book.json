@@ -204,7 +204,7 @@
           "requires": ["f_vo_a", "f_rp_b", "f_hs_a", "f_rd_a", "f_lb_a", "f_cl_a"],
           "requires5p": null,
           "yields": "volunteer_alibi_broken",
-          "meaningJa": "Soraは16:15に書庫にいたと言うが、Takuは書庫の扉が16:20まで施錠されていたと言っている。Kenjiの16:10の証言で持ち去られた時間帯が絞られ、Yunaの視界とHanaのカウンターとEmiのカートで、その間に閲覧室を離れられた者がいないことが分かる。"
+          "meaningJa": "Soraは16:15に書庫にいたと言うが、Takuは書庫の扉が16:20まで施錠されていたと言っている。Kenjiの16:10の証言で持ち去られた時間帯が絞られ、Yunaの視界とHanaのカウンターと入口を塞いだ清掃カートで、その間に閲覧室を離れられた者がいないことが分かる。"
         }
       ]
     },
@@ -227,7 +227,7 @@
           "requires": ["f_hs_a", "f_cl_a", "f_vo_a", "f_rd_a", "f_rp_a", "f_lb_a"],
           "requires5p": null,
           "yields": "high_schooler_alibi_broken",
-          "meaningJa": "Yunaは16:10に入口から外へ出たと言うが、Emiの清掃カートが16:10から16:15まで入口を塞いでいた。SoraとKenjiとTakuとHanaの証言で、その時間帯に館内から出る他の経路も使えなかったことが分かる。"
+          "meaningJa": "Yunaは16:10に入口から外へ出たと言うが、清掃カートが16:10から16:15まで入口を塞いでいた。SoraとKenjiとTakuとHanaの証言で、その時間帯に館内から出る他の経路も使えなかったことが分かる。"
         }
       ]
     },
@@ -250,7 +250,7 @@
           "requires": ["f_rd_a", "f_hs_b", "f_vo_a", "f_rp_a", "f_lb_a", "f_cl_a"],
           "requires5p": null,
           "yields": "reader_alibi_broken",
-          "meaningJa": "Kenjiは16:15に自習席へ移ったと言うが、Yunaのかばんと本が16:20まで自習席に広げたままで、どかされた跡もない。Soraの配架とTakuの書庫の扉とHanaのカウンターとEmiのカートで、その時間帯に閲覧室から抜けられなかったことが分かる。"
+          "meaningJa": "Kenjiは16:15に自習席へ移ったと言うが、Yunaのかばんと本が16:20まで自習席に広げたままで、どかされた跡もない。Soraの配架とTakuの書庫の扉とHanaのカウンターと入口を塞いだ清掃カートで、その時間帯に閲覧室から抜けられなかったことが分かる。"
         }
       ]
     },
@@ -271,9 +271,9 @@
       "contradictions": [
         {
           "requires": ["f_rp_a", "f_lb_a", "f_vo_a", "f_hs_a", "f_rd_b", "f_cl_a"],
-          "requires5p": null,
+          "requires5p": ["f_rp_a", "f_lb_a", "f_vo_a", "f_hs_a", "f_rd_b"],
           "yields": "repairer_alibi_broken",
-          "meaningJa": "Takuは16:15にカウンターにいたと言うが、Hanaは16:05から16:20まで一人でカウンターに立っていたと言っている。Kenjiが16:20に写真集が無くなっていたと言い、SoraとYunaとEmiの証言で、その直前の閲覧室と入口の様子が分かる。"
+          "meaningJa": "Takuは16:15にカウンターにいたと言うが、Hanaは16:05から16:20まで一人でカウンターに立っていたと言っている。Kenjiが16:20に写真集が無くなっていたと言い、SoraとYunaの証言と、入口を塞いだ清掃カートで、その直前の閲覧室と入口の様子が分かる。"
         }
       ]
     },
@@ -296,7 +296,7 @@
           "requires": ["f_lb_a", "f_vo_b", "f_hs_a", "f_rd_a", "f_rp_a", "f_cl_b"],
           "requires5p": null,
           "yields": "librarian_alibi_broken",
-          "meaningJa": "Hanaは16:15に返却ポストの中身を取り出したと言うが、Soraは返却ポストが16:25まで開けられていないと言っている。Emiが拭いたばかりの廊下の床が濡れたままだったこと、Yunaの視界、Kenjiの16:10の証言、Takuの書庫の扉の作業で、その時間帯に館外へ出た者がいないことが分かる。"
+          "meaningJa": "Hanaは16:15に返却ポストの中身を取り出したと言うが、Soraは返却ポストが16:25まで開けられていないと言っている。拭いたばかりの廊下の床が濡れたままだったこと、Yunaの視界、Kenjiの16:10の証言、Takuの書庫の扉の作業で、その時間帯に館外へ出た者がいないことが分かる。"
         }
       ]
     },

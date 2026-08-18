@@ -1,4 +1,4 @@
-// DETECTIVESの事件データ検証。検証7項目・追加リント・5人版導出・反例出力を実装する。
+// DETECTIVESの事件データ検証。検証8項目・追加リント・5人版導出・反例出力を実装する。
 // 何を・なぜ検証するかは基本設計/04、どう判定するかは基本設計/06を正とする。
 //
 // このコードはCI（tools）からのみ呼ぶ。ランタイムのコードパスには置かない（05）。
@@ -8,8 +8,8 @@ import type { Case, Fact, PlayerCountVariant, Variant } from "@beb/shared-detect
 import { indexFacts, parseCase, yieldsOf } from "./case-schema";
 import { derive5p, has5p } from "./derive-5p";
 
-/** 検証項目。1〜7は04・06の検証7項目、それ以外は前提となる構造検証とリント */
-export type ValidationItem = 1 | 2 | 3 | 4 | 5 | 6 | 7 | "schema" | "merge5p" | "lint";
+/** 検証項目。1〜8は04・06の検証項目、それ以外は前提となる構造検証とリント */
+export type ValidationItem = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | "schema" | "merge5p" | "lint";
 
 export interface Finding {
   caseId: string;
@@ -129,7 +129,7 @@ function expandLeaves(saturation: Saturation, rules: Rule[], requires: string[])
   return leaves;
 }
 
-// --- 検証7項目 ---
+// --- 検証8項目 ---
 
 /** 検証1: 可解性。嘘あり集合の到達集合がyieldsを1つ以上含む */
 function checkSolvable(instance: Instance, findings: Findings): boolean {
@@ -266,6 +266,45 @@ function checkNoVariantInterference(instance: Instance, findings: Findings): voi
   }
 }
 
+/**
+ * 検証8: 犯人の手札に必須カードを置かない。
+ *
+ * 発火した規則が、嘘fact以外に犯人自身が所有する事実を要求していないことを見る。
+ * 要求していると、犯人はその1枚を出さないだけで矛盾の成立を止められる。
+ * 証言の開示は `disclosure` が `free` でも義務ではないため、黙秘は反則ではない。
+ *
+ * 5人版で統合先が犯人になる回で起きやすい。統合されたキャラクターの証言が犯人の手札へ移るためである。
+ * 検証3は犯人所有の事実を頭数から除くだけで存在を許し、検証2は犯人自身を検査対象から外すため、
+ * どちらもこの形を検出しない。
+ */
+function checkNoCulpritHeldEvidence(instance: Instance, findings: Findings): void {
+  const saturation = saturate(instance.lieSymbols, instance.rules);
+
+  for (const rule of instance.rules) {
+    if (!saturation.fired.includes(rule.id)) {
+      continue;
+    }
+    const held: Fact[] = [];
+    for (const leaf of expandLeaves(saturation, instance.rules, rule.requires)) {
+      if (leaf === instance.lieSymbol) {
+        continue;
+      }
+      const fact = instance.factOfSymbol.get(leaf);
+      if (fact !== undefined && fact.owner === instance.variant.culprit) {
+        held.push(fact);
+      }
+    }
+    if (held.length > 0) {
+      findings.error(8, scopeOf(instance), `規則 ${rule.id} が犯人自身の証言を要求している（犯人が黙ると矛盾に到達できない）`, [
+        `犯人が持つ必須の事実: ${held.map((fact) => fact.id).join(", ")}`,
+        instance.playerCount === "5p"
+          ? "統合で犯人の手札へ移った証言と思われる。requires5pで別の組に置き換える"
+          : "requiresから外すか、別のキャラクターの証言に置き換える",
+      ]);
+    }
+  }
+}
+
 /** 検証6: 表示完全性。全事実（嘘を含む）とbriefing・revealの表示テキストが揃っている */
 function checkDisplayCompleteness(target: Case, findings: Findings): void {
   const missing: string[] = [];
@@ -381,6 +420,85 @@ function checkMergeDesign(base: Case, findings: Findings): void {
   }
 }
 
+/** 敬称。呼び名の照合では取り除く */
+const HONORIFICS = new Set(["Mr.", "Mrs.", "Ms.", "Dr.", "Prof."]);
+
+/** 表示名から照合用の呼び名を作る。"Mr. Ito (campus guard)" なら ["Mr. Ito", "Ito"] */
+function nameLabels(displayName: string): string[] {
+  // "Aoi (part-time staff)" も "Yuki(kitchen staff)" も "アオイ（店員）" も同じ扱いにする
+  const head = displayName.split(/\s*[（(]/)[0]?.trim() ?? displayName;
+  const words = head.split(/\s+/).filter((word) => !HONORIFICS.has(word) && word.length >= 2);
+  return [...new Set([head, ...words])];
+}
+
+/** 単語境界つきの出現判定。Ken が Kenji に一致しないようにする（日本語の直後は境界として扱う） */
+function mentions(text: string, label: string): boolean {
+  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(?<![A-Za-z])${escaped}(?![A-Za-z])`).test(text);
+}
+
+/**
+ * 5人版で卓から消えるキャラクターの名前が `meaningJa` に残っていないかを見る。
+ *
+ * 統合されたキャラクターの証言は統合先の手札に入るが、`meaningJa` の文面は変わらない。
+ * そのままだと開示画面の解説に、その卓にいない人物の名前が出る。
+ * 統合されたキャラクター自身が犯人のバリアントは5人版に存在しない（06の手順4）ため対象から除く。
+ */
+function checkMergedNamesInMeaning(base: Case, findings: Findings): void {
+  const merged = base.characters.filter((character) => character.merge5p !== null);
+  // 5人版に残るキャラクターの呼び名。姓を共有する別人（Mr. Sato と Ms. Sato）で誤検出しないよう、
+  // 衝突する語はラベルから外す
+  const survivingLabels = new Set(
+    base.characters.filter((character) => character.merge5p === null).flatMap((character) => nameLabels(character.name)),
+  );
+
+  for (const character of merged) {
+    const labels = nameLabels(character.name).filter((label) => !survivingLabels.has(label));
+    if (labels.length === 0) {
+      continue;
+    }
+
+    const report = (
+      where: string,
+      text: string,
+      scope: { variant: string | null; playerCount: PlayerCountVariant | null },
+    ): void => {
+      const hit = labels.find((label) => mentions(text, label));
+      if (hit === undefined) {
+        return;
+      }
+      findings.error(
+        "merge5p",
+        scope,
+        `${where} に、5人版では卓にいない ${character.id} の名前が出る`,
+        [`該当する呼び名: ${hit}`, `本文: ${text}`],
+      );
+    };
+
+    for (const variant of base.variants) {
+      if (variant.culprit === character.id) {
+        continue;
+      }
+      variant.contradictions.forEach((contradiction, index) => {
+        report(`矛盾 ${variant.culprit}#${index} のmeaningJa`, contradiction.meaningJa, {
+          variant: variant.culprit,
+          playerCount: "5p",
+        });
+      });
+    }
+
+    // 開示画面に出るのはmeaningJaだけではない（08のresult）
+    const caseWide = { variant: null, playerCount: "5p" as PlayerCountVariant };
+    base.reveal.timelineEn.forEach((line, index) => report(`reveal.timelineEn[${index}]`, line, caseWide));
+    base.reveal.keyExpressions.forEach((entry, index) => {
+      report(`reveal.keyExpressions[${index}].en`, entry.en, caseWide);
+      report(`reveal.keyExpressions[${index}].ja`, entry.ja, caseWide);
+    });
+    report("briefing.ja", base.briefing.ja, caseWide);
+    report("briefing.en", base.briefing.en, caseWide);
+  }
+}
+
 // --- 追加リント（04） ---
 
 /** valueを構成要素へ分解する。エンジンは解釈しないが、リントは表記の目安として使う */
@@ -467,6 +585,21 @@ function runLints(base: Case, findings: Findings): void {
     lintTextLength(`${variant.culprit}の嘘`, variant.lie.text, findings);
   }
 
+  // 同じlie.valueを2つのバリアントが使うと、片方の世界にもう片方の嘘の値が存在する。
+  // 相手のrequiresが揃わなければ検証7は発火しないため、機械検証をすり抜ける組み合わせが残る（06）
+  const lieOwners = new Map<string, string[]>();
+  for (const variant of base.variants) {
+    lieOwners.set(variant.lie.value, [...(lieOwners.get(variant.lie.value) ?? []), variant.culprit]);
+  }
+  for (const [value, culprits] of lieOwners) {
+    if (culprits.length > 1) {
+      findings.error("lint", CASE_WIDE, `2つ以上のバリアントが同じlie.valueを使っている（検証7がすり抜ける組み合わせが残る）`, [
+        `value: ${value}`,
+        `該当する犯人: ${culprits.join(", ")}`,
+      ]);
+    }
+  }
+
   // バリアント数がキャラクター数と一致しない場合の警告は6人版にのみ適用する（04）
   if (base.variants.length !== base.characters.length) {
     findings.warn("lint", CASE_WIDE, `バリアント数(${base.variants.length})とキャラクター数(${base.characters.length})が一致しない`, []);
@@ -505,6 +638,7 @@ export function validateCase(content: unknown): ValidationReport {
   const versions: { playerCount: PlayerCountVariant; target: Case }[] = [{ playerCount: "6p", target: base }];
   if (has5p(base)) {
     checkMergeDesign(base, findings);
+    checkMergedNamesInMeaning(base, findings);
     versions.push({ playerCount: "5p", target: derive5p(base) });
   } else if (base.playerCount[0] < base.characters.length) {
     // 下限人数を宣言しているのに統合指定がなければ、その人数では配役できない
@@ -526,6 +660,7 @@ export function validateCase(content: unknown): ValidationReport {
       if (solvable) {
         checkEveryoneRequired(instance, findings);
         checkNotSolvableAlone(instance, findings);
+        checkNoCulpritHeldEvidence(instance, findings);
       }
       checkNoFalseAccusation(instance, findings);
       checkNoVariantInterference(instance, findings);

@@ -204,7 +204,7 @@
           "requires": ["f_fr_a", "f_gd_a", "f_mn_a", "f_al_a", "f_cp_a", "f_nb_a"],
           "requires5p": null,
           "yields": "freshman_alibi_broken",
-          "meaningJa": "Naoは18:10に部室から廊下へ出たと言うが、Junの段ボール箱が18:10から18:15まで部室の出入口を塞いでいた。Hinaの18:05の証言で入れ替えの時間帯が絞られ、Rikuの廊下の視界とSoraの視線とIto氏の自販機の故障の証言で、その間に他の経路も使えなかったことが分かる。"
+          "meaningJa": "Naoは18:10に部室から廊下へ出たと言うが、Junの段ボール箱が18:10から18:15まで部室の出入口を塞いでいた。Hinaの18:05の証言で入れ替えの時間帯が絞られ、Rikuの廊下の視界とSoraの視線と自販機の故障の証言で、その間に他の経路も使えなかったことが分かる。"
         }
       ]
     },
@@ -227,7 +227,7 @@
           "requires": ["f_mn_a", "f_gd_a", "f_fr_b", "f_al_a", "f_cp_a", "f_nb_a"],
           "requires5p": null,
           "yields": "manager_alibi_broken",
-          "meaningJa": "Hinaは18:15に下の階へ行っていたと言うが、Naoは18:20より前に階段を下りた者はいないと言っている。Junの段ボール箱とSoraの視線とRikuの廊下の視界とIto氏の自販機の故障の証言で、その時間帯に廊下から抜けられなかったことが分かる。"
+          "meaningJa": "Hinaは18:15に下の階へ行っていたと言うが、Naoは18:20より前に階段を下りた者はいないと言っている。Junの段ボール箱とSoraの視線とRikuの廊下の視界と自販機の故障の証言で、その時間帯に廊下から抜けられなかったことが分かる。"
         }
       ]
     },
@@ -250,7 +250,7 @@
           "requires": ["f_nb_a", "f_gd_a", "f_fr_a", "f_mn_a", "f_al_a", "f_cp_b"],
           "requires5p": null,
           "yields": "neighbour_alibi_broken",
-          "meaningJa": "Rikuは18:15に自販機コーナーで飲み物を買っていたと言うが、Ito氏は自販機が18:05から故障していたと言っている。Soraの窓の証言、Hinaの18:05の証言、Naoの廊下の視界、Junの段ボール箱で、その時間帯に部室と廊下の様子が確定する。"
+          "meaningJa": "Rikuは18:15に自販機コーナーで飲み物を買っていたと言うが、自販機は18:05から故障していたという証言がある。Soraの窓の証言、Hinaの18:05の証言、Naoの廊下の視界、Junの段ボール箱で、その時間帯に部室と廊下の様子が確定する。"
         }
       ]
     },
@@ -271,9 +271,9 @@
       "contradictions": [
         {
           "requires": ["f_al_a", "f_gd_a", "f_fr_a", "f_mn_b", "f_cp_a", "f_nb_a"],
-          "requires5p": null,
+          "requires5p": ["f_al_a", "f_fr_a", "f_mn_b", "f_cp_a", "f_nb_a"],
           "yields": "alumnus_alibi_broken",
-          "meaningJa": "Junは18:15に用具室にいたと言うが、Soraは18:20まで用具室の扉を見ており、誰も入っていない。Hinaが18:10から棚を見ている者がいなくなったと言い、NaoとRikuの廊下の視界とIto氏の自販機の故障の証言で、その直後の廊下の様子が分かる。"
+          "meaningJa": "Junは18:15に用具室にいたと言うが、Soraは18:20まで用具室の扉を見ており、誰も入っていない。Hinaが18:10から棚を見ている者がいなくなったと言い、NaoとRikuの廊下の視界と自販機の故障の証言で、その直後の廊下の様子が分かる。"
         }
       ]
     },
@@ -296,7 +296,7 @@
           "requires": ["f_cp_a", "f_gd_b", "f_fr_a", "f_mn_a", "f_al_b", "f_nb_a"],
           "requires5p": null,
           "yields": "captain_alibi_broken",
-          "meaningJa": "Soraは18:15に非常口から外へ出たと言うが、Ito氏は非常口が18:20まで施錠されていたと言っている。Junの車が非常口の外に停まっていたこと、Naoの廊下の視界、Hinaの18:05の証言、Rikuの廊下の視界で、その時間帯に建物を出た者がいないことが分かる。"
+          "meaningJa": "Soraは18:15に非常口から外へ出たと言うが、非常口は18:20まで施錠されていたという証言がある。Junの車が非常口の外に停まっていたこと、Naoの廊下の視界、Hinaの18:05の証言、Rikuの廊下の視界で、その時間帯に建物を出た者がいないことが分かる。"
         }
       ]
     },

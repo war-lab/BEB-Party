@@ -1,7 +1,7 @@
 // 事件データの構造検証。型（正本）は @beb/shared-detectives の case.ts にあり、
 // ここでは外部入力（JSON）を unknown から受け取って構造・参照整合性を確かめる。
 //
-// 推論を伴う7項目（validate-content.ts）はこの検証を通ったデータにしか適用しない。
+// 推論を伴う8項目（validate-content.ts）はこの検証を通ったデータにしか適用しない。
 // 構造が壊れたデータに推論を掛けても、作者にとって役立つ反例が出ないためである。
 //
 // 表示テキスト（text・hintJa・briefing・reveal）の欠落はここでは扱わない。
@@ -169,6 +169,10 @@ function checkContradiction(
     issues.add(`${path}.yields`, "yieldsが空である");
   } else if (context.factValues.has(raw.yields)) {
     issues.add(`${path}.yields`, `yieldsが事実のvalueと衝突している: ${raw.yields}`);
+  } else if (context.facts.some((fact) => fact.id === raw.yields)) {
+    // requiresの解決はfact idを先に引くため、衝突すると多段推論の参照が
+    // 書いた本人の意図と違うもの（そのfactのvalue）に解決される
+    issues.add(`${path}.yields`, `yieldsが事実のidと衝突している: ${raw.yields}`);
   }
 
   // requiresに嘘factを含める規約（ADR-0008）は検証4が報告する。
@@ -299,6 +303,23 @@ export function parseCase(input: unknown): ParseResult {
   }
 
   const characters = checkCharacters(input.characters, issues);
+
+  // 宣言した人数と配役できる人数が食い違うと、検証を全項目通ったうえで
+  // ランタイムの配役（assignCast）が例外になる
+  if (Array.isArray(input.playerCount) && characters.length > 0) {
+    const [min, max] = input.playerCount as [number, number];
+    if (typeof max === "number" && characters.length !== max) {
+      issues.add("playerCount", `playerCountの上限(${max})とキャラクター数(${characters.length})が一致しない`);
+    }
+    const mergedAway = characters.filter((character) => character.merge5p !== null).length;
+    if (typeof min === "number" && mergedAway > 0 && characters.length - mergedAway !== min) {
+      issues.add(
+        "playerCount",
+        `playerCountの下限(${min})と統合後のキャラクター数(${characters.length - mergedAway})が一致しない`,
+      );
+    }
+  }
+
   const facts = characters.length > 0 ? checkFacts(input.facts, characters, issues) : [];
   if (characters.length > 0 && facts.length > 0) {
     checkVariants(input.variants, characters, facts, issues);

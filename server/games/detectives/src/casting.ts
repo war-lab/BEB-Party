@@ -1,7 +1,7 @@
 // 配役と犯人バリアントの抽選（設計.mdの配役アルゴリズム、ADR-0007）。
 import type { Level, Player } from "@beb/shared-core";
 import type { Character, Variant } from "@beb/shared-detectives";
-import { pickOne, shuffle } from "./rng";
+import { pickWeighted, shuffle } from "./rng";
 
 export interface CastMember {
   playerId: string;
@@ -47,31 +47,32 @@ function sortByLevelDesc<T>(items: readonly T[], levelOf: (item: T) => Level, ra
   return levels.flatMap((level) => shuffle(byLevel.get(level) ?? [], random));
 }
 
+/** レベル3以上のプレイヤーに与える抽選の重み（ADR-0016） */
+const PREFERRED_CULPRIT_LEVEL = 3;
+const PREFERRED_WEIGHT = 3;
+
 /**
  * 犯人バリアントを抽選する。
  *
- * 対象は「配役されたプレイヤーの自己申告レベルが3以上」のキャラクターに限る。
- * 該当が無い場合（全員レベル1〜2の組）は、最もレベルが高いプレイヤーのキャラクターを選ぶ。
- * キャラクターの recommendedLevel ではなく実プレイヤーのレベルで判定する（ADR-0007）。
+ * 配役されたプレイヤーのレベルが3以上のキャラクターを3倍の重みで引く。
+ * キャラクターの recommendedLevel ではなく実プレイヤーのレベルで判定する（ADR-0016）。
+ *
+ * 候補を「レベル3以上」に絞り込まないのは、レベルが公開状態に載るためである。
+ * 絞り込むと、レベル3以上が1人しかいない卓で犯人が確定し、開始前に全員へ割れる。
  */
 export function pickCulpritVariant(cast: CastMember[], variants: Variant[], random: () => number): Variant {
   const levelOf = new Map(cast.map((member) => [member.characterId, member.level]));
 
-  const eligible = variants.filter((variant) => (levelOf.get(variant.culprit) ?? 0) >= 3);
-  const picked = pickOne(eligible, random);
-  if (picked !== undefined) {
-    return picked;
-  }
+  // 配役されたキャラクターのバリアントだけを対象にする（5人版で除外されたバリアントを引かない）
+  const candidates = variants.filter((variant) => levelOf.has(variant.culprit));
+  const picked = pickWeighted(
+    candidates,
+    (variant) => ((levelOf.get(variant.culprit) ?? 1) >= PREFERRED_CULPRIT_LEVEL ? PREFERRED_WEIGHT : 1),
+    random,
+  );
 
-  // 全員がレベル1〜2の組。最もレベルが高いプレイヤーのキャラクターを犯人にする。
-  // 同レベルのプレイヤーが複数いる場合はその中から抽選する。先頭を固定で選ぶと、
-  // 初級者だけの組で毎回同じ犯人・同じ嘘になり、リプレイ性が失われる（実測で確認）
-  const topLevel = Math.max(...cast.map((member) => member.level));
-  const topVariants = variants.filter((variant) => levelOf.get(variant.culprit) === topLevel);
-  const fallback = pickOne(topVariants, random);
-
-  if (fallback === undefined) {
+  if (picked === undefined) {
     throw new Error("配役されたキャラクターに対応するバリアントが1つも無い");
   }
-  return fallback;
+  return picked;
 }

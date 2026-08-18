@@ -76,7 +76,7 @@ export function caseOf(parts: {
 }
 
 /**
- * 7項目すべてを満たす6人の事件。
+ * 8項目すべてを満たす6人の事件。
  *
  * 各バリアントの矛盾は「犯人の嘘 + 他5人全員の証言」を要求する。
  * 検証1が「yieldsを1つ以上含む」であるため、途中結論を持つ多段構成にすると
@@ -103,7 +103,9 @@ export function validCase(): Case {
   const allFacts = facts.map((entry) => entry.id);
   const variants = characters.map((entry, index) =>
     variant(entry.id, `f${index + 1}`, `false_claim_${index + 1}`, [
-      contradiction(allFacts, `${entry.id}_exposed`),
+      // c5が犯人の回は、統合されたc6の証言(f6)がc5の手札に入る。
+      // そのまま要求すると犯人が黙るだけで矛盾が成立しなくなる（検証8）
+      contradiction(allFacts, `${entry.id}_exposed`, entry.id === "c5" ? allFacts.filter((id) => id !== "f6") : null),
     ]),
   );
 

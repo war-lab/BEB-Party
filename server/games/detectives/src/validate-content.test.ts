@@ -33,7 +33,7 @@ function mutate(base: Case, change: (target: Case) => void): Case {
 }
 
 describe("validateCase（基準となる事件）", () => {
-  it("7項目とリントをすべて満たす事件はエラーも警告も出ない", () => {
+  it("8項目とリントをすべて満たす事件はエラーも警告も出ない", () => {
     const report = validateCase(validCase());
     expect(report.findings.map(formatFinding)).toEqual([]);
     expect(report.errorCount).toBe(0);
@@ -179,11 +179,40 @@ describe("検証6: 表示完全性", () => {
 describe("検証7: バリアント非干渉", () => {
   it("2つのバリアントが同じ嘘を共有する事件は検証7だけが落ちる", () => {
     const report = validateCase(sharedLieCase());
-    expect(failedItems(report)).toEqual([7]);
-    const finding = errorsOf(report)[0]!;
+    // lie.valueの共有そのものもエラーになる（検証7が発火しない組み合わせがあるため）
+    expect(failedItems(report).sort()).toEqual(["lint", 7].sort());
+    const finding = errorsOf(report).find((entry) => entry.item === 7)!;
     expect(finding.variant).toBe("c1");
     expect(finding.detail.join("\n")).toContain("干渉したバリアントの犯人: c2");
     expect(finding.detail.join("\n")).toContain("発火した規則: c2#0");
+  });
+});
+
+describe("検証8: 犯人の手札に必須カードを置かない", () => {
+  it("犯人自身の証言を要求する矛盾は検証8だけが落ちる", () => {
+    const broken = mutate(validCase(), (target) => {
+      target.facts.push(fact("f1b", "c1", "stmt_one_b", "the lights were on upstairs"));
+      const c1 = target.variants.find((variant) => variant.culprit === "c1")!;
+      c1.contradictions[0]!.requires = [...c1.contradictions[0]!.requires, "f1b"];
+    });
+    const report = validateCase(broken);
+    expect(failedItems(report)).toEqual([8]);
+    const finding = errorsOf(report)[0]!;
+    expect(finding.variant).toBe("c1");
+    expect(finding.detail.join("\n")).toContain("f1b");
+  });
+
+  it("統合で犯人の手札へ移った証言を要求すると5人版だけが落ちる", () => {
+    // c6はc5へ統合される。c5が犯人の回では、c6の証言が犯人の手札に入る
+    const broken = mutate(validCase(), (target) => {
+      const c5 = target.variants.find((variant) => variant.culprit === "c5")!;
+      c5.contradictions[0]!.requires5p = null;
+    });
+    const report = validateCase(broken);
+    const eight = errorsOf(report).filter((finding) => finding.item === 8);
+    expect(eight).toHaveLength(1);
+    expect(eight[0]!.playerCount).toBe("5p");
+    expect(eight[0]!.detail.join("\n")).toContain("f6");
   });
 });
 
@@ -194,6 +223,80 @@ describe("5人版の導出と検証", () => {
     expect(merge).toHaveLength(1);
     expect(merge[0]!.playerCount).toBe("5p");
     expect(merge[0]!.detail.join("\n")).toContain("統合後の所有者: c2");
+  });
+
+  it("統合されるキャラクターの名前がmeaningJaに出る事件をエラーにする", () => {
+    const broken = mutate(validCase(), (target) => {
+      const c1 = target.variants.find((variant) => variant.culprit === "c1")!;
+      // c6は5人版でc5へ統合されるため、c1が犯人の回の解説に名前が出てはいけない
+      c1.contradictions[0]!.meaningJa = "c6の証言と突き合わせると嘘が割れる";
+    });
+    const report = validateCase(broken);
+    const merge = errorsOf(report).filter((finding) => finding.item === "merge5p");
+    expect(merge).toHaveLength(1);
+    expect(merge[0]!.variant).toBe("c1");
+    expect(merge[0]!.playerCount).toBe("5p");
+    expect(merge[0]!.message).toContain("c6");
+  });
+
+  it("統合されるキャラクター自身が犯人のバリアントは名前の検査から除く", () => {
+    const broken = mutate(validCase(), (target) => {
+      const c6 = target.variants.find((variant) => variant.culprit === "c6")!;
+      // c6が犯人のバリアントは5人版に存在しない（06の手順4）
+      c6.contradictions[0]!.meaningJa = "c6の嘘が割れる";
+    });
+    expect(errorsOf(validateCase(broken))).toEqual([]);
+  });
+
+  it("名前の検査は英字の途中では一致させない", () => {
+    const broken = mutate(validCase(), (target) => {
+      target.characters.find((character) => character.id === "c6")!.name = "Ken (role)";
+      const c1 = target.variants.find((variant) => variant.culprit === "c1")!;
+      c1.contradictions[0]!.meaningJa = "Kenjiの証言と突き合わせると嘘が割れる";
+    });
+    expect(errorsOf(validateCase(broken))).toEqual([]);
+  });
+
+  it("敬称つきの名前も姓だけで検出する", () => {
+    const broken = mutate(validCase(), (target) => {
+      target.characters.find((character) => character.id === "c6")!.name = "Mr. Ito (role)";
+      const c1 = target.variants.find((variant) => variant.culprit === "c1")!;
+      c1.contradictions[0]!.meaningJa = "Ito氏の証言と突き合わせると嘘が割れる";
+    });
+    const merge = errorsOf(validateCase(broken)).filter((finding) => finding.item === "merge5p");
+    expect(merge).toHaveLength(1);
+    expect(merge[0]!.detail.join("\n")).toContain("該当する呼び名: Ito");
+  });
+
+  it("括弧の前に空白が無い表示名でも名前を検出する", () => {
+    const broken = mutate(validCase(), (target) => {
+      target.characters.find((character) => character.id === "c6")!.name = "Yuki(kitchen staff)";
+      const c1 = target.variants.find((variant) => variant.culprit === "c1")!;
+      c1.contradictions[0]!.meaningJa = "Yuki の証言と突き合わせると嘘が割れる";
+    });
+    const merge = errorsOf(validateCase(broken)).filter((finding) => finding.item === "merge5p");
+    expect(merge).toHaveLength(1);
+  });
+
+  it("5人版に残るキャラクターと姓を共有する場合は誤検出しない", () => {
+    const ok = mutate(validCase(), (target) => {
+      target.characters.find((character) => character.id === "c6")!.name = "Mr. Sato (merged away)";
+      target.characters.find((character) => character.id === "c2")!.name = "Ms. Sato (stays)";
+      const c1 = target.variants.find((variant) => variant.culprit === "c1")!;
+      c1.contradictions[0]!.meaningJa = "Ms. Sato の証言と突き合わせると嘘が割れる";
+    });
+    expect(errorsOf(validateCase(ok))).toEqual([]);
+  });
+
+  it("revealやbriefingに統合されるキャラクターの名前が出てもエラーにする", () => {
+    // 開示画面に出るのはmeaningJaだけではない
+    const broken = mutate(validCase(), (target) => {
+      target.characters.find((character) => character.id === "c6")!.name = "Yuki (merged away)";
+      target.reveal.timelineEn.push("14:10 Yuki locked the cupboard.");
+    });
+    const merge = errorsOf(validateCase(broken)).filter((finding) => finding.item === "merge5p");
+    expect(merge).toHaveLength(1);
+    expect(merge[0]!.message).toContain("reveal.timelineEn");
   });
 
   it("下限人数を宣言しているのにmerge5pがない事件をエラーにする", () => {
@@ -236,10 +339,38 @@ describe("構造検証", () => {
   it("証言を1枚も持たないキャラクターがいる事件を拒否する", () => {
     const broken = mutate(validCase(), (target) => {
       target.characters.push({ id: "c7", name: "c7 (role)", recommendedLevel: 3, merge5p: null });
+      // 人数の宣言もあわせて直し、証言なしの指摘だけが出る形にする（c6は5人版で統合される）
+      target.playerCount = [6, 7];
     });
     const report = validateCase(broken);
     expect(failedItems(report)).toEqual(["schema"]);
     expect(errorsOf(report)[0]!.message).toContain("証言を1枚も持たない");
+  });
+
+  it("playerCountの上限とキャラクター数が食い違う事件を拒否する", () => {
+    // 通ってしまうと、検証を全項目PASSしたうえでランタイムの配役が例外になる
+    const broken = mutate(validCase(), (target) => {
+      target.playerCount = [5, 8];
+    });
+    const messages = errorsOf(validateCase(broken)).map((finding) => finding.message);
+    expect(messages.some((message) => message.includes("キャラクター数(6)が一致しない"))).toBe(true);
+  });
+
+  it("統合後の人数とplayerCountの下限が食い違う事件を拒否する", () => {
+    const broken = mutate(validCase(), (target) => {
+      target.playerCount = [4, 6];
+    });
+    const messages = errorsOf(validateCase(broken)).map((finding) => finding.message);
+    expect(messages.some((message) => message.includes("統合後のキャラクター数(5)が一致しない"))).toBe(true);
+  });
+
+  it("yieldsがfact idと衝突する事件を拒否する", () => {
+    // requiresの解決はfact idを先に引くため、衝突すると別の規則へ黙って解決される
+    const broken = mutate(validCase(), (target) => {
+      target.variants[0]!.contradictions[0]!.yields = "f2";
+    });
+    const messages = errorsOf(validateCase(broken)).map((finding) => finding.message);
+    expect(messages.some((message) => message.includes("yieldsが事実のidと衝突している"))).toBe(true);
   });
 
   it("valueが重複する事件を拒否する", () => {
@@ -300,6 +431,15 @@ describe("追加リント", () => {
       expect.stringContaining("レベル1が8語を超える"),
       expect.stringContaining("レベル5が15語未満"),
     ]);
+  });
+
+  it("2つのバリアントが同じlie.valueを使うとエラーになる", () => {
+    // 検証7は相手のrequiresが揃ったときにしか発火しない。値の共有そのものを見る
+    const shared = errorsOf(validateCase(sharedLieCase())).filter((finding) =>
+      finding.message.includes("同じlie.value"),
+    );
+    expect(shared).toHaveLength(1);
+    expect(shared[0]!.detail.join("\n")).toContain("該当する犯人: c1, c2");
   });
 
   it("バリアント数がキャラクター数と一致しないと警告する", () => {

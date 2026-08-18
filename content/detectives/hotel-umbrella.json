@@ -204,7 +204,7 @@
           "requires": ["f_fd_a", "f_gu_a", "f_bs_a", "f_dr_a", "f_mg_a", "f_br_b"],
           "requires5p": null,
           "yields": "front_desk_alibi_broken",
-          "meaningJa": "Hanaは9時15分にリネン室にいたと言うが、Yuiは9時10分にリネン室へ鍵をかけ、その鍵を自分のポケットに入れていたと言っている。Rioの9時10分の証言で傘が消えた時間帯が絞られ、Sotaの視界とTakuの台車とEmiの視線で、その間にロビーを離れられた者がいないことが分かる。"
+          "meaningJa": "Hanaは9時15分にリネン室にいたと言うが、Yuiは9時10分にリネン室へ鍵をかけ、その鍵を自分のポケットに入れていたと言っている。9時10分に傘がまだ傘立てにあったという証言で時間帯が絞られ、Sotaの視界とTakuの台車とEmiの視線で、その間にロビーを離れられた者がいないことが分かる。"
         }
       ]
     },
@@ -227,7 +227,7 @@
           "requires": ["f_gu_a", "f_fd_a", "f_bs_a", "f_dr_a", "f_mg_a", "f_br_a"],
           "requires5p": null,
           "yields": "guest_alibi_broken",
-          "meaningJa": "Sotaは9時13分に正面の入口から外へ出たと言うが、Takuの台車が9時13分から9時17分まで正面の出入口を塞いでいた。HanaとRioとEmiとYuiの証言で、その時間帯に他の出口が使えなかったことも分かる。"
+          "meaningJa": "Sotaは9時13分に正面の入口から外へ出たと言うが、Takuの台車が9時13分から9時17分まで正面の出入口を塞いでいた。HanaとEmiとYuiの証言と、9時10分に傘が傘立てにあったという証言で、その時間帯に他の出口が使えなかったことも分かる。"
         }
       ]
     },
@@ -273,7 +273,7 @@
           "requires": ["f_dr_a", "f_fd_a", "f_gu_a", "f_bs_b", "f_mg_a", "f_br_a"],
           "requires5p": null,
           "yields": "driver_alibi_broken",
-          "meaningJa": "Takuは9時15分に奥の事務室にいたと言うが、Emiは9時20分まで事務室の扉を見ており、誰も入っていない。Rioが9時12分に持ち主が朝食会場へ向かったと言い、HanaとSotaとYuiの証言で、その直後のロビーの様子が分かる。"
+          "meaningJa": "Takuは9時15分に奥の事務室にいたと言うが、Emiは9時20分まで事務室の扉を見ており、誰も入っていない。持ち主が9時12分に朝食会場へ向かったという証言があり、HanaとSotaとYuiの証言で、その直後のロビーの様子が分かる。"
         }
       ]
     },
@@ -294,9 +294,9 @@
       "contradictions": [
         {
           "requires": ["f_mg_a", "f_fd_b", "f_gu_a", "f_bs_a", "f_dr_b", "f_br_a"],
-          "requires5p": null,
+          "requires5p": ["f_mg_a", "f_fd_b", "f_gu_a", "f_dr_b", "f_br_a"],
           "yields": "manager_alibi_broken",
-          "meaningJa": "Emiは9時15分に従業員通路から外へ出たと言うが、Hanaは通路の扉が9時20分まで施錠されていたと言っている。Takuの配送車が入口の前に停まっていたこと、Sotaの視界、Rioの9時10分の証言、Yuiの戸口からの視界で、その時間帯にホテルを出た者がいないことが分かる。"
+          "meaningJa": "Emiは9時15分に従業員通路から外へ出たと言うが、Hanaは通路の扉が9時20分まで施錠されていたと言っている。Takuの配送車が入口の前に停まっていたこと、Sotaの視界、9時10分に傘が傘立てにあったという証言、Yuiの戸口からの視界で、その時間帯にホテルを出た者がいないことが分かる。"
         }
       ]
     },
@@ -319,7 +319,7 @@
           "requires": ["f_br_a", "f_fd_a", "f_gu_a", "f_bs_a", "f_dr_a", "f_mg_b"],
           "requires5p": null,
           "yields": "breakfast_staff_alibi_broken",
-          "meaningJa": "Yuiは9時15分にフロントにいたと言うが、Hanaは9時10分以降フロントに誰も立っていなかったと言っている。Emiの受付の記録、Rioの9時10分の証言、Sotaの視界、Takuの台車で、その時間帯に受付が行われていなかったことが分かる。"
+          "meaningJa": "Yuiは9時15分にフロントにいたと言うが、Hanaは9時10分以降フロントに誰も立っていなかったと言っている。Emiの受付の記録、9時10分に傘が傘立てにあったという証言、Sotaの視界、Takuの台車で、その時間帯に受付が行われていなかったことが分かる。"
         }
       ]
     }

@@ -102,33 +102,42 @@ describe("start: 配役と秘密情報", () => {
   });
 
   // 受入条件3
-  it("全員がレベル1〜2の組では、最もレベルが高いプレイヤーが犯人になる", () => {
-    const { publicState, gameSecret } = start([2, 1, 1, 1, 1, 1]);
-    const topPlayerId = publicState.cast.find((entry) => entry.playerId === "p1")!.playerId;
-    expect(gameSecret.culpritPlayerId).toBe(topPlayerId);
+  it("レベル3以上が1人だけの組でも犯人が固定されない（レベルは公開情報のため）", () => {
+    // 絞り込み方式では候補が1件になり、stateに載るレベルから開始前に犯人が割れる（ADR-0016）
+    const culprits = new Set(
+      Array.from({ length: 120 }, (_, index) => start([5, 1, 1, 1, 1, 1], index + 1).gameSecret.culpritCharacterId),
+    );
+    expect(culprits.size).toBeGreaterThan(1);
+
+    // 最上位のプレイヤー以外も犯人になりうる
+    const nonTop = Array.from({ length: 120 }, (_, index) => start([5, 1, 1, 1, 1, 1], index + 1)).filter(
+      ({ players, gameSecret }) =>
+        players.find((player) => player.id === gameSecret.culpritPlayerId)!.level < 3,
+    );
+    expect(nonTop.length).toBeGreaterThan(0);
   });
 
-  it("最高レベルのプレイヤーが複数いる場合、その中から抽選する（初級者だけの組でも犯人が固定されない）", () => {
+  it("全員がレベル1〜2の組でも犯人が固定されない", () => {
     // 先頭固定にすると、初級者だけの組で毎回同じ犯人・同じ嘘になる
     const culprits = new Set(
       Array.from({ length: 60 }, (_, index) => start([2, 2, 1, 1, 1, 1], index + 1).gameSecret.culpritCharacterId),
     );
     expect(culprits.size).toBeGreaterThan(1);
-
-    // 抽選対象は最高レベル（この組では2）のプレイヤーに配役されたキャラクターに限る
-    for (const seed of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
-      const { players, gameSecret } = start([2, 2, 1, 1, 1, 1], seed);
-      const culpritLevel = players.find((player) => player.id === gameSecret.culpritPlayerId)!.level;
-      expect(culpritLevel).toBe(2);
-    }
   });
 
-  it("レベル3以上のプレイヤーが居る場合、犯人はその中から選ばれる", () => {
-    for (const seed of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
-      const { players, gameSecret } = start(SIX, seed);
-      const culpritLevel = players.find((player) => player.id === gameSecret.culpritPlayerId)!.level;
-      expect(culpritLevel).toBeGreaterThanOrEqual(3);
+  it("レベル3以上のプレイヤーが犯人になりやすい（重みづけ抽選）", () => {
+    // 重み3対1。600回でレベル3以上(3人)の合計が過半数になる程度の偏りを見る
+    const levels = [5, 4, 3, 1, 1, 1] as Level[];
+    let preferred = 0;
+    for (let seed = 1; seed <= 600; seed += 1) {
+      const { players, gameSecret } = start(levels, seed);
+      if (players.find((player) => player.id === gameSecret.culpritPlayerId)!.level >= 3) {
+        preferred += 1;
+      }
     }
+    // 期待値は 9/12 = 75%。一様なら50%になる
+    expect(preferred).toBeGreaterThan(390);
+    expect(preferred).toBeLessThan(600);
   });
 
   // 受入条件4

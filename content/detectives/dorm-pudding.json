@@ -294,7 +294,7 @@
       "contradictions": [
         {
           "requires": ["f_wd_a", "f_ck_b", "f_cl_a", "f_ex_a", "f_nw_a", "f_pc_a"],
-          "requires5p": null,
+          "requires5p": ["f_wd_a", "f_ck_b", "f_cl_a", "f_ex_a", "f_nw_a"],
           "yields": "warden_alibi_broken",
           "meaningJa": "Yuriは21:15に流しで洗い物をしていたと言うが、Naoは21:25まで洗い物が流しに残ったままだったと言っている。Kaiの21:10の証言で時間帯が絞られ、Soraの談話室のテレビ、Lenaの廊下の視界、玄関の荷物で、その間に寮を出た者がいないことが分かる。"
         }
