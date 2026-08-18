@@ -33,7 +33,11 @@
     { "id": "card_029", "answer": "Yoda", "taboo": ["green", "small", "force", "ears", "master"] },
     { "id": "card_030", "answer": "Darth Vader", "taboo": ["mask", "black", "breathing", "father", "empire"] },
     { "id": "card_031", "answer": "Crayon Shin-chan", "taboo": ["kindergarten", "bottom", "elephant", "five", "dog"] },
-    { "id": "card_032", "answer": "Kumamon", "taboo": ["bear", "black", "Kumamoto", "cheek", "mascot"] }
+    { "id": "card_032", "answer": "Kumamon", "taboo": ["bear", "black", "Kumamoto", "cheek", "mascot"] },
+    { "id": "card_033", "answer": "Pinocchio", "taboo": ["nose", "wood", "puppet", "lie", "boy"] },
+    { "id": "card_034", "answer": "Superman", "taboo": ["cape", "fly", "planet", "strong", "glasses"] },
+    { "id": "card_035", "answer": "Cleopatra", "taboo": ["Egypt", "queen", "snake", "beauty", "ancient"] },
+    { "id": "card_036", "answer": "Napoleon", "taboo": ["France", "emperor", "army", "short", "hat"] }
   ],
   "constraints": [
     { "id": "verbs_only", "ja": "動詞を中心に説明する", "en": "Use verbs, not nouns." },

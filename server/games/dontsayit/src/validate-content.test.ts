@@ -1,4 +1,4 @@
-// 検証7項目それぞれについて、意図的に違反させたセットを用意し、その項目だけが落ちることを確かめる（09）
+// 検証9項目それぞれについて、意図的に違反させたセットを用意し、その項目だけが落ちることを確かめる（09）
 import { describe, expect, it } from "vitest";
 import { MIN_CARDS } from "@beb/shared-dontsayit";
 import { card, validSet } from "./test-support/fixtures";
@@ -51,6 +51,96 @@ describe("検証1: 正解の非露出", () => {
     first.answer = "Doraemon";
     first.taboo = ["time machine", "robot", "cat", "pocket", "future"];
     expect(itemsOf(target)).toEqual([]);
+  });
+});
+
+describe("検証1の比較単位", () => {
+  // 部分一致で判定すると、正解に短い語が含まれる場合に無関係な禁止語まで拒否する（実測）
+  it("正解の語を部分文字列として含む禁止語は拒否しない", () => {
+    const target = validSet();
+    const first = target.cards[0];
+    if (first === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    first.answer = "Winnie the Pooh";
+    first.taboo = ["mother", "brother", "honey", "bear", "forest"];
+    expect(itemsOf(target)).toEqual([]);
+  });
+
+  it("正解の語と完全一致する禁止語は拒否する", () => {
+    const target = validSet();
+    const first = target.cards[0];
+    if (first === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    first.answer = "Winnie the Pooh";
+    first.taboo = ["the", "honey", "bear", "forest", "piglet"];
+    expect(itemsOf(target)).toEqual([1]);
+  });
+});
+
+describe("検証8: 正解の一意", () => {
+  it("同じ正解を2枚持つセットが落ちる", () => {
+    const target = validSet();
+    const second = target.cards[1];
+    const first = target.cards[0];
+    if (first === undefined || second === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    second.answer = first.answer;
+    expect(itemsOf(target)).toEqual([8]);
+  });
+
+  it("大文字小文字と空白の違いだけの重複も落ちる", () => {
+    const target = validSet();
+    const second = target.cards[1];
+    const first = target.cards[0];
+    if (first === undefined || second === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    second.answer = `  ${first.answer.toUpperCase()}  `;
+    // 文字種の検査（検証7）にも触れるため、正解の一意が含まれることだけを見る
+    expect(itemsOf(target)).toContain(8);
+  });
+});
+
+describe("検証9: 禁止語の形", () => {
+  function withTaboo(taboo: string[]): unknown {
+    const target = validSet();
+    const first = target.cards[0];
+    if (first === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    first.taboo = taboo;
+    return target;
+  }
+
+  it("数字を含む禁止語が落ちる", () => {
+    expect(itemsOf(withTaboo(["P1kachu", "a", "b", "c", "d"]))).toContain(9);
+  });
+
+  it("アクセント付きの文字を含む禁止語が落ちる", () => {
+    expect(itemsOf(withTaboo(["Pikachú", "a", "b", "c", "d"]))).toContain(9);
+  });
+
+  it("日本語の禁止語が落ちる", () => {
+    expect(itemsOf(withTaboo(["アンパンマン", "a", "b", "c", "d"]))).toContain(9);
+  });
+
+  it("空白だけの禁止語が落ちる", () => {
+    expect(itemsOf(withTaboo([" ", "a", "b", "c", "d"]))).toContain(9);
+  });
+
+  it("3語以上の禁止語が落ちる", () => {
+    expect(itemsOf(withTaboo(["blue cat from", "a", "b", "c", "d"]))).toContain(9);
+  });
+
+  it("1語が長すぎる禁止語が落ちる", () => {
+    expect(itemsOf(withTaboo(["a".repeat(16), "a", "b", "c", "d"]))).toContain(9);
+  });
+
+  it("2語の複合語は許す", () => {
+    expect(itemsOf(withTaboo(["time machine", "robot", "cat", "pocket", "future"]))).toEqual([]);
   });
 });
 

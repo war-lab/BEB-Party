@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { Level } from "@beb/shared-core";
 import {
+  MAX_CARD_ADVANCES_PER_ROUND,
   ROUND_SECONDS,
   TABOO_COUNT,
+  advancesOf,
   hasConstraint,
   pointsOf,
   roleOf,
@@ -11,7 +13,7 @@ import {
   watcherPlayerIdOf,
   type DontSayItPublic,
 } from "./game";
-import { TABOO_PER_CARD } from "./set";
+import { MIN_CARDS, TABOO_PER_CARD } from "./set";
 
 const LEVELS: Level[] = [1, 2, 3, 4, 5];
 
@@ -103,6 +105,24 @@ describe("レベル別の禁止語の提示数", () => {
     for (const level of [1, 2, 3, 4] as Level[]) {
       expect(hasConstraint(level)).toBe(false);
     }
+  });
+});
+
+describe("1ラウンドの消費回数", () => {
+  // 成立・違反・スキップのいずれもカードを1枚送るため、公開状態の3つの値から導ける
+  it("成立と違反とスキップの合計を数える", () => {
+    const state = { ...publicStateWith(6, 0), solvedThisRound: 2, violatedThisRound: 1, skipUsedThisRound: true };
+    expect(advancesOf(state)).toBe(4);
+  });
+
+  it("スキップは1回だけ数える", () => {
+    const state = { ...publicStateWith(6, 0), skipUsedThisRound: true };
+    expect(advancesOf(state)).toBe(1);
+  });
+
+  it("山札の下限は上限に締切の1枚を足した枚数を人数分満たす", () => {
+    // 締切時に表示中のカードも捨て札になるため、1ラウンドの最大消費は上限+1枚である
+    expect(MIN_CARDS).toBeGreaterThanOrEqual(6 * (MAX_CARD_ADVANCES_PER_ROUND + 1));
   });
 });
 

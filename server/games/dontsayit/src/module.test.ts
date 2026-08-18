@@ -4,6 +4,7 @@ import type { Level, Player, Room } from "@beb/shared-core";
 import {
   ACTIONS,
   ERROR_CODES,
+  MAX_CARD_ADVANCES_PER_ROUND,
   ROUND_SECONDS,
   STAGES,
   type DontSayItPublic,
@@ -16,8 +17,9 @@ import {
 // 収録前でも進行を検証できるようにフィクスチャのセットを差し込む。
 // モジュール側にテスト用の差し込み口を作らないため、ここでモックする
 vi.mock("./sets", async () => {
+  // 6人×1ラウンドの消費上限を回しきれる枚数（MIN_CARDS）を積む
   const { validSet } = await import("./test-support/fixtures");
-  const target = validSet(20);
+  const target = validSet(36);
   return {
     SETS: [target],
     findSet: (setId: string) => (setId === target.id ? target : undefined),
@@ -189,11 +191,21 @@ describe("秘密の非混入", () => {
     expect(serialized).not.toContain("clue");
   });
 
-  it("監視役の秘密に人物名が含まれない", () => {
+  it("監視役の秘密は正解と禁止語を持ち、説明者と同じカードを指す", () => {
+    // 正解を渡すのは、説明者が正解そのものを口に出したときに押せるボタンが必要なため（09の3役）
     const live = toExplaining(start(SIX));
+    const speaker = live.secrets.get(speakerOf(live)) as SpeakerSecret;
     const watcher = live.secrets.get(watcherOf(live)) as WatcherSecret;
     expect(watcher.role).toBe("watcher");
-    expect(JSON.stringify(watcher)).not.toContain("Name");
+    expect(watcher.answer).toBe(speaker.card.answer);
+    expect(watcher.cardId).toBe(speaker.card.cardId);
+  });
+
+  it("回答者の秘密には正解も禁止語も含まれない", () => {
+    const live = toExplaining(start(SIX));
+    const answerer = live.secrets.get(answererOf(live)) as DontSayItSecret;
+    expect(JSON.stringify(answerer)).not.toContain("Name");
+    expect(JSON.stringify(answerer)).not.toContain("clue");
   });
 
   it("回答者の秘密は役だけを持つ", () => {
@@ -438,22 +450,67 @@ describe("ラウンドの進行", () => {
   });
 });
 
-describe("山札", () => {
-  it("尽きた時点でゲームが終わる", () => {
-    // 2枚だけのセットで6人分のラウンドを回そうとする
+describe("1ラウンドの消費上限", () => {
+  // 上限がないと1人の連打で山札が尽き、残りの参加者が説明者を務められないままゲームが終わる
+  it("上限に達した時点でラウンドが終わる", () => {
     let live = toExplaining(start(SIX));
-    for (let index = 0; index < 20; index += 1) {
-      if (live.result !== undefined) {
-        break;
-      }
-      const cardId = live.gameSecret.currentCardId;
-      if (cardId === null) {
-        break;
-      }
-      live = send(live, ACTIONS.claimCorrect, speakerOf(live), { playerId: answererOf(live), cardId });
+    for (let claimed = 1; claimed <= MAX_CARD_ADVANCES_PER_ROUND; claimed += 1) {
+      live = send(live, ACTIONS.claimCorrect, speakerOf(live), {
+        playerId: answererOf(live),
+        cardId: currentCardId(live),
+      });
     }
+    expect(live.stage).toBe(STAGES.handoff);
+    expect(live.publicState.roundIndex).toBe(1);
+    expect(live.publicState.rounds[0]?.solved).toBe(MAX_CARD_ADVANCES_PER_ROUND);
+    expect(live.gameSecret.usedCardIds).toHaveLength(MAX_CARD_ADVANCES_PER_ROUND);
+  });
+
+  it("違反とスキップも上限に数える", () => {
+    let live = toExplaining(start(SIX));
+    live = send(live, ACTIONS.skipCard, speakerOf(live), { cardId: currentCardId(live) });
+    for (let index = 0; index < MAX_CARD_ADVANCES_PER_ROUND - 1; index += 1) {
+      live = send(live, ACTIONS.reportViolation, watcherOf(live), { cardId: currentCardId(live) });
+    }
+    expect(live.stage).toBe(STAGES.handoff);
+    expect(live.publicState.rounds[0]?.violated).toBe(MAX_CARD_ADVANCES_PER_ROUND - 1);
+    expect(live.publicState.rounds[0]?.skipped).toBe(true);
+  });
+
+  it("連打でも1人が全ラウンド分の山札を消費できない", () => {
+    // 6人×上限で消費しても、山札の下限（MIN_CARDS）を超えない
+    let live = readyAll(start(SIX));
+    let claims = 0;
+    for (let round = 0; round < 6 && live.result === undefined; round += 1) {
+      live = send(live, ACTIONS.startRound, speakerOf(live));
+      for (let index = 0; index < MAX_CARD_ADVANCES_PER_ROUND && live.result === undefined; index += 1) {
+        live = send(live, ACTIONS.claimCorrect, speakerOf(live), {
+          playerId: answererOf(live),
+          cardId: currentCardId(live),
+        });
+        claims += 1;
+      }
+    }
+    expect(claims).toBe(6 * MAX_CARD_ADVANCES_PER_ROUND);
+    expect(live.publicState.rounds).toHaveLength(6);
     expect(live.result).toBeDefined();
-    expect(live.stage).toBe(STAGES.debrief);
+  });
+});
+
+describe("飛ばしたラウンド", () => {
+  // handoffで説明者が未接続のとき、そのカードは誰も見ていない（09の結果）
+  it("誰も見ていないカードを結果で開示しない", () => {
+    const live = readyAll(start(SIX));
+    const unseen = currentCardId(live);
+    const speaker = speakerOf(live);
+    const offline: Live = {
+      ...live,
+      players: live.players.map((player) => (player.id === speaker ? { ...player, connected: false } : player)),
+    };
+    const after = fireDeadline(offline);
+    expect(after.publicState.roundIndex).toBe(1);
+    expect(after.gameSecret.usedCardIds).not.toContain(unseen);
+    expect(after.gameSecret.currentCardId).not.toBe(unseen);
   });
 });
 
@@ -472,6 +529,9 @@ describe("結果", () => {
       live = fireDeadline(live);
     }
     const result = live.result as DontSayItResult;
+    // 最終ラウンドの集計は rounds に入り、進行中のカウンタは戻る（足し合わせる画面が二重計上しない）
+    expect(live.publicState.solvedThisRound).toBe(0);
+    expect(live.publicState.violatedThisRound).toBe(0);
     expect(result.usedCards.length).toBe(live.gameSecret.usedCardIds.length);
     expect(result.usedCards.length).toBeLessThan(20);
     const points = result.scores.map((entry) => entry.points);

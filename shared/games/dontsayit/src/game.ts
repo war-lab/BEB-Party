@@ -40,16 +40,20 @@ export interface SpeakerSecret {
 }
 
 /**
- * 監視役に配る。禁止語だけを渡し、人物名は渡さない。
+ * 監視役に配る。禁止語と正解を渡す。
  *
- * 違反の判定に人物名が要らないためである。
- * それでも禁止語から正解を推測できるため、監視役はそのラウンドの加点対象から外す（09の3役）。
+ * 正解を渡すのは、説明者が正解そのものを口に出したときに押せるボタンが必要なためである。
+ * 渡さない設計では、タブー系ゲームで最も基本的な違反を誰も申告できない。
+ *
+ * 正解を知る役になるため、監視役はそのラウンドの加点対象から外す（09の3役）。
  */
 export interface WatcherSecret {
   role: "watcher";
   cardId: string;
   /** 説明者に提示したものと同じ集合。語数が違うと違反の判断がずれる */
   taboo: string[];
+  /** 正解。説明者が口に出したかを判定するために渡す */
+  answer: string;
 }
 
 /**
@@ -122,6 +126,29 @@ export function watcherPlayerIdOf(publicState: DontSayItPublic): string | undefi
     return undefined;
   }
   return speakerOrder[(roundIndex + 1) % speakerOrder.length];
+}
+
+/**
+ * 1ラウンドでカードを次へ送れる回数の上限。
+ *
+ * 成立・違反・スキップの合計に課す。上限に達した時点でそのラウンドを終える。
+ * 上限がないと、1人が連打して山札を掘り尽くし、残りの参加者が説明者を務められないまま
+ * ゲームが終わる（山札が尽きた時点で終局するため）。
+ *
+ * 締切到達時に表示中のカードも捨て札になるため、1ラウンドの最大消費枚数はこの値 + 1 である。
+ */
+export const MAX_CARD_ADVANCES_PER_ROUND = 5;
+
+/**
+ * そのラウンドでカードを次へ送った回数。
+ *
+ * 成立・違反・スキップのいずれもカードを1枚送るため、公開状態の3つの値から導ける。
+ * 専用のフィールドを置くと二重管理になる。
+ */
+export function advancesOf(publicState: DontSayItPublic): number {
+  return (
+    publicState.solvedThisRound + publicState.violatedThisRound + (publicState.skipUsedThisRound ? 1 : 0)
+  );
 }
 
 /** そのプレイヤーの現在の役 */

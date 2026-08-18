@@ -2,8 +2,8 @@
 // 受入条件2: 部屋作成からDON'T SAY ITの結果まで通る
 // 受入条件3: ゲームを完走したあと nextGame で別のゲームを選べる
 //
-// ラウンドの締切（既定90秒）を待つとテストが長くなるため、山札を使い切って結果へ到達させる。
-// 山札が尽きた時点でゲームが終わる仕様（基本設計/09）をそのまま利用する。
+// ラウンドの締切（既定90秒）を待つとテストが長くなるため、各ラウンドで消費上限まで申告する。
+// 上限に達した時点でそのラウンドが終わる仕様（基本設計/09）をそのまま利用し、6ラウンドを回して結果へ到達させる。
 import { expect, test, type Page } from "@playwright/test";
 import { openTable, readStateMessages, readyAll, startGame, voteAll } from "./support/room";
 
@@ -17,18 +17,29 @@ async function startDontSayIt(host: Page): Promise<void> {
   await host.click(".beb-btn:has-text('ゲームスタート')");
 }
 
-/** その端末で見えている要素から役を判定する */
-async function findPageBy(pages: Page[], selector: string): Promise<Page> {
-  for (const page of pages) {
-    if (await page.locator(selector).first().isVisible()) {
-      return page;
+/**
+ * その端末で見えている要素から役を判定する。
+ *
+ * ステージ遷移の反映を待つため、見つかるまで一定時間だけ繰り返す。
+ * どの端末に出るかはサーバが決めた説明者順で決まり、テスト側からは事前に分からない。
+ */
+async function findPageBy(pages: Page[], selector: string, timeoutMs = 10_000): Promise<Page> {
+  const started = Date.now();
+  for (;;) {
+    for (const page of pages) {
+      if (await page.locator(selector).first().isVisible()) {
+        return page;
+      }
     }
+    if (Date.now() - started > timeoutMs) {
+      throw new Error(`該当する端末がない: ${selector}`);
+    }
+    await pages[0]!.waitForTimeout(200);
   }
-  throw new Error(`該当する端末がない: ${selector}`);
 }
 
 test("6人で部屋作成からDON'T SAY ITの結果まで進める", async ({ browser, baseURL }) => {
-  // 32枚を流量制限内のペースで消費するため、既定の3倍でも足りない
+  // 6ラウンド × 上限5枚を回すため、既定の3倍でも足りない
   test.setTimeout(180_000);
   const table = await openTable(browser, baseURL!, [5, 4, 3, 3, 2, 1], {
     testTitle: test.info().title,
@@ -69,38 +80,51 @@ test("6人で部屋作成からDON'T SAY ITの結果まで進める", async ({ b
 
     // 説明タイム: 3役で画面の中身が変わる
     await expect(speaker.locator("[data-testid='answer']")).toBeVisible({ timeout: 10_000 });
-    const watcher = await findPageBy(table.pages, "text=お題は見えません");
+    // 監視役は正解も見る（説明者が正解を口に出したときに押せるボタンが必要なため）
+    const watcher = await findPageBy(table.pages, "[data-testid='watched-answer']");
     await expect(watcher.locator(".beb-btn:has-text('違反')")).toBeVisible();
     await expect(watcher.locator("[data-testid='answer']")).toHaveCount(0);
+    await expect(watcher.locator("[data-testid='watched-answer']")).toContainText(
+      (await speaker.locator("[data-testid='answer']").textContent()) ?? "",
+    );
 
     const answerers = table.pages.filter((page) => page !== speaker && page !== watcher);
     expect(answerers).toHaveLength(4);
     for (const page of answerers) {
       await expect(page.locator("text=声を聞いてください")).toBeVisible();
       await expect(page.locator("[data-testid='answer']")).toHaveCount(0);
+      await expect(page.locator("[data-testid='watched-answer']")).toHaveCount(0);
       await expect(page.locator(".taboo")).toHaveCount(0);
     }
 
-    // 山札32枚を使い切る。1枚ごとに成立枚数の増加を待つ。
-    // 待たずに次を押すと、画面に残った前のカードのidで申告してstale_cardで弾かれる。
-    //
-    // 申告の間隔を空けるのは、ソケットごとの流量制限が20通/10秒であるため（ADR-0017）。
-    // 実プレイでは1枚の説明に数秒以上かかるため到達しないが、テストは人手より速く押せる。
-    const deckSize = 32;
-    const claimIntervalMs = 600;
-    for (let claimed = 1; claimed <= deckSize; claimed += 1) {
-      await speaker.click(".beb-btn:has-text('正解')");
-      await speaker.locator("[data-testid='claim-sheet'] .beb-btn.blue").first().click();
-      if (claimed < deckSize) {
-        await expect(speaker.locator("[data-testid='solved-count']")).toHaveText(`成立 ${claimed}枚`);
-        await speaker.waitForTimeout(claimIntervalMs);
+    // 1ラウンドの消費上限まで申告すると、そのラウンドが自動で終わる。
+    // 上限は MAX_CARD_ADVANCES_PER_ROUND（shared/games/dontsayit）と同じ値を使う
+    const claimsPerRound = 5;
+    const rounds = 6;
+
+    async function claimUpToLimit(page: Page): Promise<void> {
+      for (let claimed = 1; claimed <= claimsPerRound; claimed += 1) {
+        await page.click(".beb-btn:has-text('正解')");
+        await page.locator("[data-testid='claim-sheet'] .beb-btn.blue").first().click();
+        if (claimed < claimsPerRound) {
+          await expect(page.locator("[data-testid='solved-count']")).toHaveText(`成立 ${claimed}枚`);
+        }
       }
+    }
+
+    await claimUpToLimit(speaker);
+
+    for (let round = 2; round <= rounds; round += 1) {
+      const next = await findPageBy(table.pages, ".beb-btn:has-text('はじめる')");
+      await next.click(".beb-btn:has-text('はじめる')");
+      await expect(next.locator("[data-testid='answer']")).toBeVisible({ timeout: 10_000 });
+      await claimUpToLimit(next);
     }
 
     // 結果: 全員に届き、使い終えたお題だけが並ぶ
     for (const page of table.pages) {
       await expect(page.locator("[data-testid='stage-timer']:has-text('結果')")).toBeVisible({ timeout: 10_000 });
-      await expect(page.locator(".cards > li")).toHaveCount(32);
+      await expect(page.locator(".cards > li")).toHaveCount(claimsPerRound * rounds);
       await expect(page.locator(".expressions li").first()).toBeVisible();
     }
 

@@ -5,9 +5,11 @@ import type { ContentSummary, GameModule, GameTransition, Level, Player, Room, V
 import {
   ACTIONS,
   ERROR_CODES,
+  MAX_CARD_ADVANCES_PER_ROUND,
   ROUND_SECONDS,
   STAGES,
   STAGE_DEADLINE_SECONDS,
+  advancesOf,
   hasConstraint,
   roleOf,
   speakerPlayerIdOf,
@@ -141,7 +143,12 @@ function buildSecrets(
       // 説明者に提示したものと同じ集合を渡す。語数が違うと違反の判断がずれる（09）
       const speakerId = speakerPlayerIdOf(publicState);
       const speakerLevel = speakerId === undefined ? 1 : levelOf(players, speakerId);
-      secrets.set(player.id, { role: "watcher", cardId: card.id, taboo: tabooFor(card, speakerLevel) });
+      secrets.set(player.id, {
+        role: "watcher",
+        cardId: card.id,
+        taboo: tabooFor(card, speakerLevel),
+        answer: card.answer,
+      });
       continue;
     }
     secrets.set(player.id, { role: "answerer" });
@@ -160,10 +167,15 @@ function draw(gameSecret: DontSayItGameSecret): { cardId: string; cursor: number
   return { cardId, cursor: gameSecret.cursor + 1 };
 }
 
-/** 表示中のカードを捨て札にして次を引く */
-function consumeCurrent(gameSecret: DontSayItGameSecret): DontSayItGameSecret {
+/**
+ * 表示中のカードを捨て札にして次を引く。
+ *
+ * `disclose` が偽のときは山札から落とすだけで `usedCardIds` へ積まない。
+ * 一度も `explaining` に入っていないカードは誰も見ていないため、結果画面で開示してはならない（09）。
+ */
+function consumeCurrent(gameSecret: DontSayItGameSecret, disclose = true): DontSayItGameSecret {
   const used =
-    gameSecret.currentCardId === null
+    gameSecret.currentCardId === null || !disclose
       ? gameSecret.usedCardIds
       : [...gameSecret.usedCardIds, gameSecret.currentCardId];
   const next = draw(gameSecret);
@@ -234,15 +246,27 @@ function buildResult(target: TabooSet, publicState: DontSayItPublic, gameSecret:
  * 表示中のカードは捨て札にする。当てられなかったカードを次のラウンドへ持ち越すと、
  * 場が既に聞いた人物を次の説明者が説明することになる。
  */
-function endRound(room: Room, publicState: DontSayItPublic, gameSecret: DontSayItGameSecret): Transition {
+function endRound(
+  room: Room,
+  publicState: DontSayItPublic,
+  gameSecret: DontSayItGameSecret,
+  disclose = true,
+): Transition {
   const target = resolveSet(publicState.setId);
   const rounds = [...publicState.rounds, summarizeRound(publicState)];
-  const nextSecret = consumeCurrent(gameSecret);
+  const nextSecret = consumeCurrent(gameSecret, disclose);
   const nextIndex = publicState.roundIndex + 1;
   const finished = nextIndex >= publicState.speakerOrder.length || nextSecret.currentCardId === null;
 
   if (finished) {
-    const nextPublic: DontSayItPublic = { ...publicState, rounds };
+    // 進行中のカウンタも戻す。rounds と足し合わせて集計する画面が最終ラウンドを二重計上しないため
+    const nextPublic: DontSayItPublic = {
+      ...publicState,
+      rounds,
+      solvedThisRound: 0,
+      violatedThisRound: 0,
+      skipUsedThisRound: false,
+    };
     return {
       publicState: nextPublic,
       gameSecret: nextSecret,
@@ -276,6 +300,11 @@ function advanceCard(
   nextPublic: DontSayItPublic,
 ): Transition {
   const target = resolveSet(publicState.setId);
+  // 1ラウンドで送れる回数に達したらラウンドを終える。
+  // 上限がないと1人の連打で山札が尽き、残りの参加者が説明者を務められない（09）
+  if (advancesOf(nextPublic) >= MAX_CARD_ADVANCES_PER_ROUND) {
+    return endRound(room, nextPublic, gameSecret);
+  }
   const nextSecret = consumeCurrent(gameSecret);
   if (nextSecret.currentCardId === null) {
     // 山札が尽きた。このラウンドを終える（09のステージ）
@@ -512,7 +541,8 @@ export const dontSayItModule: GameModule<
       case STAGES.handoff: {
         // 説明者が未接続ならそのラウンドを飛ばす。未接続を待って進行を止めない（09）
         if (!isConnected(room, speakerPlayerIdOf(publicState))) {
-          return endRound(room, publicState, gameSecret);
+          // このラウンドのカードは誰も見ていない。捨て札にするが結果画面では開示しない
+          return endRound(room, publicState, gameSecret, false);
         }
         return { stage: STAGES.explaining, deadlineSeconds: publicState.roundSeconds };
       }

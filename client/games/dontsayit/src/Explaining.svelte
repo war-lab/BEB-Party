@@ -17,7 +17,7 @@
     type SpeakerSecret,
     type WatcherSecret,
   } from "@beb/shared-dontsayit";
-  import { faceColor, sendAction } from "@beb/client-core";
+  import { faceColor, sendAction, ui } from "@beb/client-core";
   import StageGuide from "./StageGuide.svelte";
   import StageTimer from "./StageTimer.svelte";
   import { stageLabels } from "./stage-labels";
@@ -31,9 +31,15 @@
 
   const speakerId = $derived(speakerPlayerIdOf(publicState));
   const watcherId = $derived(watcherPlayerIdOf(publicState));
-  const role = $derived(secret?.role ?? "answerer");
-  const speakerSecret = $derived(secret?.role === "speaker" ? (secret as SpeakerSecret) : null);
-  const watcherSecret = $derived(secret?.role === "watcher" ? (secret as WatcherSecret) : null);
+
+  // 役は公開状態と秘密の両方が一致したときだけ認める。
+  // 再接続直後は「新しいstate + 1ラウンド前のsecret」を一度持つため、secretだけで判定すると
+  // 回答者の端末に前の役の画面（人物名を含む）が出る（Handoff.svelteと同じ条件にそろえる）
+  const isSpeaker = $derived(ui.myPlayerId !== null && ui.myPlayerId === speakerId && secret?.role === "speaker");
+  const isWatcher = $derived(ui.myPlayerId !== null && ui.myPlayerId === watcherId && secret?.role === "watcher");
+  const role = $derived(isSpeaker ? "speaker" : isWatcher ? "watcher" : "answerer");
+  const speakerSecret = $derived(isSpeaker ? (secret as SpeakerSecret) : null);
+  const watcherSecret = $derived(isWatcher ? (secret as WatcherSecret) : null);
 
   // 正解の申告は2段階にする。1タップで確定すると、誤タップがそのまま別人への加点になる
   let sheetOpen = $state(false);
@@ -124,7 +130,10 @@
 
       <!-- 監視役: 禁止語だけを大きく並べ、人物名の位置には伏せ面を置く -->
     {:else if role === "watcher" && watcherSecret}
-      <p class="hidden-answer">お題は見えません</p>
+      <p class="watched-answer" data-testid="watched-answer">
+        <span class="watched-label">言ったら違反</span>
+        <span class="watched-value">{watcherSecret.answer}</span>
+      </p>
 
       <ul class="taboo big">
         {#each watcherSecret.taboo as word (word)}
@@ -227,16 +236,27 @@
     padding: 0.55rem 0.8rem;
   }
 
-  .hidden-answer {
+  .watched-answer {
+    display: grid;
+    gap: 0.15rem;
     margin: 0.2rem 0 0.8rem;
     background: var(--ground-2);
-    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border: 3px solid var(--yellow);
     border-radius: var(--radius-card);
-    padding: 1.1rem;
-    text-align: center;
-    color: var(--mist);
+    padding: 0.7rem 0.9rem;
+  }
+  .watched-label {
     font-family: var(--font-heading);
     font-weight: var(--font-heading-weight);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    color: var(--yellow);
+  }
+  .watched-value {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    line-height: 1.2;
+    word-break: break-word;
   }
 
   .actions {

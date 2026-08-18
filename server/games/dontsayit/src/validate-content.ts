@@ -1,4 +1,4 @@
-// DON'T SAY ITのお題データ検証。検証7項目を実装する（基本設計/09_DONTSAYITゲームモジュール.md）。
+// DON'T SAY ITのお題データ検証。検証9項目を実装する（基本設計/09_DONTSAYITゲームモジュール.md）。
 //
 // 推論エンジンを使わない。判定は文字列比較と枚数の計数だけで足りる。
 // このコードはCI（tools）からのみ呼ぶ。ランタイムのコードパスには置かない（基本設計/05）。
@@ -6,8 +6,8 @@ import type { ValidationResult } from "@beb/shared-core";
 import { MIN_CARDS, TABOO_PER_CARD, type Card, type TabooSet } from "@beb/shared-dontsayit";
 import { parseSet } from "./set-schema";
 
-/** 検証項目。1〜7は09の検証項目、schemaは前提となる構造検証 */
-export type ValidationItem = 1 | 2 | 3 | 4 | 5 | 6 | 7 | "schema";
+/** 検証項目。1〜9は09の検証項目、schemaは前提となる構造検証 */
+export type ValidationItem = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | "schema";
 
 export interface Finding {
   setId: string;
@@ -52,19 +52,63 @@ class Findings {
   }
 }
 
-/** 検証1: 禁止語に正解名を構成する語が含まれない */
+/**
+ * 検証1: 禁止語に正解名を構成する語が含まれない。
+ *
+ * 判定は語単位の完全一致とする。部分一致は採らない。
+ * 部分一致で判定すると、正解に短い語が含まれる場合に無関係な禁止語まで拒否する
+ * （`Winnie the Pooh` の `the` により `mother` / `brother` が書けなくなる。実測）。
+ *
+ * 正解の構成語は監視役へ渡す正解から暗黙に禁止されるため、明示的に書けなくても機能は失われない（09の3役）。
+ */
 function checkAnswerNotExposed(card: Card, findings: Findings): void {
-  const answerWords = wordsOf(card.answer);
+  const answerWords = new Set(wordsOf(card.answer));
   for (const taboo of card.taboo) {
     for (const tabooWord of tabooWordsOf(taboo)) {
-      const hit = answerWords.find((word) => word === tabooWord || word.includes(tabooWord) || tabooWord.includes(word));
-      if (hit !== undefined) {
+      if (answerWords.has(tabooWord)) {
         findings.error(1, card.id, "禁止語が正解名を構成する語と一致している", [
           `正解: ${card.answer}`,
           `禁止語: ${taboo}`,
-          `一致した語: ${hit}`,
+          `一致した語: ${tabooWord}`,
         ]);
       }
+    }
+  }
+}
+
+/** 禁止語として許す文字。英字・空白・ハイフン・アポストロフィのみ（09の検証9） */
+const TABOO_PATTERN = /^[A-Za-z][A-Za-z\s'-]*$/;
+
+/** 禁止語1語の最大文字数。これを超える語は口頭で踏めず、枠が死ぬ */
+const TABOO_WORD_MAX_LENGTH = 15;
+
+/** 禁止語に許す最大語数。多語の言い換えは「その語を言ったか」を監視役が判定できない */
+const TABOO_MAX_WORDS = 2;
+
+/**
+ * 検証9: 禁止語の形。
+ *
+ * 文字種を英字に限るのは、非ASCIIの禁止語がフォントサブセットの入力に含まれず豆腐になるためである
+ * （`client/app/scripts/generate-font-subsets.mjs` は日本語フィールドからしか文字を集めない）。
+ * 数字とアクセント付き文字は、検証1の完全一致をすり抜けて正解を露出させる経路にもなる。
+ */
+function checkTabooShape(card: Card, findings: Findings): void {
+  for (const taboo of card.taboo) {
+    if (!TABOO_PATTERN.test(taboo)) {
+      findings.error(9, card.id, "禁止語は英字・空白・ハイフン・アポストロフィのみで構成する", [`実際: ${taboo}`]);
+      continue;
+    }
+    const words = tabooWordsOf(taboo);
+    if (words.length === 0) {
+      findings.error(9, card.id, "禁止語が空白だけで構成されている", [`実際: ${JSON.stringify(taboo)}`]);
+      continue;
+    }
+    if (words.length > TABOO_MAX_WORDS) {
+      findings.error(9, card.id, `禁止語は${TABOO_MAX_WORDS}語以内とする`, [`実際: ${words.length}語（${taboo}）`]);
+    }
+    const tooLong = words.find((word) => word.length > TABOO_WORD_MAX_LENGTH);
+    if (tooLong !== undefined) {
+      findings.error(9, card.id, `禁止語の1語は${TABOO_WORD_MAX_LENGTH}文字以内とする`, [`実際: ${tooLong}`]);
     }
   }
 }
@@ -95,6 +139,28 @@ function checkAnswerCharacters(card: Card, findings: Findings): void {
   }
 }
 
+/**
+ * 検証8: 正解がセット内で一意である。
+ *
+ * 一意性がidにしか課されていないと、同じ人物を並べたセットが全項目を通る（実測）。
+ * 2ラウンド目以降に場が既に当てた人物が再登場し、回答者は説明を聞かずに答えられる。
+ */
+function checkAnswerUnique(target: TabooSet, findings: Findings): void {
+  const seen = new Map<string, string>();
+  for (const card of target.cards) {
+    const key = wordsOf(card.answer).join(" ");
+    if (key.length === 0) {
+      continue;
+    }
+    const first = seen.get(key);
+    if (first !== undefined) {
+      findings.error(8, card.id, "正解がセット内で重複している", [`正解: ${card.answer}`, `先に現れたカード: ${first}`]);
+      continue;
+    }
+    seen.set(key, card.id);
+  }
+}
+
 /** 検証6: 表示に使うフィールドが揃っている。構造検証を通っていれば空文字だけを見れば足りる */
 function checkDisplayCompleteness(target: TabooSet, findings: Findings): void {
   if (target.keyExpressions.length === 0) {
@@ -121,7 +187,9 @@ export function validateSet(content: unknown): ValidationReport {
     checkNoDuplicateTaboo(card, findings);
     checkAnswerNotExposed(card, findings);
     checkAnswerCharacters(card, findings);
+    checkTabooShape(card, findings);
   }
+  checkAnswerUnique(target, findings);
 
   // 検証4: 山札の枚数
   if (target.cards.length < MIN_CARDS) {
