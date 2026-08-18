@@ -8,6 +8,7 @@ packages:
   - server/games/dontsayit
   - client/core
   - client/games/detectives
+  - client/games/dontsayit
   - client/app
   - tools
 allowBuilds:
