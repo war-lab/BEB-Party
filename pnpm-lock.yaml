@@ -146,6 +146,12 @@ importers:
         specifier: workspace:*
         version: link:../../core
 
+  shared/games/dontsayit:
+    dependencies:
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../core
+
   tools:
     dependencies:
       '@beb/engine':

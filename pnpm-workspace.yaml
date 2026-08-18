@@ -2,6 +2,7 @@ packages:
   - shared/core
   - shared/engine
   - shared/games/detectives
+  - shared/games/dontsayit
   - server/core
   - server/games/detectives
   - client/core

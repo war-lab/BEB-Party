@@ -1,0 +1,36 @@
+// お題データのスキーマ型（正本）とDON'T SAY ITのランタイム型・表示文言の定数
+export type { Card, ConstraintCard, KeyExpression, TabooSet } from "./set";
+export { MIN_CARDS, TABOO_PER_CARD } from "./set";
+
+export {
+  ACTIONS,
+  ANSWERER_PROMPTS,
+  CONSTRAINT_MIN_LEVEL,
+  ERROR_CODES,
+  ROUND_SECONDS,
+  STAGES,
+  STAGE_DEADLINE_SECONDS,
+  TABOO_COUNT,
+  hasConstraint,
+  pointsOf,
+  roleOf,
+  speakerPlayerIdOf,
+  tabooCountFor,
+  watcherPlayerIdOf,
+  type ActionName,
+  type AnswererSecret,
+  type CardActionPayload,
+  type ClaimCorrectPayload,
+  type DontSayItPublic,
+  type DontSayItResult,
+  type DontSayItSecret,
+  type DontSayItSettings,
+  type DontSayItSetSummary,
+  type ErrorCode,
+  type Role,
+  type RoundSummary,
+  type ScoreEntry,
+  type SpeakerSecret,
+  type Stage,
+  type WatcherSecret,
+} from "./game";
