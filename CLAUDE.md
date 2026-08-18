@@ -37,8 +37,15 @@
 | `pnpm dev` | client(Vite) + server(wrangler dev) を同時起動 |
 | `pnpm check` | 全パッケージのESLintと`tsc --noEmit` |
 | `pnpm test` | 全パッケージのvitest |
-| `pnpm validate:content` | 事件データの整合性検証（`tools`のCLI） |
-| `pnpm e2e` | Playwright（M0完了条件の自動検証） |
+| `pnpm validate:content` | 事件データの整合性検証（`tools`のCLI）。引数にファイルパスを渡すと1件だけ検証する |
+| `pnpm e2e` | Playwright（部屋作成から開示までの通し検証） |
+
+生成物を作るコマンド（生成物はコミットし、CIで再生成との差分を検査する）。
+
+| コマンド | 用途 |
+| --- | --- |
+| `pnpm --filter @beb/server-detectives run generate:cases` | 事件インデックス（`cases.generated.ts`）の生成 |
+| `pnpm --filter @beb/client-app run fonts:generate` | フォントサブセットの生成 |
 
 ## Definition of Done
 
