@@ -28,6 +28,10 @@ export interface Room {
 export interface GameSummary {
   id: string;
   title: string;
+  /** 選択画面に出す1行の説明 */
+  tagline: string;
+  /** 選択画面のアイコン（絵文字） */
+  icon: string;
   playerCount: [number, number];
   contents: ContentSummary[];
 }

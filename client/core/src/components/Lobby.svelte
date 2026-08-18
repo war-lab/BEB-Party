@@ -104,8 +104,13 @@
         {#each catalog as game (game.id)}
           <li>
             <button class="title-card" class:selected={room?.gameId === game.id} onclick={() => selectGame(game.id)}>
-              <span class="title-card-name">{game.title}</span>
-              <span class="title-card-meta">{game.playerCount[0]}〜{game.playerCount[1]}人</span>
+              <span class="title-card-icon" aria-hidden="true">{game.icon}</span>
+              <span class="title-card-body">
+                <span class="title-card-name">{game.title}</span>
+                <span class="title-card-tagline">{game.tagline}</span>
+                <span class="title-card-meta">{game.playerCount[0]}〜{game.playerCount[1]}人</span>
+              </span>
+              <span class="title-card-check" aria-hidden="true">✓</span>
             </button>
           </li>
         {/each}
@@ -228,9 +233,15 @@
     margin: 0.6rem 0 0.4rem;
   }
 
+  /* 選択UIは参加者一覧の直下から始め、主要ボタンだけを画面下端へ寄せる。
+     ブロックごと下げると、ゲームが1本のときに選択UIが画面の底に取り残される */
   .host-controls {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    margin-top: 0.25rem;
+  }
+  .host-controls .beb-btn {
     margin-top: auto;
   }
 
@@ -244,30 +255,118 @@
     flex-wrap: wrap;
   }
 
+  /* キャラクターセレクトの文法（ビジュアルデザイン.md）。アイコン → 名前 → 一行説明の順に読ませ、
+     選択中はカードごと持ち上げて黄色の縁で示す */
+  .title-cards {
+    flex-direction: column;
+    gap: 0.55rem;
+    width: 100%;
+  }
+  .title-cards li {
+    width: 100%;
+  }
+
   .title-card {
+    position: relative;
+    width: 100%;
     display: grid;
-    gap: 0.1rem;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 0.75rem;
     text-align: left;
-    background: var(--panel);
+    background: linear-gradient(160deg, #ffffff, var(--panel));
     color: var(--ink);
     border: var(--outline-width) solid var(--ink);
     border-radius: var(--radius-tile);
     box-shadow: var(--shadow-tile);
-    padding: 0.5rem 0.8rem;
+    padding: 0.6rem 0.8rem;
     cursor: pointer;
+    overflow: hidden;
+    transition:
+      transform 120ms ease-out,
+      box-shadow 120ms ease-out;
   }
-  .title-card.selected {
-    outline: 4px solid var(--yellow);
-    outline-offset: -2px;
+  .title-card:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+  }
+
+  .title-card-icon {
+    font-size: 2.1rem;
+    line-height: 1;
+    width: 3.1rem;
+    height: 3.1rem;
+    display: grid;
+    place-items: center;
+    background: var(--ink);
+    border-radius: var(--radius-tile);
+    box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.35);
+  }
+  .title-card-body {
+    display: grid;
+    gap: 0.1rem;
+    min-width: 0;
   }
   .title-card-name {
     font-family: var(--font-display);
-    font-size: 0.9rem;
+    font-size: 1.05rem;
+    line-height: 1.15;
+    transform: skew(var(--skew-angle));
+    transform-origin: left;
+  }
+  .title-card-tagline {
+    font-size: 0.76rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
   }
   .title-card-meta {
-    font-size: 0.68rem;
-    color: var(--ink-soft);
+    justify-self: start;
+    margin-top: 0.15rem;
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 0.66rem;
+    color: #fff;
+    background: var(--blue);
+    border-radius: var(--radius-button);
+    padding: 0.1rem 0.6rem;
+    white-space: nowrap;
     font-variant-numeric: tabular-nums;
+  }
+  .title-card-check {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: none;
+    background: var(--yellow);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    padding: 0.05rem 0.5rem 0.15rem;
+    border-bottom-left-radius: var(--radius-tile);
+  }
+
+  .title-card.selected {
+    background-image: repeating-linear-gradient(
+        var(--skew-angle),
+        rgba(255, 196, 0, 0.35) 0 10px,
+        transparent 10px 26px
+      ),
+      linear-gradient(160deg, #fffdf2, #ffefb8);
+    border-color: var(--ink);
+    outline: 4px solid var(--yellow);
+    outline-offset: -2px;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hard);
+  }
+  .title-card.selected .title-card-icon {
+    background: var(--red);
+    transform: rotate(-4deg) scale(1.04);
+  }
+  .title-card.selected .title-card-meta {
+    background: var(--ink);
+  }
+  .title-card.selected .title-card-check {
+    display: block;
   }
 
   .content-chip {
@@ -284,6 +383,11 @@
   .content-chip.selected {
     background: var(--blue);
     color: #fff;
+    box-shadow: var(--shadow-tile);
+  }
+  .content-chip.selected::before {
+    content: "✓ ";
+    color: var(--yellow);
   }
 
   .seconds {

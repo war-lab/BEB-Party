@@ -1,5 +1,7 @@
-// フォントのグリフサブセット生成。入力はclient/のUI固定文言とcontent/detectives/*.jsonの
-// 日本語フィールドの和とする（基本設計/04_事件データと検証.md）。CIのビルド工程に組み込む。
+// フォントのグリフサブセット生成。入力はclient/のUI固定文言、ゲーム選択画面に出る
+// カタログの文言（server/games/のGameModuleのtitle・tagline・icon）、
+// content/detectives/*.jsonの日本語フィールドの和とする（基本設計/04_事件データと検証.md）。
+// CIのビルド工程に組み込む。
 // 出力(client/public/fonts/*.subset.woff2)はコミットし、CIで再生成との差分チェックを行う
 // （事件追加PRでの再生成忘れを検知するため）
 import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, readdirSync } from "node:fs";
@@ -49,6 +51,23 @@ async function walk(dir) {
   return text;
 }
 
+/**
+ * ゲーム選択画面に出る文言（GameModuleのtitle・tagline・icon）を集める。
+ *
+ * 実体はサーバ側にあるが、/api/catalogでクライアントへ配られて画面に出るため、
+ * サブセットの入力に含める。サーバのソース全体を舐めると日本語コメントまで拾って
+ * サブセットが数十KB膨らむので、カタログに載るフィールドの値だけを抜く。
+ */
+async function collectCatalogText() {
+  const dir = path.join(rootDir, "server", "games");
+  if (!existsSync(dir)) {
+    return "";
+  }
+  const source = await walk(dir);
+  const matches = source.matchAll(/(?:title|tagline|icon):\s*"([^"]*)"/g);
+  return [...matches].map((match) => match[1]).join("");
+}
+
 function collectContentJapanese() {
   const contentDir = path.join(rootDir, "content", "detectives");
   if (!existsSync(contentDir)) {
@@ -87,12 +106,13 @@ async function main() {
   mkdirSync(outputDir, { recursive: true });
 
   const uiText = await collectUiText();
+  const catalogText = await collectCatalogText();
   const contentText = collectContentJapanese();
   // 文字の集合をソート・重複排除して正規化する。ディレクトリ走査順をソートしても
   // ファイル内容の連結順序までは揃わないため、最終的な文字集合自体を正規形にすることで
   // 生成物のバイト列をプラットフォーム非依存にする(CIのLinuxと開発機のWindowsで
   // 異なるバイト列が生成され、差分チェックが誤って失敗することを実測したため)
-  const text = Array.from(new Set(BASE_CHARS + uiText + contentText)).sort().join("");
+  const text = Array.from(new Set(BASE_CHARS + uiText + catalogText + contentText)).sort().join("");
 
   const fonts = [
     {

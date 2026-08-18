@@ -3,6 +3,7 @@
   import type { Room } from "@beb/shared-core";
   import { ACTIONS, STAGES, type DetectivesPublic, type DetectivesSecret } from "@beb/shared-detectives";
   import RoleCutIn from "./RoleCutIn.svelte";
+  import StageGuide from "./StageGuide.svelte";
   import StageTimer from "./StageTimer.svelte";
   import { stageLabels } from "./stage-labels";
   import TestimonyCardView from "./TestimonyCardView.svelte";
@@ -35,6 +36,12 @@
       <span class="role-label">{characterName}</span>
       <button class="role-button" onclick={() => (showRole = true)}>役柄を確認</button>
     </header>
+
+    <StageGuide
+      step="investigation"
+      deadline={room.deadline}
+      hostNote={isHost ? "全員が話し終わったら、下の「投票へ進む」で早めに切り上げられます" : undefined}
+    />
 
     {#if secret}
       <section class="constraints" data-testid="constraints">

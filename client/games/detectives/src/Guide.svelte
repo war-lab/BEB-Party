@@ -42,11 +42,64 @@
   <li>犯人には「この証言は嘘」と表示されたカードが1枚ある</li>
 </ul>
 
+<p class="note">
+  各ステージの画面上部に「いまやること」が出る。進行役が台本を読む必要はない。
+</p>
+
+<h3>捜査で使うことば</h3>
+<p>読み上げるのは英文。カッコ内は意味であり、声に出すのは英語のほうとする。</p>
+
+<h4>聞く</h4>
+<ul class="phrases">
+  <li><b>Where were you at 2:15?</b><span>2時15分にどこにいた？</span></li>
+  <li><b>What did you see?</b><span>何を見た？</span></li>
+  <li><b>Who were you with?</b><span>誰と一緒だった？</span></li>
+  <li><b>What time was that?</b><span>それは何時？</span></li>
+  <li><b>Are you sure?</b><span>確か？</span></li>
+</ul>
+
+<h4>答える</h4>
+<ul class="phrases">
+  <li><b>I was in the kitchen.</b><span>厨房にいた</span></li>
+  <li><b>At about 2:15.</b><span>2時15分ごろ</span></li>
+  <li><b>I saw Aoi.</b><span>アオイを見た</span></li>
+  <li><b>I do not remember.</b><span>覚えていない</span></li>
+  <li><b>Nobody was there.</b><span>誰もいなかった</span></li>
+</ul>
+
+<h4>突き合わせる（レベル3以上）</h4>
+<ul class="phrases">
+  <li><b>That does not match what Aoi said.</b><span>アオイの話と合わない</span></li>
+  <li><b>So you were at the counter the whole time?</b><span>つまり、ずっとカウンターにいた？</span></li>
+  <li><b>Aoi says the door was locked. How did you go out?</b><span>アオイは扉が施錠されていたと言っている。どうやって出た？</span></li>
+  <li><b>Why did you not say that earlier?</b><span>なぜさっき言わなかった？</span></li>
+</ul>
+
 <h3>推理のしかた</h3>
 <p>
   嘘は1人の証言だけでは割れない。犯人以外の2人以上の証言を突き合わせて、はじめて矛盾が現れる。
   誰か1人が黙っていると真相に届かないため、全員から話を引き出す。
 </p>
+
+<h4>例</h4>
+<p>収録事件とは別の、説明用の3枚とする。</p>
+<ul class="phrases example">
+  <li><b>B: I was in the storeroom at 2:15.</b><span>2時15分に倉庫にいた（Bの証言）</span></li>
+  <li><b>C: The storeroom was locked from 2:10.</b><span>倉庫は2時10分から施錠されていた（Cの証言）</span></li>
+  <li><b>D: I had the key the whole time.</b><span>鍵はずっと私が持っていた（Dの証言）</span></li>
+</ul>
+<p>
+  Cだけでは「Bが鍵を持っていた」で説明がついてしまう。Dの証言が加わって、はじめてBの居場所が成り立たなくなる。
+  これが「2人以上の突き合わせ」である。
+</p>
+
+<h3>犯人になったら</h3>
+<ul>
+  <li>嘘のカードも、他のカードと同じ調子で読み上げる</li>
+  <li>聞かれたら答える。黙ると疑われるうえ、卓が真相に届かなくなって面白くならない</li>
+  <li>自分からも質問する。聞き役に回ると目立つ</li>
+  <li>嘘は1枚だけで、他のカードは本当のことを言っている。嘘を重ねる必要はない</li>
+</ul>
 
 <h3>レベル別のきまり</h3>
 <table>
@@ -64,6 +117,14 @@
   </tbody>
 </table>
 <p class="note">レベル1〜2には質問の例文が表示される。読み上げて使う。</p>
+
+<h3>開示の読み方</h3>
+<ul>
+  <li>犯人と、その回の嘘のカードが出る</li>
+  <li>「矛盾」は、その嘘を崩していた証言の組み合わせ。誰の証言が効いていたかを見る</li>
+  <li>真相のタイムラインで、実際に何が起きたかの順序を確認する</li>
+  <li>キーフレーズは、その事件で使われた英語表現。次の回で使い回せる</li>
+</ul>
 
 <h3>投票と勝敗</h3>
 <ul>
@@ -102,5 +163,35 @@
   }
   .note {
     font-size: 0.85rem;
+  }
+  h4 {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 0.85rem;
+    margin: 0.9rem 0 0.3rem;
+  }
+  .phrases {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .phrases li {
+    display: flex;
+    flex-direction: column;
+    border-left: 3px solid var(--blue);
+    padding: 0.15rem 0 0.15rem 0.6rem;
+    line-height: 1.5;
+  }
+  .phrases b {
+    font-size: 0.95rem;
+  }
+  .phrases span {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+  .phrases.example li {
+    border-left-color: var(--red);
   }
 </style>

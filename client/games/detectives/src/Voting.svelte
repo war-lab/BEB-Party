@@ -3,6 +3,7 @@
   import type { Room } from "@beb/shared-core";
   import { ACTIONS, STAGES, type DetectivesPublic } from "@beb/shared-detectives";
   import { faceColor, sendAction, ui } from "@beb/client-core";
+  import StageGuide from "./StageGuide.svelte";
   import StageTimer from "./StageTimer.svelte";
   import { stageLabels } from "./stage-labels";
   import { acquireWakeLock } from "./wake-lock.svelte";
@@ -38,6 +39,8 @@
   <StageTimer deadline={room.deadline} label={stageLabels[STAGES.voting]} />
 
   <div class="body">
+    <StageGuide step="voting" />
+
     <p class="vs-title">WHO IS THE CULPRIT?</p>
     <p class="vs-sub">犯人だと思う1人を選んで投票（{publicState.votedPlayerIds.length} / {connectedCount}）</p>
 

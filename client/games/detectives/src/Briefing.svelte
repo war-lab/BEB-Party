@@ -4,6 +4,7 @@
   import { ACTIONS, STAGES, type DetectivesPublic, type DetectivesSecret } from "@beb/shared-detectives";
   import { faceColor, sendAction, ui } from "@beb/client-core";
   import RoleCutIn from "./RoleCutIn.svelte";
+  import StageGuide from "./StageGuide.svelte";
   import StageTimer from "./StageTimer.svelte";
   import { stageLabels } from "./stage-labels";
 
@@ -35,6 +36,8 @@
   <StageTimer deadline={room.deadline} label={stageLabels[STAGES.briefing]} />
 
   <div class="body">
+    <StageGuide step="briefing" />
+
     <h1 class="case-title">事件の概要</h1>
 
     <section class="beb-card brief">

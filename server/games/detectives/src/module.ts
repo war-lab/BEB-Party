@@ -341,6 +341,8 @@ export const detectivesModule: GameModule<
   DetectivesGameSecret
 > = {
   title: "ENGLISH DETECTIVES",
+  tagline: "英語で聞き込み、嘘つきを1人あぶり出す",
+  icon: "🔍",
   playerCount: [5, 6],
 
   // 「おまかせ」を先頭に置く。ロビーの既定選択にするため（基本設計/02）
