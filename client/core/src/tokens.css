@@ -243,3 +243,105 @@ body {
   transform: skew(var(--skew-angle));
   transform-origin: left bottom;
 }
+
+/* --- 演出プリミティブ ---
+   収録ゲームが増えても見た目の水準が揃うよう、演出はここに集約する。
+   ゲームモジュールはこれらのクラスとキーフレームを参照するだけとし、
+   独自のkeyframesやスピードラインを持たない（ビジュアルデザイン.mdの実装方針）。 */
+
+/* 発表する画面の地。放射のグラデーションに細い光条を重ねる（開示・結果） */
+.beb-stage-radial {
+  background-color: var(--ground);
+  background-image:
+    repeating-conic-gradient(from 0deg at 50% 30%, rgba(255, 255, 255, 0.07) 0deg 7deg, transparent 7deg 14deg),
+    radial-gradient(circle at 50% 30%, #22307a 0%, var(--ground) 70%);
+}
+
+/* 役や秘密を開くときの地。色は使う側が background-color で決める */
+.beb-stage-reveal {
+  background-image:
+    repeating-linear-gradient(var(--skew-angle), rgba(0, 0, 0, 0.16) 0 22px, transparent 22px 44px),
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.35) 0%, transparent 68%);
+}
+
+/* 斜めに倒したカットインの板 */
+.beb-cutin {
+  background: var(--panel);
+  color: var(--ink);
+  transform: skew(var(--skew-angle)) rotate(-2deg);
+  padding: 1.4rem 1.25rem;
+  width: 118%;
+  border-top: 6px solid var(--ink);
+  border-bottom: 6px solid var(--ink);
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.3);
+  animation: beb-cutin var(--motion-duration) var(--motion-easing);
+}
+
+/* 注意テープ。カットインの上下に走らせる */
+.beb-caution {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  height: 1.6rem;
+  background: repeating-linear-gradient(45deg, var(--yellow) 0 16px, var(--ink) 16px 32px);
+  transform: rotate(-8deg);
+}
+
+/* 発表される値のズームイン */
+.beb-zoom-in {
+  animation: beb-zoom var(--motion-duration) var(--motion-easing);
+}
+
+/* 数が増えた瞬間の反応。keyブロックで作り直して再生する */
+.beb-pop {
+  animation: beb-pop var(--motion-duration) var(--motion-easing);
+}
+
+@keyframes beb-wipe {
+  from {
+    clip-path: polygon(0 0, 0 0, -20% 100%, -20% 100%);
+  }
+  to {
+    clip-path: polygon(0 0, 120% 0, 100% 100%, -20% 100%);
+  }
+}
+
+@keyframes beb-cutin {
+  from {
+    transform: skew(var(--skew-angle)) rotate(-2deg) scale(0.86);
+    opacity: 0;
+  }
+  to {
+    transform: skew(var(--skew-angle)) rotate(-2deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes beb-zoom {
+  from {
+    transform: skew(var(--skew-angle)) rotate(-2deg) scale(0.7);
+    opacity: 0;
+  }
+  to {
+    transform: skew(var(--skew-angle)) rotate(-2deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes beb-pop {
+  from {
+    transform: scale(1.35);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* 動きを減らす設定では演出を即時表示へ落とす。伏せ面とタップは秘密保持の手段なので省略しない */
+@media (prefers-reduced-motion: reduce) {
+  .beb-cutin,
+  .beb-zoom-in,
+  .beb-pop {
+    animation: none;
+  }
+}

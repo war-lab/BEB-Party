@@ -18,6 +18,17 @@ async function startDontSayIt(host: Page): Promise<void> {
 }
 
 /**
+ * 説明者の端末でお題のカットインを開き、ラウンドを開始する。
+ *
+ * 交代では伏せ面 → タップ → 溜め → お題 の順に出る（隣から覗かれる位置で正解が開くため）。
+ */
+async function openCardAndStart(page: Page): Promise<void> {
+  await page.click("[data-testid='speaker-cover']");
+  await expect(page.locator("[data-testid='speaker-card']")).toBeVisible({ timeout: 10_000 });
+  await page.click(".beb-btn:has-text('はじめる')");
+}
+
+/**
  * その端末で見えている要素から役を判定する。
  *
  * ステージ遷移の反映を待つため、見つかるまで一定時間だけ繰り返す。
@@ -55,6 +66,12 @@ test("6人で部屋作成からDON'T SAY ITの結果まで進める", async ({ b
     await expect(host.locator(".seconds-label")).toHaveText("1ラウンドの秒数");
     await expect(host.locator("h2:has-text('事件を選ぶ')")).toHaveCount(0);
 
+    // 遊び方はゲーム選択カードの横から、そのゲームのものを直接開ける
+    await host.click(".title-card-row:has-text(\"DON'T SAY IT\") [data-testid='game-guide']");
+    await expect(host.locator("[data-testid='how-to-play']")).toContainText("3つの役");
+    await expect(host.locator("[data-testid='how-to-play'] .game-tabs")).toHaveCount(0);
+    await host.click("[data-testid='how-to-play'] .close");
+
     await startDontSayIt(host);
 
     // ルール確認: 全員に3役と説明の順番が届く
@@ -77,13 +94,13 @@ test("6人で部屋作成からDON'T SAY ITの結果まで進める", async ({ b
     for (const page of table.pages) {
       await expect(page.locator("[data-testid='stage-timer']:has-text('交代')")).toBeVisible({ timeout: 10_000 });
     }
-    const speaker = await findPageBy(table.pages, ".beb-btn:has-text('はじめる')");
-    const startButtons = await Promise.all(
-      table.pages.map((page) => page.locator(".beb-btn:has-text('はじめる')").isVisible()),
+    const speaker = await findPageBy(table.pages, "[data-testid='speaker-cover']");
+    const covers = await Promise.all(
+      table.pages.map((page) => page.locator("[data-testid='speaker-cover']").isVisible()),
     );
-    expect(startButtons.filter((visible) => visible)).toHaveLength(1);
+    expect(covers.filter((visible) => visible)).toHaveLength(1);
 
-    await speaker.click(".beb-btn:has-text('はじめる')");
+    await openCardAndStart(speaker);
 
     // 説明タイム: 3役で画面の中身が変わる
     await expect(speaker.locator("[data-testid='answer']")).toBeVisible({ timeout: 10_000 });
@@ -94,6 +111,12 @@ test("6人で部屋作成からDON'T SAY ITの結果まで進める", async ({ b
     await expect(watcher.locator("[data-testid='watched-answer']")).toContainText(
       (await speaker.locator("[data-testid='answer']").textContent()) ?? "",
     );
+
+    // プレイ中のフッターは、いま遊んでいるゲームの説明を出す（切り替えのタブを出さない）
+    await watcher.click("footer .license-link:has-text('遊び方')");
+    await expect(watcher.locator("[data-testid='how-to-play']")).toContainText("禁止語");
+    await expect(watcher.locator("[data-testid='how-to-play'] .game-tabs")).toHaveCount(0);
+    await watcher.click("[data-testid='how-to-play'] .close");
 
     const answerers = table.pages.filter((page) => page !== speaker && page !== watcher);
     expect(answerers).toHaveLength(4);
@@ -122,8 +145,8 @@ test("6人で部屋作成からDON'T SAY ITの結果まで進める", async ({ b
     await claimUpToLimit(speaker);
 
     for (let round = 2; round <= rounds; round += 1) {
-      const next = await findPageBy(table.pages, ".beb-btn:has-text('はじめる')");
-      await next.click(".beb-btn:has-text('はじめる')");
+      const next = await findPageBy(table.pages, "[data-testid='speaker-cover']");
+      await openCardAndStart(next);
       await expect(next.locator("[data-testid='answer']")).toBeVisible({ timeout: 10_000 });
       await claimUpToLimit(next);
     }
@@ -131,6 +154,7 @@ test("6人で部屋作成からDON'T SAY ITの結果まで進める", async ({ b
     // 結果: 全員に届き、使い終えたお題だけが並ぶ
     for (const page of table.pages) {
       await expect(page.locator("[data-testid='stage-timer']:has-text('結果')")).toBeVisible({ timeout: 10_000 });
+      await expect(page.locator("[data-testid='winner']")).toBeVisible();
       await expect(page.locator(".cards > li")).toHaveCount(claimsPerRound * rounds);
       await expect(page.locator(".expressions li").first()).toBeVisible();
     }

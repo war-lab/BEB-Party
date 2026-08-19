@@ -8,8 +8,10 @@
 
   interface Props {
     code: string;
-  }
-  let { code }: Props = $props();
+    /** ゲームごとの遊び方を開く。どのゲームかは選択カードが決める */
+  onShowGuide: (gameId: string) => void;
+}
+  let { code, onShowGuide }: Props = $props();
 
   const MAX_TILES = 6;
 
@@ -122,6 +124,7 @@
       <ul class="title-cards">
         {#each catalog as game (game.id)}
           <li>
+            <div class="title-card-row">
             <button class="title-card" class:selected={room?.gameId === game.id} onclick={() => selectGame(game.id)}>
               <span class="title-card-icon" aria-hidden="true">{game.icon}</span>
               <span class="title-card-body">
@@ -131,6 +134,15 @@
               </span>
               <span class="title-card-check" aria-hidden="true">✓</span>
             </button>
+            <button
+              class="title-card-guide"
+              data-testid="game-guide"
+              onclick={() => onShowGuide(game.id)}
+              aria-label={`${game.title}の遊び方`}
+            >
+              遊び方
+            </button>
+            </div>
           </li>
         {/each}
       </ul>
@@ -282,6 +294,26 @@
     flex-direction: column;
     gap: 0.55rem;
     width: 100%;
+  }
+  /* 選択カードと、そのゲームの遊び方を横に並べる。遊び方はカードの枠内に収める */
+  .title-card-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: stretch;
+    gap: 0.4rem;
+  }
+  .title-card-guide {
+    background: var(--ground-2);
+    color: var(--panel);
+    border: var(--outline-width) solid var(--ink);
+    border-radius: var(--radius-tile);
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    padding: 0 0.6rem;
+    cursor: pointer;
+    writing-mode: vertical-rl;
   }
   .title-cards li {
     width: 100%;

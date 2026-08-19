@@ -22,19 +22,26 @@
   let { room, publicState, result, onLeave }: Props = $props();
 
   const scores = $derived(result?.scores ?? publicState.scores);
+  // 発表するのは最高得点の1人。同点なら先頭だけを出し、順位は下の得点表で見せる
+  const winner = $derived([...scores].sort((a, b) => b.points - a.points)[0]);
 
   function nameOf(playerId: string): string {
     return room.players.find((player) => player.id === playerId)?.name ?? playerId;
   }
 </script>
 
-<main class="debrief">
+<main class="debrief beb-stage-radial">
   <StageTimer deadline={undefined} label={stageLabels[STAGES.debrief]} />
 
   <div class="body">
     <StageGuide step="debrief" />
 
     <h1 class="title">結果</h1>
+    {#if winner}
+      <p class="winner-pre">TOP SCORE</p>
+      <p class="winner beb-zoom-in" data-testid="winner">{nameOf(winner.playerId)}</p>
+      <p class="winner-points">{winner.points}点</p>
+    {/if}
     <ScoreBoard {room} {scores} highlightTop />
 
     {#if result}
@@ -91,7 +98,6 @@
 <style>
   .debrief {
     min-height: 100vh;
-    background: linear-gradient(180deg, #101838, var(--ground));
     color: var(--panel);
     font-family: var(--font-body);
     display: flex;
@@ -111,6 +117,32 @@
     transform: skew(var(--skew-angle));
     transform-origin: left bottom;
     text-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+  }
+
+  .winner-pre {
+    margin: 0.6rem 0 0;
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    color: var(--mist);
+  }
+  .winner {
+    margin: 0;
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 2.4rem;
+    line-height: 1.1;
+    transform: skew(var(--skew-angle)) rotate(-2deg);
+    text-shadow: 0 6px 0 rgba(0, 0, 0, 0.35);
+  }
+  .winner-points {
+    margin: 0 0 0.8rem;
+    text-align: center;
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 0.9rem;
+    color: var(--yellow);
+    font-variant-numeric: tabular-nums;
   }
 
   h2 {

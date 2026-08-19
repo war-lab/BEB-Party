@@ -11,21 +11,30 @@
 
   interface Props {
     gameGuides: Record<string, () => Promise<{ default: Component }>>;
+    /**
+     * 開くゲーム。指定された場合はそのゲームのルールだけを出し、切り替えのタブを出さない。
+     *
+     * ロビーではゲーム選択カードの「遊び方」から、プレイ中はフッターから、
+     * いずれもその場のゲームが渡る（基本設計/02の遊び方）。
+     */
+    gameId?: string | null;
     onClose: () => void;
   }
-  let { gameGuides, onClose }: Props = $props();
+  let { gameGuides, gameId = null, onClose }: Props = $props();
 
   let catalog = $state<GameSummary[]>([]);
-  let selectedGameId = $state<string | null>(null);
+  let pickedGameId = $state<string | null>(null);
   let guide = $state<Component | null>(null);
+
+  // 指定があればそれを使う。無い場合だけ利用者が選べるようにする
+  const selectedGameId = $derived(gameId ?? pickedGameId);
 
   $effect(() => {
     fetch("/api/catalog")
       .then((response) => response.json())
       .then((body: { games: GameSummary[] }) => {
         catalog = body.games;
-        // 部屋でゲームを選んでいればそれを、無ければ先頭を開く
-        selectedGameId ??= serverState.room?.gameId ?? body.games[0]?.id ?? null;
+        pickedGameId ??= serverState.room?.gameId ?? body.games[0]?.id ?? null;
       })
       .catch(() => {
         catalog = [];
@@ -96,10 +105,11 @@
       </ul>
     </details>
 
-    {#if catalog.length > 1}
+    <!-- 開くゲームが決まっている場合は切り替えを出さない。その場のゲームの説明だけを読ませる -->
+    {#if gameId === null && catalog.length > 1}
       <nav class="game-tabs">
         {#each catalog as game (game.id)}
-          <button class:selected={game.id === selectedGameId} onclick={() => (selectedGameId = game.id)}>
+          <button class:selected={game.id === selectedGameId} onclick={() => (pickedGameId = game.id)}>
             {game.title}
           </button>
         {/each}

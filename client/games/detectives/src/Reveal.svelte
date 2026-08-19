@@ -40,13 +40,13 @@
   }
 </script>
 
-<main class="reveal">
+<main class="reveal beb-stage-radial">
   {#if !result}
     <p class="waiting">結果を受信しています…</p>
   {:else}
     <section class="stage">
       <p class="rev-pre">犯人は…</p>
-      <p class="rev-name">{nameOf(result.culprit.playerId)}</p>
+      <p class="rev-name beb-zoom-in">{nameOf(result.culprit.playerId)}</p>
       <p class="rev-role">
         {characterNameOf(result.culprit.playerId)}（Lv.{levelOf(result.culprit.playerId) ?? "-"}）
       </p>
@@ -125,10 +125,6 @@
 <style>
   .reveal {
     min-height: 100vh;
-    background-color: var(--ground);
-    background-image:
-      repeating-conic-gradient(from 0deg at 50% 30%, rgba(255, 255, 255, 0.07) 0deg 7deg, transparent 7deg 14deg),
-      radial-gradient(circle at 50% 30%, #22307a 0%, var(--ground) 70%);
     color: var(--panel);
     font-family: var(--font-body);
     display: flex;
@@ -160,17 +156,6 @@
     transform: skew(var(--skew-angle)) rotate(-2deg);
     text-shadow: 0 6px 0 rgba(0, 0, 0, 0.45);
     margin: 0;
-    animation: zoom var(--motion-duration) var(--motion-easing);
-  }
-  @keyframes zoom {
-    from {
-      transform: skew(var(--skew-angle)) rotate(-2deg) scale(0.7);
-      opacity: 0;
-    }
-    to {
-      transform: skew(var(--skew-angle)) rotate(-2deg) scale(1);
-      opacity: 1;
-    }
   }
   .rev-role {
     font-family: var(--font-heading);

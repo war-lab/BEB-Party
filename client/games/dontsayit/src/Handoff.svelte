@@ -19,6 +19,7 @@
   import ScoreBoard from "./ScoreBoard.svelte";
   import StageGuide from "./StageGuide.svelte";
   import StageTimer from "./StageTimer.svelte";
+  import SpeakerCutIn from "./SpeakerCutIn.svelte";
   import { stageLabels } from "./stage-labels";
 
   interface Props {
@@ -61,30 +62,14 @@
 
     <p class="watcher">監視役: {nameOf(watcherId)}</p>
 
-    {#if isSpeaker && speakerSecret}
-      <section class="beb-card preview">
-        <p class="label">あなたのお題</p>
-        <p class="answer">{speakerSecret.card.answer}</p>
-        <p class="label">使えない語</p>
-        <ul class="taboo">
-          {#each speakerSecret.card.taboo as word (word)}
-            <li>{word}</li>
-          {/each}
-        </ul>
-        {#if publicState.constraint}
-          <p class="constraint">{publicState.constraint.ja}（{publicState.constraint.en}）</p>
-        {/if}
-      </section>
-
-      <button class="beb-btn red" onclick={startRound}>
-        <span>はじめる</span>
-      </button>
-    {:else}
-      <h2>得点</h2>
-      <ScoreBoard {room} scores={publicState.scores} />
-    {/if}
+    <h2>得点</h2>
+    <ScoreBoard {room} scores={publicState.scores} />
   </div>
 </main>
+
+{#if isSpeaker && speakerSecret}
+  <SpeakerCutIn secret={speakerSecret} constraint={publicState.constraint} onStart={startRound} />
+{/if}
 
 <style>
   .handoff {
@@ -144,49 +129,6 @@
     color: var(--mist);
   }
 
-  .preview {
-    margin-top: 0.9rem;
-  }
-  .label {
-    font-family: var(--font-heading);
-    font-weight: var(--font-heading-weight);
-    font-size: 0.66rem;
-    letter-spacing: 0.1em;
-    color: var(--red-deep);
-    margin: 0 0 0.2rem;
-  }
-  .answer {
-    font-family: var(--font-display);
-    font-size: 1.8rem;
-    color: var(--ink);
-    margin: 0 0 0.7rem;
-    line-height: 1.2;
-  }
-  .taboo {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-  }
-  .taboo li {
-    background: var(--red);
-    color: var(--panel);
-    border-radius: var(--radius-button);
-    padding: 0.2rem 0.55rem;
-    font-size: 0.86rem;
-    font-weight: 700;
-  }
-  .constraint {
-    margin: 0.7rem 0 0;
-    background: var(--yellow);
-    color: var(--ink);
-    border-radius: var(--radius-tile);
-    padding: 0.35rem 0.6rem;
-    font-size: 0.8rem;
-    font-weight: 700;
-  }
 
   h2 {
     font-family: var(--font-heading);

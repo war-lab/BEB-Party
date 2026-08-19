@@ -21,6 +21,7 @@
   import StageGuide from "./StageGuide.svelte";
   import StageTimer from "./StageTimer.svelte";
   import { stageLabels } from "./stage-labels";
+  import { acquireWakeLock } from "./wake-lock.svelte";
 
   interface Props {
     room: Room;
@@ -76,12 +77,17 @@
   function nameOf(playerId: string): string {
     return room.players.find((player) => player.id === playerId)?.name ?? playerId;
   }
+
+  // 説明タイムは全員が画面を見ない時間が続く。消えると自分の番で解除から始まる（基本設計/02）
+  $effect(() => acquireWakeLock());
 </script>
 
 <main class="explaining" class:speaker={role === "speaker"} class:watcher={role === "watcher"}>
   <StageTimer deadline={room.deadline} label={stageLabels[STAGES.explaining]} />
 
-  <p class="solved" data-testid="solved-count">成立 {publicState.solvedThisRound}枚</p>
+  {#key publicState.solvedThisRound}
+    <p class="solved beb-pop" data-testid="solved-count">成立 {publicState.solvedThisRound}枚</p>
+  {/key}
 
   <div class="body">
     {#if publicState.constraint}
@@ -168,6 +174,7 @@
 
 <style>
   .explaining {
+    position: relative;
     min-height: 100vh;
     background: linear-gradient(180deg, #101838, var(--ground));
     color: var(--panel);
@@ -175,11 +182,25 @@
     display: flex;
     flex-direction: column;
   }
-  .explaining.speaker {
-    background: linear-gradient(180deg, var(--red-deep), var(--ground));
+  /* 役の色は斜めに切った帯で出す（投票画面の赤青分割と同じ文法） */
+  .explaining::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 42vh;
+    clip-path: polygon(0 0, 100% 0, 100% 72%, 0 100%);
+    background: var(--blue-deep);
+    z-index: 0;
   }
-  .explaining.watcher {
-    background: linear-gradient(180deg, #4a3a06, var(--ground));
+  .explaining.speaker::before {
+    background: var(--red-deep);
+  }
+  .explaining.watcher::before {
+    background: #4a3a06;
+  }
+  .explaining > :global(*) {
+    position: relative;
+    z-index: 1;
   }
 
   .body {
