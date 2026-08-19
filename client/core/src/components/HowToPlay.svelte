@@ -11,21 +11,30 @@
 
   interface Props {
     gameGuides: Record<string, () => Promise<{ default: Component }>>;
+    /**
+     * 開くゲーム。指定された場合はそのゲームのルールだけを出し、切り替えのタブを出さない。
+     *
+     * ロビーではゲーム選択カードの「遊び方」から、プレイ中はフッターから、
+     * いずれもその場のゲームが渡る（基本設計/02の遊び方）。
+     */
+    gameId?: string | null;
     onClose: () => void;
   }
-  let { gameGuides, onClose }: Props = $props();
+  let { gameGuides, gameId = null, onClose }: Props = $props();
 
   let catalog = $state<GameSummary[]>([]);
-  let selectedGameId = $state<string | null>(null);
+  let pickedGameId = $state<string | null>(null);
   let guide = $state<Component | null>(null);
+
+  // 指定があればそれを使う。無い場合だけ利用者が選べるようにする
+  const selectedGameId = $derived(gameId ?? pickedGameId);
 
   $effect(() => {
     fetch("/api/catalog")
       .then((response) => response.json())
       .then((body: { games: GameSummary[] }) => {
         catalog = body.games;
-        // 部屋でゲームを選んでいればそれを、無ければ先頭を開く
-        selectedGameId ??= serverState.room?.gameId ?? body.games[0]?.id ?? null;
+        pickedGameId ??= serverState.room?.gameId ?? body.games[0]?.id ?? null;
       })
       .catch(() => {
         catalog = [];
@@ -91,15 +100,16 @@
         <li><b>途中で人が抜けた</b>: 抜けた人は「切断中」と表示される。ゲームは続く。ホストが抜けた場合は次の人へ自動で移る</li>
         <li><b>名前やレベルを間違えた</b>: ロビーのうちに部屋を出て入り直す</li>
         <li><b>部屋に入れない</b>: 部屋コードは4文字。紛らわしい文字（O・0・I・1）は使っていない。人数が上限に達している場合も入れない</li>
-        <li><b>時間が足りない・余った</b>: 捜査の長さはロビーでホストが決める。捜査中はホストが早めに切り上げられる</li>
+        <li><b>時間が足りない・余った</b>: 各ステージの長さはロビーでホストが決める。ゲームによっては進行中にホストが早めに切り上げられる</li>
         <li><b>大きな画面に出したい</b>: ホスト画面（<code>/room/部屋コード?mode=host</code>）を別の端末で開く。ステージ名・残り時間・参加者だけが大きく出る</li>
       </ul>
     </details>
 
-    {#if catalog.length > 1}
+    <!-- 開くゲームが決まっている場合は切り替えを出さない。その場のゲームの説明だけを読ませる -->
+    {#if gameId === null && catalog.length > 1}
       <nav class="game-tabs">
         {#each catalog as game (game.id)}
-          <button class:selected={game.id === selectedGameId} onclick={() => (selectedGameId = game.id)}>
+          <button class:selected={game.id === selectedGameId} onclick={() => (pickedGameId = game.id)}>
             {game.title}
           </button>
         {/each}

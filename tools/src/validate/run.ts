@@ -1,15 +1,24 @@
-// 事件データ検証CLIの本体。ゲームごとのvalidateContentを呼び分ける（05_ゲームモジュール.md）。
+// コンテンツ検証CLIの本体。ゲームごとのvalidateContentを呼び分ける（05_ゲームモジュール.md）。
 //
 // content/<gameId>/ の配下構造はゲームモジュールが決める。ここは走査してディレクトリ名を
-// gameIdとして扱い、JSONを読み込んで検証結果を整形するだけとする。
+// gameIdとして扱い、JSONを読み込んで検証結果を並べるだけとする。
+//
+// 反例の整形はゲームモジュール側が持つ。ここが特定のゲームのFinding型を知ると、
+// ゲームを追加するたびに出力の欄を増やすことになり、CLIがゲームごとに分岐する（07の依存の向き）。
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { formatFinding, type ValidationReport } from "@beb/server-detectives";
+
+/** ゲーム非依存の検証結果。linesは整形済みで、1件の反例が複数行になることがある */
+export interface GameReport {
+  errorCount: number;
+  warningCount: number;
+  lines: string[];
+}
 
 export interface GameValidator {
   /** リポジトリルートからの相対パス（例: content/<gameId>） */
   contentPath: string;
-  validate(content: unknown): ValidationReport;
+  validate(content: unknown): GameReport;
 }
 
 export interface RunResult {
@@ -18,14 +27,49 @@ export interface RunResult {
 }
 
 /**
- * 単一のJSONファイルだけを検証する。事件を書いている途中の確認に使う。
+ * ゲームモジュールのValidationReportをCLIが扱う形へ寄せる。
+ *
+ * ゲームごとにFinding型と欄の数が違うため、整形関数を受け取る。
+ */
+export function toGameReport<TFinding>(
+  report: { findings: TFinding[]; errorCount: number; warningCount: number },
+  format: (finding: TFinding) => string,
+): GameReport {
+  return {
+    errorCount: report.errorCount,
+    warningCount: report.warningCount,
+    lines: report.findings.map((finding) => format(finding)),
+  };
+}
+
+/**
+ * ファイルパスからどのゲームの検証を使うか選ぶ。
+ *
+ * 単一ファイル検証でもゲームを取り違えないようにする。
+ * ゲームが1本のうちは呼び出し側が固定で渡せたが、2本目からは判別が必要になる。
+ */
+export function selectValidator(validators: GameValidator[], filePath: string): GameValidator | undefined {
+  const normalized = filePath.replace(/\\/g, "/");
+  return validators.find(
+    (validator) => normalized.includes(`/${validator.contentPath}/`) || normalized.startsWith(`${validator.contentPath}/`),
+  );
+}
+
+/**
+ * 単一のJSONファイルだけを検証する。コンテンツを書いている途中の確認に使う。
  *
  * CIが見るのは `runValidation` の側であり、こちらは執筆時の補助に限る。
  */
-export function runValidationOnFile(filePath: string, validate: GameValidator["validate"]): RunResult {
+export function runValidationOnFile(filePath: string, validators: GameValidator[]): RunResult {
   if (!existsSync(filePath)) {
     return { exitCode: 1, lines: [`[ERROR] ファイルが見つからない: ${filePath}`] };
   }
+  const validator = selectValidator(validators, filePath);
+  if (validator === undefined) {
+    const paths = validators.map((entry) => entry.contentPath).join(" / ");
+    return { exitCode: 1, lines: [`[ERROR] どのゲームのcontent配下でもない: ${filePath}（対象: ${paths}）`] };
+  }
+
   let content: unknown;
   try {
     content = JSON.parse(readFileSync(filePath, "utf8"));
@@ -33,8 +77,8 @@ export function runValidationOnFile(filePath: string, validate: GameValidator["v
     return { exitCode: 1, lines: [`[ERROR] ${filePath} をJSONとして読めない: ${String(error)}`] };
   }
 
-  const report = validate(content);
-  const lines = report.findings.map((finding) => formatFinding(finding));
+  const report = validator.validate(content);
+  const lines = [...report.lines];
   const name = basename(filePath);
   if (report.errorCount > 0) {
     lines.push(`[ERROR] ${name}: ${report.errorCount}件のエラー、${report.warningCount}件の警告`);
@@ -82,9 +126,7 @@ export function runValidation(repoRoot: string, validators: GameValidator[]): Ru
       }
 
       const report = validator.validate(content);
-      for (const finding of report.findings) {
-        lines.push(formatFinding(finding));
-      }
+      lines.push(...report.lines);
       if (report.errorCount > 0) {
         failed = true;
         lines.push(`[ERROR] ${gameId}/${file}: ${report.errorCount}件のエラー、${report.warningCount}件の警告`);

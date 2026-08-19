@@ -3,8 +3,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { validateCase } from "@beb/server-detectives";
-import { runValidation, type GameValidator } from "./run";
+import { formatFinding, validateCase } from "@beb/server-detectives";
+import {
+  runValidation,
+  runValidationOnFile,
+  selectValidator,
+  toGameReport,
+  type GameValidator,
+} from "./run";
 
 const CONTENT_PATH = "content/sample-game";
 
@@ -18,14 +24,20 @@ afterEach(() => {
   rmSync(repoRoot, { recursive: true, force: true });
 });
 
-function validators(): GameValidator[] {
-  return [{ contentPath: CONTENT_PATH, validate: validateCase }];
+function caseValidator(contentPath: string = CONTENT_PATH): GameValidator {
+  return { contentPath, validate: (content) => toGameReport(validateCase(content), formatFinding) };
 }
 
-function writeCase(name: string, content: unknown): void {
+function validators(): GameValidator[] {
+  return [caseValidator()];
+}
+
+function writeCase(name: string, content: unknown): string {
   const directory = join(repoRoot, CONTENT_PATH);
   mkdirSync(directory, { recursive: true });
-  writeFileSync(join(directory, name), JSON.stringify(content), "utf8");
+  const path = join(directory, name);
+  writeFileSync(path, JSON.stringify(content), "utf8");
+  return path;
 }
 
 describe("runValidation", () => {
@@ -63,10 +75,53 @@ describe("runValidation", () => {
     // CLIの成功経路と、収録済みの事件そのものを同時に守る。
     // 事件を追加してこのテストだけが落ちた場合は、事件データ側を直す（M1 PR7の禁止事項）
     const realRoot = fileURLToPath(new URL("../../..", import.meta.url));
-    const result = runValidation(realRoot, [
-      { contentPath: "content/detectives", validate: validateCase },
-    ]);
+    const result = runValidation(realRoot, [caseValidator("content/detectives")]);
     expect(result.lines.join("\n")).not.toContain("[ERROR]");
     expect(result.exitCode).toBe(0);
+  });
+});
+
+describe("selectValidator", () => {
+  // ゲームが2本目に入ると、単一ファイル検証でどのゲームの検証を使うかの判別が必要になる
+  const targets: GameValidator[] = [caseValidator("content/detectives"), caseValidator("content/dontsayit")];
+
+  it("パスに含まれるcontentディレクトリでゲームを選ぶ", () => {
+    expect(selectValidator(targets, "/repo/content/dontsayit/world.json")?.contentPath).toBe("content/dontsayit");
+    expect(selectValidator(targets, "/repo/content/detectives/cafe.json")?.contentPath).toBe("content/detectives");
+  });
+
+  it("Windowsの区切り文字でも選べる", () => {
+    expect(selectValidator(targets, "C:\\repo\\content\\dontsayit\\world.json")?.contentPath).toBe("content/dontsayit");
+  });
+
+  it("リポジトリ相対のパスでも選べる", () => {
+    expect(selectValidator(targets, "content/dontsayit/world.json")?.contentPath).toBe("content/dontsayit");
+  });
+
+  it("どのゲームのcontent配下でもないパスは選べない", () => {
+    expect(selectValidator(targets, "/repo/docs/README.md")).toBeUndefined();
+  });
+});
+
+describe("runValidationOnFile", () => {
+  it("パスからゲームを判別して検証する", () => {
+    const path = writeCase("bad.json", { id: "bad_v1" });
+    const result = runValidationOnFile(path, validators());
+    expect(result.exitCode).toBe(1);
+    expect(result.lines.join("\n")).toContain("bad_v1");
+  });
+
+  it("存在しないファイルをエラーにする", () => {
+    const result = runValidationOnFile(join(repoRoot, "missing.json"), validators());
+    expect(result.exitCode).toBe(1);
+    expect(result.lines.join("\n")).toContain("ファイルが見つからない");
+  });
+
+  it("どのゲームのcontent配下でもないファイルをエラーにする", () => {
+    const path = join(repoRoot, "stray.json");
+    writeFileSync(path, "{}", "utf8");
+    const result = runValidationOnFile(path, validators());
+    expect(result.exitCode).toBe(1);
+    expect(result.lines.join("\n")).toContain("どのゲームのcontent配下でもない");
   });
 });

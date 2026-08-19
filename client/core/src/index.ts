@@ -1,4 +1,6 @@
 export { default as App } from "./App.svelte";
+// 演出プリミティブ。ゲームモジュールが同じ見た目を組み立てるために使う（ビジュアルデザイン.md）
+export { default as SecretCover } from "./components/SecretCover.svelte";
 export { connect, disconnect, sendAction, sendCommon } from "./connection";
 export { faceColor } from "./face-color";
 // 残り時間の算出。タイマーを出す画面はこれを使う（基本設計/02のタイマー表示）

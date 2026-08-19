@@ -12,6 +12,13 @@
 
   let showLicense = $state(false);
   let showHowToPlay = $state(false);
+  // 開く遊び方のゲーム。nullなら利用者が選ぶ（ホーム・ゲーム未選択のロビー）
+  let howToPlayGameId = $state<string | null>(null);
+
+  function openHowToPlay(gameId: string | null): void {
+    howToPlayGameId = gameId;
+    showHowToPlay = true;
+  }
 
   // client/appがgameId→画面ローダーのテーブルを組み立てて渡す。client/coreはここに何が
   // 登録されているかを知らない（基本設計/07、ADR-0009）
@@ -95,7 +102,7 @@
 {:else if !code}
   <Home onEnter={enterRoom} initialCode={pendingCode} />
 {:else if !room || room.lifecycle === "lobby"}
-  <Lobby {code} />
+  <Lobby {code} onShowGuide={(gameId) => openHowToPlay(gameId)} />
 {:else if gameScreen}
   {@const Screen = gameScreen}
   <Screen {room} onLeave={leaveRoom} />
@@ -106,14 +113,14 @@
 <!-- ホスト画面は読み取り専用のため、フッターの操作も出さない。書体の表記は画面内に静的に置く（基本設計/02） -->
 {#if !hostMode}
   <footer class="license-footer">
-    <!-- 遊び方はどの画面からも開ける。捜査中にルールを確認したい場面があるため -->
-    <button class="license-link" onclick={() => (showHowToPlay = true)}>遊び方</button>
+    <!-- 遊び方はどの画面からも開ける。プレイ中はそのゲームの説明を直接出す（基本設計/02） -->
+    <button class="license-link" onclick={() => openHowToPlay(room?.gameId ?? null)}>遊び方</button>
     <button class="license-link" onclick={() => (showLicense = true)}>書体のライセンス表記</button>
   </footer>
 {/if}
 
 {#if showHowToPlay}
-  <HowToPlay {gameGuides} onClose={() => (showHowToPlay = false)} />
+  <HowToPlay {gameGuides} gameId={howToPlayGameId} onClose={() => (showHowToPlay = false)} />
 {/if}
 
 {#if showLicense}

@@ -64,23 +64,31 @@ async function collectCatalogText() {
     return "";
   }
   const source = await walk(dir);
-  const matches = source.matchAll(/(?:title|tagline|icon):\s*"([^"]*)"/g);
+  const matches = source.matchAll(/(?:title|tagline|icon|contentLabelJa|labelJa):\s*"([^"]*)"/g);
   return [...matches].map((match) => match[1]).join("");
 }
 
 function collectContentJapanese() {
-  const contentDir = path.join(rootDir, "content", "detectives");
-  if (!existsSync(contentDir)) {
+  // content/<gameId>/ を全て走査する。ゲームを追加したときに日本語が抜けて豆腐になるのを防ぐ
+  const contentRoot = path.join(rootDir, "content");
+  if (!existsSync(contentRoot)) {
     return "";
   }
   const fields = ["ja", "hintJa", "meaningJa", "briefingJa"];
   let text = "";
-  const files = readdirSync(contentDir)
-    .filter((f) => f.endsWith(".json"))
+  const gameDirs = readdirSync(contentRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
     .sort();
-  for (const file of files) {
-    const data = JSON.parse(readFileSync(path.join(contentDir, file), "utf8").replace(/\r\n/g, "\n"));
-    text += extractFields(data, fields);
+  for (const gameDir of gameDirs) {
+    const contentDir = path.join(contentRoot, gameDir);
+    const files = readdirSync(contentDir)
+      .filter((name) => name.endsWith(".json"))
+      .sort();
+    for (const file of files) {
+      const data = JSON.parse(readFileSync(path.join(contentDir, file), "utf8").replace(/\r\n/g, "\n"));
+      text += extractFields(data, fields);
+    }
   }
   return text;
 }

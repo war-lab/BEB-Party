@@ -2,7 +2,9 @@
 // キーがgameIdの正本である（モジュール側にidを持たせない）
 import type { GameModule } from "@beb/shared-core";
 import { detectivesModule } from "@beb/server-detectives";
+import { dontSayItModule } from "@beb/server-dontsayit";
 
 export const registry: Record<string, GameModule<unknown, unknown, unknown>> = {
   detectives: detectivesModule as unknown as GameModule<unknown, unknown, unknown>,
+  dontsayit: dontSayItModule as unknown as GameModule<unknown, unknown, unknown>,
 };
