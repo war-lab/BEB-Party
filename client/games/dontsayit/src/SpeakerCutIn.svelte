@@ -56,6 +56,7 @@
     overflow: hidden;
     /* 説明者は赤。役の色分けは3役の帯と揃える */
     background-color: var(--red-deep);
+    --beb-reveal-glow: #ff6b57;
     color: var(--panel);
   }
 

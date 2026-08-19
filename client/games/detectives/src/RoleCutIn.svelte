@@ -49,12 +49,14 @@
     font-family: var(--font-body);
     width: 100%;
     overflow: hidden;
-    /* 市民は青、犯人は赤。放射と縞はプリミティブが重ねる */
+    /* 市民は青、犯人は赤。放射と縞はプリミティブが重ね、中心の光だけ役の色を渡す */
     background-color: var(--blue-deep);
+    --beb-reveal-glow: #5b9bff;
     color: var(--panel);
   }
   .overlay.culprit {
     background-color: var(--red-deep);
+    --beb-reveal-glow: #ff6b57;
   }
 
   .cutin .en {

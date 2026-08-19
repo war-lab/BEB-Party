@@ -257,11 +257,11 @@ body {
     radial-gradient(circle at 50% 30%, #22307a 0%, var(--ground) 70%);
 }
 
-/* 役や秘密を開くときの地。色は使う側が background-color で決める */
+/* 役や秘密を開くときの地。地の色は background-color、中心の光は --beb-reveal-glow で決める */
 .beb-stage-reveal {
   background-image:
     repeating-linear-gradient(var(--skew-angle), rgba(0, 0, 0, 0.16) 0 22px, transparent 22px 44px),
-    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.35) 0%, transparent 68%);
+    radial-gradient(circle at 50% 42%, var(--beb-reveal-glow, rgba(255, 255, 255, 0.35)) 0%, transparent 68%);
 }
 
 /* 斜めに倒したカットインの板 */
@@ -337,11 +337,6 @@ body {
   }
 }
 
-/* 動きを減らす設定では演出を即時表示へ落とす。伏せ面とタップは秘密保持の手段なので省略しない */
-@media (prefers-reduced-motion: reduce) {
-  .beb-cutin,
-  .beb-zoom-in,
-  .beb-pop {
-    animation: none;
-  }
-}
+/* 動きを減らす設定では `--motion-duration` が0msになり、上のアニメーションはすべて即時表示になる。
+   個別の `animation: none` は置かない（片方だけ書き漏らす形になる）。
+   伏せ面とタップは秘密保持の手段であり、演出ではないので省略しない（SecretCover） */
