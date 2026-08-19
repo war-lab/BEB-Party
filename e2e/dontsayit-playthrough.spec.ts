@@ -48,6 +48,13 @@ test("6人で部屋作成からDON'T SAY ITの結果まで進める", async ({ b
 
   try {
     const host = table.pages[0]!;
+
+    // ロビーの見出しと設定は、選んだゲームが配る記述子で決まる（共通コアはゲーム固有の語を持たない）
+    await host.click(`.title-card:has-text("${GAME_TITLE}")`);
+    await expect(host.locator("h2:has-text('お題を選ぶ')")).toBeVisible({ timeout: 10_000 });
+    await expect(host.locator(".seconds-label")).toHaveText("1ラウンドの秒数");
+    await expect(host.locator("h2:has-text('事件を選ぶ')")).toHaveCount(0);
+
     await startDontSayIt(host);
 
     // ルール確認: 全員に3役と説明の順番が届く

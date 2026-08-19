@@ -458,6 +458,18 @@ export const dontSayItModule: GameModule<
   tagline: "禁止語を避けて、英語で人物を説明する",
   icon: "🤐",
   playerCount: [5, 6],
+  contentLabelJa: "お題を選ぶ",
+  settingsFields: [
+    {
+      type: "number",
+      key: "roundSeconds",
+      labelJa: "1ラウンドの秒数",
+      min: ROUND_SECONDS.min,
+      max: ROUND_SECONDS.max,
+      step: 10,
+      default: ROUND_SECONDS.default,
+    },
+  ],
 
   listContents: (): ContentSummary[] => SETS.map(summarize),
 

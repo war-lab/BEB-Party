@@ -557,6 +557,26 @@ describe("validateSettings", () => {
 });
 
 describe("カタログ", () => {
+  // 記述子と検証がずれると、ロビーで入力できる値がサーバに拒否される
+  it("設定の記述子がvalidateSettingsと一致する", () => {
+    const fields = dontSayItModule.settingsFields;
+    expect(fields).toHaveLength(1);
+    const field = fields[0];
+    if (field === undefined) {
+      throw new Error("設定の記述子がない");
+    }
+    expect(field.key).toBe("roundSeconds");
+    expect(dontSayItModule.validateSettings({ [field.key]: field.default }).valid).toBe(true);
+    expect(dontSayItModule.validateSettings({ [field.key]: field.min }).valid).toBe(true);
+    expect(dontSayItModule.validateSettings({ [field.key]: field.max }).valid).toBe(true);
+    expect(dontSayItModule.validateSettings({ [field.key]: field.min - 1 }).valid).toBe(false);
+    expect(dontSayItModule.validateSettings({ [field.key]: field.max + 1 }).valid).toBe(false);
+  });
+
+  it("コンテンツ選択の見出しを持つ", () => {
+    expect(dontSayItModule.contentLabelJa.length).toBeGreaterThan(0);
+  });
+
   it("tagline・icon・対応人数を持つ", () => {
     expect(dontSayItModule.title).toBe("DON'T SAY IT");
     expect(dontSayItModule.tagline.length).toBeGreaterThan(0);

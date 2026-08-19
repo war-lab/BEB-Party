@@ -196,6 +196,7 @@ interface AnswererSecret {
 ## 設定
 
 `settings.roundSeconds` は60秒以上120秒以下の整数とし、既定値を90秒とする。
+ロビーの入力欄は `GameModule.settingsFields` の記述子から描かれる（[02](./02_クライアント.md)）。
 範囲外・非整数・型違いは `validateSettings` が拒否する（[ADR-0012](../adr/0012-ゲーム固有設定の検証をゲームモジュールに委ねる.md)）。
 
 下限を60秒に置くのは、1枚も成立しないまま終わるラウンドが増えるためである。

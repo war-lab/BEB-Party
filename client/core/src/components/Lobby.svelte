@@ -15,7 +15,8 @@
 
   let catalog = $state<GameSummary[]>([]);
   let qrSvg = $state<string | null>(null);
-  let investigationSeconds = $state(600);
+  // ゲーム固有の設定名を共通コアが持たない。カタログが配る記述子から組み立てる（不変条件4）
+  let settings = $state<Record<string, number>>({});
   let showQr = $state(false);
 
   $effect(() => {
@@ -46,9 +47,27 @@
     sendCommon({ type: "selectGame", gameId });
   }
 
+  // 選択中のゲームが変わったら、そのゲームの既定値で設定を組み直す。
+  // 前のゲームのキーを残すと、受け取らない側のvalidateSettingsへ無関係な値が流れる
+  $effect(() => {
+    const fields = catalog.find((game) => game.id === room?.gameId)?.settingsFields ?? [];
+    settings = Object.fromEntries(fields.map((field) => [field.key, field.default]));
+  });
+
   // コンテンツと設定は同じconfigureで送る。コンテンツ未選択のstartはサーバが拒否する（基本設計/01）
+  // settingsの中身は解釈せずそのまま渡す。受理の可否はサーバが決める（ADR-0012）
   function configure(id: string): void {
-    sendCommon({ type: "configure", contentId: id, settings: { investigationSeconds } });
+    sendCommon({ type: "configure", contentId: id, settings: { ...settings } });
+  }
+
+  /** 入力された値を控えて送り直す。数値にできない入力は無視する */
+  function updateSetting(key: string, raw: string): void {
+    const value = Number(raw);
+    if (!Number.isFinite(value)) {
+      return;
+    }
+    settings = { ...settings, [key]: value };
+    reconfigure();
   }
 
   // 設定だけを変えるときは、サーバが持っているコンテンツ選択をそのまま送り直す。
@@ -117,7 +136,7 @@
       </ul>
 
       {#if room?.gameId}
-        <h2>事件を選ぶ</h2>
+        <h2>{selectedGame?.contentLabelJa ?? "コンテンツを選ぶ"}</h2>
         <ul class="content-chips">
           {#each contents as content (content.id)}
             <li>
@@ -132,17 +151,19 @@
           {/each}
         </ul>
 
-        <label class="seconds">
-          <span class="seconds-label">捜査時間（秒）</span>
-          <input
-            type="number"
-            bind:value={investigationSeconds}
-            min="300"
-            max="1200"
-            step="60"
-            onchange={reconfigure}
-          />
-        </label>
+        {#each selectedGame?.settingsFields ?? [] as field (field.key)}
+          <label class="seconds">
+            <span class="seconds-label">{field.labelJa}</span>
+            <input
+              type="number"
+              value={settings[field.key] ?? field.default}
+              min={field.min}
+              max={field.max}
+              step={field.step}
+              onchange={(event) => updateSetting(field.key, event.currentTarget.value)}
+            />
+          </label>
+        {/each}
 
         <button class="beb-btn yellow" onclick={start} disabled={!room?.contentId}><span>ゲームスタート</span></button>
       {/if}
