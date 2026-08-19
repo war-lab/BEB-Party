@@ -42,20 +42,30 @@
   const speakerSecret = $derived(isSpeaker ? (secret as SpeakerSecret) : null);
   const watcherSecret = $derived(isWatcher ? (secret as WatcherSecret) : null);
 
-  // 正解の申告は2段階にする。1タップで確定すると、誤タップがそのまま別人への加点になる
+  // 正解の申告は2段階にする。1タップで確定すると、誤タップがそのまま別人への加点になる。
+  //
+  // 開いた時点のカードidを控える。シートを開いている間に監視役が違反を押すとカードが進むため、
+  // 送信時に最新のidを読むと、誰も説明していないカードで加点できてしまう。
+  // 控えたidで送れば、サーバのstale_cardが正しく発火して弾かれる
   let sheetOpen = $state(false);
+  let sheetCardId = $state<string | null>(null);
+
+  function openSheet(): void {
+    sheetCardId = speakerSecret?.card.cardId ?? null;
+    sheetOpen = true;
+  }
 
   const answerers = $derived(
     room.players.filter((player) => player.id !== speakerId && player.id !== watcherId),
   );
 
   function claim(playerId: string): void {
-    const cardId = speakerSecret?.card.cardId;
-    if (cardId === undefined) {
+    if (sheetCardId === null) {
       return;
     }
-    sendAction(ACTIONS.claimCorrect, { playerId, cardId });
+    sendAction(ACTIONS.claimCorrect, { playerId, cardId: sheetCardId });
     sheetOpen = false;
+    sheetCardId = null;
   }
 
   function skip(): void {
@@ -110,7 +120,7 @@
       </ul>
 
       <div class="actions">
-        <button class="beb-btn red" onclick={() => (sheetOpen = true)}>
+        <button class="beb-btn red" onclick={openSheet}>
           <span>正解</span>
         </button>
         <button class="beb-btn ghost" onclick={skip} disabled={publicState.skipUsedThisRound}>
@@ -131,13 +141,13 @@
               </li>
             {/each}
           </ul>
-          <button class="beb-btn ghost" onclick={() => (sheetOpen = false)}>
+          <button class="beb-btn ghost" onclick={() => ((sheetOpen = false), (sheetCardId = null))}>
             <span>閉じる</span>
           </button>
         </div>
       {/if}
 
-      <!-- 監視役: 禁止語だけを大きく並べ、人物名の位置には伏せ面を置く -->
+      <!-- 監視役: 正解を「言ったら違反」として出し、その下に禁止語を大きく並べる -->
     {:else if role === "watcher" && watcherSecret}
       <p class="watched-answer" data-testid="watched-answer">
         <span class="watched-label">言ったら違反</span>
@@ -156,7 +166,7 @@
         </button>
       </div>
 
-      <!-- 回答者: 得点・残り時間・成立枚数だけを置く -->
+      <!-- 回答者: 手元に読むものを増やさない。声を聞かせるために情報を削る -->
     {:else}
       <p class="listen">声を聞いてください</p>
       <div class="speaker-now">
@@ -183,6 +193,7 @@
     flex-direction: column;
   }
   /* 役の色は斜めに切った帯で出す（投票画面の赤青分割と同じ文法） */
+  /* 地の帯は背面へ回す。子側にz-indexを指定すると、タイマーバーのstickyを潰す */
   .explaining::before {
     content: "";
     position: absolute;
@@ -190,17 +201,13 @@
     height: 42vh;
     clip-path: polygon(0 0, 100% 0, 100% 72%, 0 100%);
     background: var(--blue-deep);
-    z-index: 0;
+    z-index: -1;
   }
   .explaining.speaker::before {
     background: var(--red-deep);
   }
   .explaining.watcher::before {
     background: #4a3a06;
-  }
-  .explaining > :global(*) {
-    position: relative;
-    z-index: 1;
   }
 
   .body {

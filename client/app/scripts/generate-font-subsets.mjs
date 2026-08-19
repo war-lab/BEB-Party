@@ -64,7 +64,7 @@ async function collectCatalogText() {
     return "";
   }
   const source = await walk(dir);
-  const matches = source.matchAll(/(?:title|tagline|icon):\s*"([^"]*)"/g);
+  const matches = source.matchAll(/(?:title|tagline|icon|contentLabelJa|labelJa):\s*"([^"]*)"/g);
   return [...matches].map((match) => match[1]).join("");
 }
 

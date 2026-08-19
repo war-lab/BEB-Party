@@ -121,9 +121,10 @@ describe("1ラウンドの消費回数", () => {
     expect(advancesOf(state)).toBe(1);
   });
 
-  it("山札の下限は上限に締切の1枚を足した枚数を人数分満たす", () => {
-    // 締切時に表示中のカードも捨て札になるため、1ラウンドの最大消費は上限+1枚である
-    expect(MIN_CARDS).toBeGreaterThanOrEqual(6 * (MAX_CARD_ADVANCES_PER_ROUND + 1));
+  it("山札の下限は1ラウンドの最大消費を人数分満たす", () => {
+    // 上限に達したラウンドはその場で終わるため、1ラウンドの最大消費は上限と等しい。
+    // 実際に消費が上限を超えないことは server/games/dontsayit のモジュールテストが固定する
+    expect(MIN_CARDS).toBeGreaterThanOrEqual(6 * MAX_CARD_ADVANCES_PER_ROUND);
   });
 });
 

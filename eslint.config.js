@@ -10,7 +10,8 @@ import tseslint from "typescript-eslint";
 const GAME_IDS = ["detectives", "dontsayit"];
 
 // ゲームモジュールのパッケージ名パターン（@beb/server-detectives 等）
-const GAME_MODULE_PATTERNS = GAME_IDS.map((id) => `@beb/*-${id}`);
+// サブパス（@beb/client-dontsayit/guide 等）も対象にする。exportsで公開しているため経路が実在する
+const GAME_MODULE_PATTERNS = GAME_IDS.flatMap((id) => [`@beb/*-${id}`, `@beb/*-${id}/*`]);
 
 // gameIdリテラルの検出（07_リポジトリとツールチェーン.md 検査3）。registry.tsとclient/appにのみ許可する
 const noGameIdLiteral = {
@@ -20,7 +21,7 @@ const noGameIdLiteral = {
 
 // ゲームモジュールの動的importの検出。no-restricted-importsは動的import()を検出しないため補う（実測済み）
 const noDynamicGameModuleImport = {
-  selector: `ImportExpression[source.value=/^@beb\\/.*-(${GAME_IDS.join("|")})$/]`,
+  selector: `ImportExpression[source.value=/^@beb\\/.*-(${GAME_IDS.join("|")})(\\/.*)?$/]`,
   message: "ゲームモジュールを動的importできるのはregistry.tsだけ（不変条件4、ADR-0009）",
 };
 

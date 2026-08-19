@@ -6,6 +6,9 @@
   prefers-reduced-motionでは溜めを0にするが、伏せ面とタップは秘密保持の手段なので省略しない。
 
   何を開くかはゲームモジュールが children で渡す。共通コアは中身を知らない（不変条件4）。
+
+  秘密が変わるたびに、このコンポーネントを作り直すこと（`{#key}` かステージの分岐で置き換える）。
+  同じインスタンスを残したまま中身だけ差し替えると、伏せ面が開いたままで次の秘密が出る。
 -->
 <script lang="ts">
   import type { Snippet } from "svelte";
@@ -38,6 +41,13 @@
     return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  $effect(() => () => {
+    if (timer !== null) {
+      clearTimeout(timer);
+    }
+  });
+
   function open(): void {
     if (phase !== "cover") {
       return;
@@ -47,8 +57,9 @@
       return;
     }
     phase = "suspense";
-    setTimeout(() => {
+    timer = setTimeout(() => {
       phase = "open";
+      timer = null;
     }, SUSPENSE_MS);
   }
 </script>

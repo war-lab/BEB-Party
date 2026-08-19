@@ -473,6 +473,20 @@ describe("1ラウンドの消費上限", () => {
     expect(live.gameSecret.usedCardIds).toHaveLength(MAX_CARD_ADVANCES_PER_ROUND);
   });
 
+  it("締切で終わるラウンドでも消費が上限を超えない", () => {
+    // 山札の下限（MIN_CARDS）は「1ラウンドの最大消費 × 人数」で決めている。
+    // 締切時の1枚が上乗せされると下限の根拠が崩れるため、経路をまたいで固定する
+    let live = toExplaining(start(SIX));
+    for (let index = 0; index < MAX_CARD_ADVANCES_PER_ROUND - 1; index += 1) {
+      live = send(live, ACTIONS.claimCorrect, speakerOf(live), {
+        playerId: answererOf(live),
+        cardId: currentCardId(live),
+      });
+    }
+    const after = fireDeadline(live);
+    expect(after.gameSecret.usedCardIds).toHaveLength(MAX_CARD_ADVANCES_PER_ROUND);
+  });
+
   it("違反とスキップも上限に数える", () => {
     let live = toExplaining(start(SIX));
     live = send(live, ACTIONS.skipCard, speakerOf(live), { cardId: currentCardId(live) });

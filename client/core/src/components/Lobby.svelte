@@ -49,11 +49,23 @@
     sendCommon({ type: "selectGame", gameId });
   }
 
-  // 選択中のゲームが変わったら、そのゲームの既定値で設定を組み直す。
-  // 前のゲームのキーを残すと、受け取らない側のvalidateSettingsへ無関係な値が流れる
+  // 直前に設定を組んだゲーム。$stateにしない（この$effectが自分の書き込みで再実行されるのを避ける）
+  let appliedGameId: string | null = null;
+
+  // 選択中のゲームが変わったときだけ、そのゲームの既定値で設定を組み直す。
+  // 前のゲームのキーを残すと、受け取らない側のvalidateSettingsへ無関係な値が流れる。
+  //
+  // gameIdの一致で打ち切るのは、serverStateがstate受信のたびにroomをオブジェクトごと
+  // 差し替えるためである。roomの参照だけを見ると、入室や準備完了の受信でも再実行され、
+  // ホストが入力した値が既定値へ戻る
   $effect(() => {
-    const fields = catalog.find((game) => game.id === room?.gameId)?.settingsFields ?? [];
-    settings = Object.fromEntries(fields.map((field) => [field.key, field.default]));
+    const game = catalog.find((entry) => entry.id === room?.gameId);
+    const gameId = game?.id ?? null;
+    if (gameId === appliedGameId) {
+      return;
+    }
+    appliedGameId = gameId;
+    settings = Object.fromEntries((game?.settingsFields ?? []).map((field) => [field.key, field.default]));
   });
 
   // コンテンツと設定は同じconfigureで送る。コンテンツ未選択のstartはサーバが拒否する（基本設計/01）
@@ -62,7 +74,11 @@
     sendCommon({ type: "configure", contentId: id, settings: { ...settings } });
   }
 
-  /** 入力された値を控えて送り直す。数値にできない入力は無視する */
+  /**
+   * 入力された値を控えて送り直す。
+   *
+   * 数値にならない入力は無視する。空欄は0として送られ、サーバのvalidateSettingsが拒否する
+   */
   function updateSetting(key: string, raw: string): void {
     const value = Number(raw);
     if (!Number.isFinite(value)) {

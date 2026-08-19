@@ -72,6 +72,22 @@ test("6人で部屋作成からDON'T SAY ITの結果まで進める", async ({ b
     await expect(host.locator("[data-testid='how-to-play'] .game-tabs")).toHaveCount(0);
     await host.click("[data-testid='how-to-play'] .close");
 
+    // 設定した値がstate受信で既定値へ戻らないこと。
+    // roomはstate受信のたびにオブジェクトごと差し替わるため、gameIdを見ずに組み直すと入力が消える
+    await host.click(`.content-chip:has-text("${SET_TITLE}")`);
+    const seconds = host.locator(".seconds input");
+    await seconds.fill("60");
+    await seconds.dispatchEvent("change");
+    await expect(seconds).toHaveValue("60");
+    // 他の参加者の操作でstateが配り直されても保持される。
+    // stateの到着を待たずに確かめると、戻る前に検査が通ってしまう
+    const before = (await readStateMessages(host)).length;
+    await table.pages[1]!.reload();
+    await expect
+      .poll(async () => (await readStateMessages(host)).length, { timeout: 15_000 })
+      .toBeGreaterThan(before);
+    await expect(seconds).toHaveValue("60");
+
     await startDontSayIt(host);
 
     // ルール確認: 全員に3役と説明の順番が届く

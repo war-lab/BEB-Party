@@ -140,7 +140,8 @@ export function watcherPlayerIdOf(publicState: DontSayItPublic): string | undefi
  * 上限がないと、1人が連打して山札を掘り尽くし、残りの参加者が説明者を務められないまま
  * ゲームが終わる（山札が尽きた時点で終局するため）。
  *
- * 締切到達時に表示中のカードも捨て札になるため、1ラウンドの最大消費枚数はこの値 + 1 である。
+ * 1ラウンドの最大消費枚数はこの値と等しい。上限に達したラウンドはその場で終わるため、
+ * 締切到達時に捨てる表示中の1枚が上乗せされることはない。
  */
 export const MAX_CARD_ADVANCES_PER_ROUND = 5;
 
@@ -181,8 +182,8 @@ export interface DontSayItResult {
   /**
    * 使い終えたカードだけを開示する。
    *
-   * 未使用のカードを載せない。同じセットを次のゲームでも使うため、
-   * 山札の残りを見せると再利用できなくなる（09の結果）。
+   * そのゲームで場に出ていない人物を振り返りに混ぜないためである。
+   * 次のゲームの山札はセット全件から作り直されるため、再利用のためではない（09の結果）。
    */
   usedCards: { answer: string; taboo: string[] }[];
   keyExpressions: KeyExpression[];
