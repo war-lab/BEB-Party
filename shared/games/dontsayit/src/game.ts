@@ -35,8 +35,6 @@ export type Role = "speaker" | "watcher" | "answerer";
 export interface SpeakerSecret {
   role: "speaker";
   card: { cardId: string; answer: string; taboo: string[] };
-  /** レベル5の説明者にだけ付く */
-  constraint: ConstraintCard | null;
 }
 
 /**
@@ -98,6 +96,13 @@ export interface DontSayItPublic {
   scores: ScoreEntry[];
   /** 終了したラウンドの記録 */
   rounds: RoundSummary[];
+  /**
+   * 現ラウンドの説明者に課された制約。説明者のレベルが5でなければnull。
+   *
+   * 秘密情報ではなく公開状態に置く。制約の遵守は場の耳で判定するため、
+   * 説明者しか制約を知らないと、守れているかを誰も言えない（監視役も判定できない）。
+   */
+  constraint: ConstraintCard | null;
   solvedThisRound: number;
   /** 現ラウンドの違反件数。監視役が全員の前で押した操作であり、伏せる理由がない */
   violatedThisRound: number;

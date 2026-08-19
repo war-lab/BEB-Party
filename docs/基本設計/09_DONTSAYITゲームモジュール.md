@@ -87,6 +87,7 @@ interface DontSayItPublic {
   speakerOrder: string[];        // 説明者の順(playerId)。全ラウンド分を公開する
   roundIndex: number;            // 0始まり
   readyPlayerIds: string[];      // briefingステージの収集状況
+  constraint: ConstraintCard | null;  // 現ラウンドの説明者に課された条件。レベル5でなければnull
   scores: ScoreEntry[];
   rounds: RoundSummary[];        // 終了したラウンドの記録
   solvedThisRound: number;
@@ -132,13 +133,13 @@ type DontSayItSecret = SpeakerSecret | WatcherSecret | AnswererSecret;
 interface SpeakerSecret {
   role: 'speaker';
   card: { cardId: string; answer: string; taboo: string[] };
-  constraint: { ja: string; en: string } | null;
 }
 
 interface WatcherSecret {
   role: 'watcher';
   cardId: string;
   taboo: string[];               // 説明者に提示したものと同じ集合
+  answer: string;                // 正解そのものを言われたときに押せるようにする
 }
 
 interface AnswererSecret {
@@ -180,6 +181,10 @@ interface AnswererSecret {
 
 制約カードは案17 CHARADES+ を統合した要素であり、説明の仕方に条件を足す（動詞を中心に説明する、3語以内で言う等）。
 レベル5にのみ配るのは、禁止語5語と制約の同時付与がレベル4には重いためである。
+
+制約は秘密情報ではなく**公開状態**に置き、全員の画面に出す。
+説明者しか制約を知らないと、守れているかを誰も判定できず、レベル5への上乗せが自己申告になる。
+制約の遵守は場の耳で判断し、破っていれば監視役が違反を押す。
 
 どの制約カードを配るかは `roundIndex` で決め、ラウンドの途中では変えない。
 カードごとに変えると説明の方針が1枚ごとに切り替わり、条件を思い出す時間で持ち時間が減る。
@@ -524,7 +529,7 @@ DETECTIVESが [04](./04_事件データと検証.md) と [06](./06_推論エン�
 
 参加者が人物を知っているかは機械で判定できない。
 セットを追加するときは、想定する参加者層に対して人物の知名度を人手で確認する。
-確認の記録は、事件データと同じ形式でセット単位に残す（[事件レビュー/](../事件レビュー/)に相当する記録）。
+確認の記録は、セット単位で [お題レビュー/](../お題レビュー/) に残す（事件データの [事件レビュー/](../事件レビュー/) に相当する）。
 
 禁止語の並び順が「正解に強く結びつく順」になっているかも機械では判定できない。
 レベル1〜2の説明者に配る先頭3語が、実際に説明の難所になっているかを人手で確認する。
@@ -547,10 +552,9 @@ DETECTIVESが [04](./04_事件データと検証.md) と [06](./06_推論エン�
 `GameModule` は純粋関数のため、Durable Objectなしで全項目をテストする。
 
 * 決定性: 同じ `seed` と同じ参加者から、同じ `speakerOrder` と同じ山札の順序が得られること
-* 秘密の非混入: `DontSayItPublic` に人物名・禁止語・制約カード・山札の残り枚数が現れないこと
+* 秘密の非混入: `DontSayItPublic` に人物名・禁止語・山札の残り枚数が現れないこと
 * カタログの非混入: `listContents()` の戻り値に人物名と禁止語が含まれないこと
 * 役の巡回: 6人で6ラウンド回したとき、全員が1回ずつ説明者と監視役になること
-* 監視役の秘密: `WatcherSecret` に `answer` が含まれないこと
 * 禁止語の提示数: レベル1〜2の説明者に先頭3語だけが渡り、レベル5に5語と制約カードが渡ること
 * 監視役の禁止語: 説明者に提示した集合と一致すること（語数が違うと違反の判断がずれる）
 * 役の切り替え: `handoff` のたびに全員へ秘密が送り直され、前の役の内容が残らないこと

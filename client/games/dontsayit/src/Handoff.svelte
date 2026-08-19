@@ -71,8 +71,8 @@
             <li>{word}</li>
           {/each}
         </ul>
-        {#if speakerSecret.constraint}
-          <p class="constraint">{speakerSecret.constraint.ja}（{speakerSecret.constraint.en}）</p>
+        {#if publicState.constraint}
+          <p class="constraint">{publicState.constraint.ja}（{publicState.constraint.en}）</p>
         {/if}
       </section>
 

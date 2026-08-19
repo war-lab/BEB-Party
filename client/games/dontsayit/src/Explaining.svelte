@@ -84,14 +84,17 @@
   <p class="solved" data-testid="solved-count">成立 {publicState.solvedThisRound}枚</p>
 
   <div class="body">
+    {#if publicState.constraint}
+      <p class="constraint" data-testid="constraint">
+        <span class="constraint-tag">説明者への条件</span>
+        <span class="constraint-ja">{publicState.constraint.ja}</span>
+        <span class="constraint-en">{publicState.constraint.en}</span>
+      </p>
+    {/if}
     <StageGuide step="explaining" {role} />
 
     <!-- 説明者: 人物名を最大に置き、その下に禁止語を赤地で並べる -->
     {#if role === "speaker" && speakerSecret}
-      {#if speakerSecret.constraint}
-        <p class="constraint">{speakerSecret.constraint.ja}（{speakerSecret.constraint.en}）</p>
-      {/if}
-
       <p class="answer" data-testid="answer">{speakerSecret.card.answer}</p>
 
       <ul class="taboo">
@@ -197,13 +200,26 @@
   }
 
   .constraint {
-    margin: 0 0 0.5rem;
+    display: grid;
+    gap: 0.1rem;
+    margin: 0 0 0.7rem;
     background: var(--yellow);
     color: var(--ink);
     border-radius: var(--radius-tile);
-    padding: 0.35rem 0.6rem;
-    font-size: 0.82rem;
+    padding: 0.4rem 0.7rem;
+  }
+  .constraint-tag {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+  }
+  .constraint-ja {
+    font-size: 0.86rem;
     font-weight: 700;
+  }
+  .constraint-en {
+    font-size: 0.76rem;
   }
 
   .answer {

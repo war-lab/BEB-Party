@@ -23,6 +23,7 @@ function publicStateWith(playerCount: number, roundIndex: number): DontSayItPubl
     speakerOrder: Array.from({ length: playerCount }, (_, index) => `p${index + 1}`),
     roundIndex,
     readyPlayerIds: [],
+    constraint: null,
     scores: [],
     rounds: [],
     solvedThisRound: 0,
@@ -130,9 +131,15 @@ describe("公開状態", () => {
   // PR-1の受入条件2: お題語・禁止語を持つフィールドが公開状態に存在しない（ADR-0003）
   it("お題語と禁止語に相当するキーを持たない", () => {
     const keys = Object.keys(publicStateWith(6, 0));
-    for (const forbidden of ["answer", "taboo", "card", "cards", "deck", "constraint"]) {
+    for (const forbidden of ["answer", "taboo", "card", "cards", "deck"]) {
       expect(keys).not.toContain(forbidden);
     }
+  });
+
+  it("制約カードは公開状態に持つ", () => {
+    // 制約は秘密ではない。全員が見なければ遵守を判定できない（09の3役）。
+    // 制約の文言は正解にも禁止語にも触れないため、公開しても秘密は漏れない
+    expect(Object.keys(publicStateWith(6, 0))).toContain("constraint");
   });
 
   it("得点が未登録のプレイヤーは0点として読める", () => {

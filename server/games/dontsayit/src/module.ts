@@ -16,6 +16,7 @@ import {
   tabooCountFor,
   watcherPlayerIdOf,
   type Card,
+  type ConstraintCard,
   type DontSayItPublic,
   type DontSayItResult,
   type DontSayItSecret,
@@ -125,8 +126,6 @@ function buildSecrets(
 ): Map<string, DontSayItSecret> {
   const secrets = new Map<string, DontSayItSecret>();
   const card = cardId === null ? undefined : findCard(target, cardId);
-  // 制約はラウンド単位で固定する。カードごとに変えると説明の方針が毎枚変わる
-  const constraint = target.constraints[publicState.roundIndex % Math.max(1, target.constraints.length)] ?? null;
 
   for (const player of players) {
     const role = roleOf(publicState, player.id);
@@ -135,7 +134,6 @@ function buildSecrets(
       secrets.set(player.id, {
         role: "speaker",
         card: { cardId: card.id, answer: card.answer, taboo: tabooFor(card, level) },
-        constraint: hasConstraint(level) ? constraint : null,
       });
       continue;
     }
@@ -154,6 +152,24 @@ function buildSecrets(
     secrets.set(player.id, { role: "answerer" });
   }
   return secrets;
+}
+
+/**
+ * そのラウンドの説明者に課される制約。レベル5でなければ課さない。
+ *
+ * どの制約を配るかは `roundIndex` で決め、ラウンドの途中では変えない。
+ * 抽選にしないのは、`handleAction` にシードが渡らないためである（基本設計/05）。
+ */
+function constraintOf(
+  target: TabooSet,
+  players: readonly Player[],
+  speakerId: string | undefined,
+  roundIndex: number,
+): ConstraintCard | null {
+  if (speakerId === undefined || !hasConstraint(levelOf(players, speakerId))) {
+    return null;
+  }
+  return target.constraints[roundIndex % Math.max(1, target.constraints.length)] ?? null;
 }
 
 // --- 山札 ---
@@ -279,6 +295,7 @@ function endRound(
     ...publicState,
     rounds,
     roundIndex: nextIndex,
+    constraint: constraintOf(target, room.players, publicState.speakerOrder[nextIndex], nextIndex),
     solvedThisRound: 0,
     violatedThisRound: 0,
     skipUsedThisRound: false,
@@ -494,6 +511,7 @@ export const dontSayItModule: GameModule<
       speakerOrder,
       roundIndex: 0,
       readyPlayerIds: [],
+      constraint: constraintOf(target, players, speakerOrder[0], 0),
       scores: players.map((player: Player) => ({ playerId: player.id, points: 0 })),
       rounds: [],
       solvedThisRound: 0,
