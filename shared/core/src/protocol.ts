@@ -1,4 +1,5 @@
 // メッセージ構造(型)の正本。意味・受理条件・順序保証は基本設計/03_プロトコル.mdを正とする
+import type { PlayerIconId } from "./player-icon";
 import type { Level, Room } from "./types";
 
 export const PROTOCOL_VERSION = 1;
@@ -15,6 +16,13 @@ export interface JoinMessage {
   type: "join";
   name: string;
   level: Level;
+  /**
+   * 選んだアイコンのID。省略可とする。
+   *
+   * 旧SPAを開いたままのタブは本フィールドを送らないため、必須にすると
+   * `invalid_payload` で参加できなくなる。サーバは省略時に既定値を割り当てる（基本設計/01）。
+   */
+  icon?: PlayerIconId;
   reconnectToken?: string;
 }
 

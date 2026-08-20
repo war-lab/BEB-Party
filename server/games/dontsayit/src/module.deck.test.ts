@@ -4,7 +4,7 @@
 // 山札の下限（MIN_CARDS）は通常のプレイで枯渇が起きないよう決めているが、
 // 枯渇したときに詰まらないことは別に固定する（基本設計/09のステージ）。
 import { describe, expect, it, vi } from "vitest";
-import type { Level, Player, Room } from "@beb/shared-core";
+import { fallbackPlayerIconId, type Level, type Player, type Room } from "@beb/shared-core";
 import {
   ACTIONS,
   MAX_CARD_ADVANCES_PER_ROUND,
@@ -45,6 +45,7 @@ function start(): Live {
     id: `p${index + 1}`,
     name: `Player${index + 1}`,
     level,
+    icon: fallbackPlayerIconId(`p${index + 1}`),
     connected: true,
     isHost: index === 0,
   }));

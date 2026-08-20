@@ -1,6 +1,6 @@
 // DON'T SAY ITのGameModuleは純粋関数のため、Durable Objectなしで全項目をテストする（基本設計/09）
 import { describe, expect, it, vi } from "vitest";
-import type { Level, Player, Room } from "@beb/shared-core";
+import { fallbackPlayerIconId, type Level, type Player, type Room } from "@beb/shared-core";
 import {
   ACTIONS,
   ERROR_CODES,
@@ -38,6 +38,7 @@ function makePlayers(levels: Level[]): Player[] {
     id: `p${index + 1}`,
     name: `Player${index + 1}`,
     level,
+    icon: fallbackPlayerIconId(`p${index + 1}`),
     connected: true,
     isHost: index === 0,
   }));

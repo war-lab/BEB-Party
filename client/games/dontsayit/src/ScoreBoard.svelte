@@ -5,7 +5,7 @@
 <script lang="ts">
   import type { Room } from "@beb/shared-core";
   import { pointsOf, type ScoreEntry } from "@beb/shared-dontsayit";
-  import { faceColor, ui } from "@beb/client-core";
+  import { faceColor, playerIconOf, ui } from "@beb/client-core";
 
   interface Props {
     room: Room;
@@ -26,7 +26,9 @@
   {#each ranked as entry, index (entry.playerId)}
     <li class:me={entry.playerId === ui.myPlayerId} class:top={highlightTop && index === 0}>
       <span class="rank">{index + 1}</span>
-      <span class="face" style={`background:${faceColor(entry.playerId)}`}></span>
+      <span class="face" style={`background:${faceColor(entry.playerId)}`}>
+        <span aria-hidden="true">{playerIconOf(entry.playerId)}</span>
+      </span>
       <span class="name">{nameOf(entry.playerId)}</span>
       <span class="points">{pointsOf(scores, entry.playerId)}</span>
     </li>

@@ -7,6 +7,8 @@ export { default as StageTimer } from "./components/StageTimer.svelte";
 export { acquireWakeLock } from "./wake-lock.svelte";
 export { connect, disconnect, sendAction, sendCommon } from "./connection";
 export { faceColor } from "./face-color";
+// 顔アイコンの絵文字。ゲーム画面はplayerIdしか持たないため共通コアが引く（ADR-0022）
+export { playerIconOf } from "./player-icon";
 // 残り時間の算出。タイマーを出す画面はこれを使う（基本設計/02のタイマー表示）
 export { createServerClock, formatClock, type ServerClock } from "./server-clock.svelte";
 

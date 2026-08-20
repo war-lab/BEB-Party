@@ -1,5 +1,6 @@
 // 共通コアの状態モデル。ゲーム固有の語彙を含まない（不変条件4、ADR-0009）
 // 出典: 設計.md ランタイムデータモデル、基本設計/05_ゲームモジュール.md 状態モデル
+import type { PlayerIconId } from "./player-icon";
 
 export type Level = 1 | 2 | 3 | 4 | 5;
 
@@ -8,6 +9,8 @@ export interface Player {
   id: string;
   name: string;
   level: Level;
+  /** プレイヤーが選んだアイコンのID。絵文字そのものは載せない（ADR-0022） */
+  icon: PlayerIconId;
   connected: boolean;
   isHost: boolean;
 }

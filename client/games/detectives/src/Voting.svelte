@@ -2,7 +2,7 @@
 <script lang="ts">
   import type { Room } from "@beb/shared-core";
   import { ACTIONS, STAGES, type DetectivesPublic } from "@beb/shared-detectives";
-  import { acquireWakeLock, faceColor, sendAction, StageTimer, ui } from "@beb/client-core";
+  import { acquireWakeLock, faceColor, playerIconOf, sendAction, StageTimer, ui } from "@beb/client-core";
   import StageGuide from "./StageGuide.svelte";
   import { stageLabels } from "./stage-labels";
 
@@ -53,7 +53,9 @@
               class:sel={selected === suspect.playerId}
               onclick={() => (selected = suspect.playerId)}
             >
-              <span class="face" style={`background:${faceColor(suspect.playerId)}`}></span>
+              <span class="face" style={`background:${faceColor(suspect.playerId)}`}>
+                <span aria-hidden="true">{playerIconOf(suspect.playerId)}</span>
+              </span>
               <span class="tile-name">{nameOf(suspect.playerId)}</span>
               <span class="character">{suspect.characterName}</span>
             </button>

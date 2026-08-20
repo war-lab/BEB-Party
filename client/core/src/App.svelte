@@ -67,7 +67,7 @@
     } else {
       const identity = storedIdentity(restoredCode);
       if (identity) {
-        connect(restoredCode, identity.name, identity.level);
+        connect(restoredCode, identity.name, identity.level, identity.icon);
       } else {
         // 名前とレベルを申告してから参加させる。空名・レベル1固定の席を作らない
         code = null;
