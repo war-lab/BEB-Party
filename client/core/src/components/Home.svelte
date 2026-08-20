@@ -278,7 +278,6 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-    image-rendering: pixelated;
   }
   .icon-chip input {
     position: absolute;

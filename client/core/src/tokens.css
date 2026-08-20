@@ -171,8 +171,8 @@ body {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  /* 16x16のドット絵を整数倍したPNGであり、補間せず描く方がドットの形が保たれる */
-  image-rendering: pixelated;
+  /* 素材は128pxで、表示は32〜64px。縮小されるので平滑化に任せる（拡大はしない） */
+  image-rendering: auto;
 }
 
 .beb-tile .face {
