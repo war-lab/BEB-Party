@@ -19,11 +19,19 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  // wrangler devが静的アセスとWorkerを同一オリジンで配信するため、本番相当の構成でE2Eを行う
+  // wrangler devが静的アセットとWorkerを同一オリジンで配信するため、本番相当の構成でE2Eを行う。
+  // 起動には`pnpm dev`ではなく`pnpm e2e:server`を使う。wrangler devはProxyWorkerの
+  // "Network connection lost."でプロセスごと終了することがあり（未修正の上流バグ）、
+  // Playwrightはテスト中のwebServerの終了を検知しないため、以降の全テストがretryごと
+  // ERR_CONNECTION_REFUSEDで落ちる。e2e:serverは終了を検知して再起動する（ADR-0021）
   webServer: {
-    command: "pnpm dev",
+    command: "pnpm e2e:server",
     url: "http://127.0.0.1:8787",
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
+    // サーバがテスト中に終了した場合、既定(stdoutは破棄)では原因がログに残らない。
+    // wrangler devは`--log-level warn`（`dev:e2e`）で起動するため、リクエストログは出ない
+    stdout: "pipe",
+    stderr: "pipe",
   },
 });
