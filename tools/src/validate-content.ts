@@ -8,6 +8,7 @@ import { isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { formatFinding as formatCaseFinding, validateCase } from "@beb/server-detectives";
 import { formatFinding as formatSetFinding, validateSet } from "@beb/server-dontsayit";
+import { formatFinding as formatPackFinding, validatePack } from "@beb/server-ranking";
 import { runValidation, runValidationOnFile, toGameReport, type GameValidator } from "./validate/run";
 
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
@@ -21,6 +22,10 @@ const validators: GameValidator[] = [
   {
     contentPath: "content/dontsayit",
     validate: (content) => toGameReport(validateSet(content), formatSetFinding),
+  },
+  {
+    contentPath: "content/ranking",
+    validate: (content) => toGameReport(validatePack(content), formatPackFinding),
   },
 ];
 

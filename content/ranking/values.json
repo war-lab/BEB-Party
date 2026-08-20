@@ -1,0 +1,510 @@
+{
+  "id": "values",
+  "title": "価値観",
+  "sets": [
+    {
+      "id": "happy_life",
+      "question": { "en": "What matters most for a happy life?", "ja": "幸せな人生に一番効くのは？" },
+      "items": [
+        { "id": "sleep", "en": "sleep", "ja": "睡眠" },
+        { "id": "money", "en": "money", "ja": "お金" },
+        { "id": "friends", "en": "friends", "ja": "友人" },
+        { "id": "food", "en": "food", "ja": "食事" },
+        { "id": "work", "en": "work", "ja": "仕事" }
+      ],
+      "goals": [
+        {
+          "id": "sleep_over_work",
+          "difficulty": 1,
+          "ja": "sleepをworkより上にする",
+          "hintEn": [
+            "Sleep is more important than work.",
+            "If you don't sleep, you can't work well.",
+            "Work can wait. Sleep cannot."
+          ],
+          "goal": { "type": "above", "item": "sleep", "than": "work" }
+        },
+        {
+          "id": "friends_top2",
+          "difficulty": 1,
+          "ja": "friendsを2位以内に入れる",
+          "hintEn": [
+            "Friends should be in the top two.",
+            "Money is nothing without friends.",
+            "We are happy because of people, not things."
+          ],
+          "goal": { "type": "top", "item": "friends", "within": 2 }
+        },
+        {
+          "id": "money_first",
+          "difficulty": 2,
+          "ja": "moneyを1位にする",
+          "hintEn": [
+            "Money must be number one.",
+            "Without money, we cannot buy food or rest.",
+            "Everything on this list needs money first."
+          ],
+          "goal": { "type": "top", "item": "money", "within": 1 }
+        },
+        {
+          "id": "sleep_last",
+          "difficulty": 2,
+          "ja": "sleepを最下位にする",
+          "hintEn": [
+            "Sleep should be last.",
+            "Sleeping is not happiness. It is just rest.",
+            "We can be happy with only five hours of sleep."
+          ],
+          "goal": { "type": "bottom", "item": "sleep", "within": 1 }
+        },
+        {
+          "id": "food_exact3",
+          "difficulty": 3,
+          "ja": "foodをちょうど3位にする",
+          "hintEn": [
+            "Food belongs in the middle, at number three.",
+            "Food is important, but not the top two.",
+            "Let's put food third, above work."
+          ],
+          "goal": { "type": "exact", "item": "food", "rank": 3 }
+        },
+        {
+          "id": "work_exact2",
+          "difficulty": 3,
+          "ja": "workをちょうど2位にする",
+          "hintEn": [
+            "Work should be second, not first.",
+            "Work gives us meaning, so it is almost the top.",
+            "Put work right after the first one."
+          ],
+          "goal": { "type": "exact", "item": "work", "rank": 2 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "I think X is more important than Y.", "ja": "XはYより重要だと思う" },
+        { "en": "Can we put X in second place?", "ja": "Xを2位にできる？" },
+        { "en": "I don't agree. X should be lower.", "ja": "反対。Xはもっと下だ" }
+      ]
+    },
+    {
+      "id": "good_teacher",
+      "question": { "en": "What makes a good teacher?", "ja": "良い先生の条件は？" },
+      "items": [
+        { "id": "patience", "en": "patience", "ja": "忍耐" },
+        { "id": "humor", "en": "humor", "ja": "ユーモア" },
+        { "id": "knowledge", "en": "knowledge", "ja": "知識" },
+        { "id": "passion", "en": "passion", "ja": "熱意" },
+        { "id": "fairness", "en": "fairness", "ja": "公平さ" }
+      ],
+      "goals": [
+        {
+          "id": "humor_over_knowledge",
+          "difficulty": 1,
+          "ja": "humorをknowledgeより上にする",
+          "hintEn": [
+            "Humor is more important than knowledge.",
+            "A funny teacher keeps students awake.",
+            "Books have knowledge. Only people have humor."
+          ],
+          "goal": { "type": "above", "item": "humor", "than": "knowledge" }
+        },
+        {
+          "id": "knowledge_bottom2",
+          "difficulty": 1,
+          "ja": "knowledgeを下から2位以内にする",
+          "hintEn": [
+            "Knowledge should be near the bottom.",
+            "We can look up facts on our phones.",
+            "Knowing a lot does not mean teaching well."
+          ],
+          "goal": { "type": "bottom", "item": "knowledge", "within": 2 }
+        },
+        {
+          "id": "patience_first",
+          "difficulty": 2,
+          "ja": "patienceを1位にする",
+          "hintEn": [
+            "Patience has to be first.",
+            "Without patience, a teacher gets angry and we stop asking.",
+            "Every other point needs patience to work."
+          ],
+          "goal": { "type": "top", "item": "patience", "within": 1 }
+        },
+        {
+          "id": "humor_last",
+          "difficulty": 2,
+          "ja": "humorを最下位にする",
+          "hintEn": [
+            "Humor should be last.",
+            "A funny class is not always a good class.",
+            "We come to learn, not to laugh."
+          ],
+          "goal": { "type": "bottom", "item": "humor", "within": 1 }
+        },
+        {
+          "id": "fairness_exact2",
+          "difficulty": 3,
+          "ja": "fairnessをちょうど2位にする",
+          "hintEn": [
+            "Fairness should be second.",
+            "Fairness is almost the most important, but not quite.",
+            "Put fairness just under the first one."
+          ],
+          "goal": { "type": "exact", "item": "fairness", "rank": 2 }
+        },
+        {
+          "id": "passion_exact3",
+          "difficulty": 3,
+          "ja": "passionをちょうど3位にする",
+          "hintEn": [
+            "Passion belongs in the middle, at three.",
+            "Passion matters, but two other things matter more.",
+            "Let's agree on passion for third place."
+          ],
+          "goal": { "type": "exact", "item": "passion", "rank": 3 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "For me, the most important thing is X.", "ja": "私にとって一番大事なのはXだ" },
+        { "en": "Why do you put X so high?", "ja": "なぜXをそんなに上にするの？" },
+        { "en": "Let's move X down one place.", "ja": "Xを1つ下げよう" }
+      ]
+    },
+    {
+      "id": "travel",
+      "question": { "en": "What matters most when you travel?", "ja": "旅行で一番大事なのは？" },
+      "items": [
+        { "id": "food", "en": "food", "ja": "食べ物" },
+        { "id": "safety", "en": "safety", "ja": "安全" },
+        { "id": "price", "en": "price", "ja": "値段" },
+        { "id": "weather", "en": "weather", "ja": "天気" },
+        { "id": "people", "en": "people", "ja": "人" }
+      ],
+      "goals": [
+        {
+          "id": "food_over_price",
+          "difficulty": 1,
+          "ja": "foodをpriceより上にする",
+          "hintEn": [
+            "Food is more important than price.",
+            "I will pay more for good food.",
+            "A cheap trip with bad food is a bad trip."
+          ],
+          "goal": { "type": "above", "item": "food", "than": "price" }
+        },
+        {
+          "id": "safety_top3",
+          "difficulty": 1,
+          "ja": "safetyを3位以内に入れる",
+          "hintEn": [
+            "Safety should be in the top three.",
+            "If a place is not safe, nothing else matters.",
+            "We can enjoy the trip only when we feel safe."
+          ],
+          "goal": { "type": "top", "item": "safety", "within": 3 }
+        },
+        {
+          "id": "price_first",
+          "difficulty": 2,
+          "ja": "priceを1位にする",
+          "hintEn": [
+            "Price must be number one.",
+            "If it is too expensive, we cannot go at all.",
+            "Everything starts from the budget."
+          ],
+          "goal": { "type": "top", "item": "price", "within": 1 }
+        },
+        {
+          "id": "weather_last",
+          "difficulty": 2,
+          "ja": "weatherを最下位にする",
+          "hintEn": [
+            "Weather should be last.",
+            "We cannot control the weather, so it is not a real point.",
+            "Rain or sun, a good trip is still good."
+          ],
+          "goal": { "type": "bottom", "item": "weather", "within": 1 }
+        },
+        {
+          "id": "people_exact4",
+          "difficulty": 3,
+          "ja": "peopleをちょうど4位にする",
+          "hintEn": [
+            "People should be fourth.",
+            "People are nice, but they are not the reason we travel.",
+            "Put people just above the last one."
+          ],
+          "goal": { "type": "exact", "item": "people", "rank": 4 }
+        },
+        {
+          "id": "food_exact2",
+          "difficulty": 3,
+          "ja": "foodをちょうど2位にする",
+          "hintEn": [
+            "Food should be second.",
+            "Food is almost the best part, but one thing is bigger.",
+            "Let's put food right after the top."
+          ],
+          "goal": { "type": "exact", "item": "food", "rank": 2 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "First, second, third... let's decide the top one.", "ja": "1位から順に決めよう" },
+        { "en": "X and Y are close, but X is higher.", "ja": "XとYは近いが、Xの方が上だ" },
+        { "en": "Is everyone OK with this order?", "ja": "この順番でいい？" }
+      ]
+    },
+    {
+      "id": "smartphone",
+      "question": { "en": "What matters most in a smartphone?", "ja": "スマホ選びで一番大事なのは？" },
+      "items": [
+        { "id": "battery", "en": "battery", "ja": "電池" },
+        { "id": "camera", "en": "camera", "ja": "カメラ" },
+        { "id": "price", "en": "price", "ja": "値段" },
+        { "id": "screen", "en": "screen", "ja": "画面" },
+        { "id": "weight", "en": "weight", "ja": "重さ" }
+      ],
+      "goals": [
+        {
+          "id": "battery_over_camera",
+          "difficulty": 1,
+          "ja": "batteryをcameraより上にする",
+          "hintEn": [
+            "Battery is more important than camera.",
+            "A dead phone takes no photos.",
+            "I use the battery all day. I use the camera sometimes."
+          ],
+          "goal": { "type": "above", "item": "battery", "than": "camera" }
+        },
+        {
+          "id": "weight_bottom2",
+          "difficulty": 1,
+          "ja": "weightを下から2位以内にする",
+          "hintEn": [
+            "Weight should be near the bottom.",
+            "All phones today are light enough.",
+            "Nobody buys a phone because it is light."
+          ],
+          "goal": { "type": "bottom", "item": "weight", "within": 2 }
+        },
+        {
+          "id": "camera_first",
+          "difficulty": 2,
+          "ja": "cameraを1位にする",
+          "hintEn": [
+            "The camera has to be first.",
+            "We choose a phone to take pictures of our life.",
+            "The camera is the one part we show other people."
+          ],
+          "goal": { "type": "top", "item": "camera", "within": 1 }
+        },
+        {
+          "id": "price_last",
+          "difficulty": 2,
+          "ja": "priceを最下位にする",
+          "hintEn": [
+            "Price should be last.",
+            "A phone lasts three years, so a little more money is fine.",
+            "Cheap phones cost more in the end."
+          ],
+          "goal": { "type": "bottom", "item": "price", "within": 1 }
+        },
+        {
+          "id": "screen_exact3",
+          "difficulty": 3,
+          "ja": "screenをちょうど3位にする",
+          "hintEn": [
+            "The screen should be third.",
+            "The screen matters, but two things matter more.",
+            "Let's put the screen in the middle."
+          ],
+          "goal": { "type": "exact", "item": "screen", "rank": 3 }
+        },
+        {
+          "id": "battery_exact1",
+          "difficulty": 3,
+          "ja": "batteryをちょうど1位にする",
+          "hintEn": [
+            "Battery must be exactly number one.",
+            "Everything else is useless at zero percent.",
+            "Nothing beats a phone that lasts all day."
+          ],
+          "goal": { "type": "exact", "item": "battery", "rank": 1 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "I use X every day, so it should be higher.", "ja": "Xは毎日使うから、もっと上のはず" },
+        { "en": "That makes sense, but what about Y?", "ja": "それは分かるが、Yはどう？" },
+        { "en": "Let's swap X and Y.", "ja": "XとYを入れ替えよう" }
+      ]
+    },
+    {
+      "id": "workplace",
+      "question": { "en": "What makes a workplace good?", "ja": "良い職場の条件は？" },
+      "items": [
+        { "id": "salary", "en": "salary", "ja": "給料" },
+        { "id": "commute", "en": "commute", "ja": "通勤" },
+        { "id": "boss", "en": "boss", "ja": "上司" },
+        { "id": "hours", "en": "hours", "ja": "労働時間" },
+        { "id": "coworkers", "en": "coworkers", "ja": "同僚" }
+      ],
+      "goals": [
+        {
+          "id": "coworkers_over_salary",
+          "difficulty": 1,
+          "ja": "coworkersをsalaryより上にする",
+          "hintEn": [
+            "Coworkers are more important than salary.",
+            "We spend eight hours a day with these people.",
+            "Good money cannot fix a bad team."
+          ],
+          "goal": { "type": "above", "item": "coworkers", "than": "salary" }
+        },
+        {
+          "id": "hours_top2",
+          "difficulty": 1,
+          "ja": "hoursを2位以内に入れる",
+          "hintEn": [
+            "Hours should be in the top two.",
+            "Time is the one thing we cannot buy back.",
+            "Short hours give us a life outside work."
+          ],
+          "goal": { "type": "top", "item": "hours", "within": 2 }
+        },
+        {
+          "id": "salary_first",
+          "difficulty": 2,
+          "ja": "salaryを1位にする",
+          "hintEn": [
+            "Salary has to be first.",
+            "We work to live, and living costs money.",
+            "A nice team does not pay the rent."
+          ],
+          "goal": { "type": "top", "item": "salary", "within": 1 }
+        },
+        {
+          "id": "boss_last",
+          "difficulty": 2,
+          "ja": "bossを最下位にする",
+          "hintEn": [
+            "The boss should be last.",
+            "Bosses change every two years anyway.",
+            "We can work well even with a quiet boss."
+          ],
+          "goal": { "type": "bottom", "item": "boss", "within": 1 }
+        },
+        {
+          "id": "commute_exact3",
+          "difficulty": 3,
+          "ja": "commuteをちょうど3位にする",
+          "hintEn": [
+            "The commute should be third.",
+            "One hour on a train every day is real, but not the top.",
+            "Let's put the commute in the middle of the list."
+          ],
+          "goal": { "type": "exact", "item": "commute", "rank": 3 }
+        },
+        {
+          "id": "coworkers_exact5",
+          "difficulty": 3,
+          "ja": "coworkersをちょうど5位にする",
+          "hintEn": [
+            "Coworkers should be exactly last.",
+            "We do not choose our coworkers, so it is not a condition.",
+            "Work is work. Friends are outside."
+          ],
+          "goal": { "type": "exact", "item": "coworkers", "rank": 5 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "In my experience, X is the biggest problem.", "ja": "経験上、Xが一番の問題だ" },
+        { "en": "I can accept X in third place.", "ja": "Xが3位なら受け入れられる" },
+        { "en": "Wait, that is too low for X.", "ja": "待って、Xがそれでは低すぎる" }
+      ]
+    },
+    {
+      "id": "learn_english",
+      "question": { "en": "What helps you learn English most?", "ja": "英語の上達に一番効くのは？" },
+      "items": [
+        { "id": "movies", "en": "movies", "ja": "映画" },
+        { "id": "speaking", "en": "speaking", "ja": "会話" },
+        { "id": "reading", "en": "reading", "ja": "読書" },
+        { "id": "music", "en": "music", "ja": "音楽" },
+        { "id": "games", "en": "games", "ja": "ゲーム" }
+      ],
+      "goals": [
+        {
+          "id": "music_over_reading",
+          "difficulty": 1,
+          "ja": "musicをreadingより上にする",
+          "hintEn": [
+            "Music helps more than reading.",
+            "We remember songs for years. We forget books.",
+            "Music teaches rhythm, and rhythm makes you sound natural."
+          ],
+          "goal": { "type": "above", "item": "music", "than": "reading" }
+        },
+        {
+          "id": "games_bottom2",
+          "difficulty": 1,
+          "ja": "gamesを下から2位以内にする",
+          "hintEn": [
+            "Games should be near the bottom.",
+            "In games we only read short words like 'go' and 'attack'.",
+            "Games are fun, but we play in our own language."
+          ],
+          "goal": { "type": "bottom", "item": "games", "within": 2 }
+        },
+        {
+          "id": "speaking_first",
+          "difficulty": 2,
+          "ja": "speakingを1位にする",
+          "hintEn": [
+            "Speaking must be number one.",
+            "You cannot learn to swim by watching videos.",
+            "Only speaking makes you use the words yourself."
+          ],
+          "goal": { "type": "top", "item": "speaking", "within": 1 }
+        },
+        {
+          "id": "music_last",
+          "difficulty": 2,
+          "ja": "musicを最下位にする",
+          "hintEn": [
+            "Music should be last.",
+            "We sing the words without knowing the meaning.",
+            "Song English is strange English."
+          ],
+          "goal": { "type": "bottom", "item": "music", "within": 1 }
+        },
+        {
+          "id": "movies_exact2",
+          "difficulty": 3,
+          "ja": "moviesをちょうど2位にする",
+          "hintEn": [
+            "Movies should be exactly second.",
+            "Movies give us real speed and real faces, but we stay quiet.",
+            "Put movies right under the top one."
+          ],
+          "goal": { "type": "exact", "item": "movies", "rank": 2 }
+        },
+        {
+          "id": "reading_exact4",
+          "difficulty": 3,
+          "ja": "readingをちょうど4位にする",
+          "hintEn": [
+            "Reading should be fourth.",
+            "Reading builds words slowly, so it is near the bottom.",
+            "Let's put reading just above the last one."
+          ],
+          "goal": { "type": "exact", "item": "reading", "rank": 4 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "This one helped me the most.", "ja": "これが一番効いた" },
+        { "en": "I see your point, but I still think X is higher.", "ja": "言いたいことは分かるが、それでもXが上だと思う" },
+        { "en": "OK, let's decide. X is first.", "ja": "よし決めよう。Xが1位だ" }
+      ]
+    }
+  ]
+}

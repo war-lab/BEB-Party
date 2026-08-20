@@ -1,0 +1,24 @@
+{
+  "name": "@beb/client-ranking",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./guide": "./src/guide.ts",
+    "./stage-labels": "./src/stage-labels.ts"
+  },
+  "scripts": {
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@beb/client-core": "workspace:*",
+    "@beb/shared-core": "workspace:*",
+    "@beb/shared-ranking": "workspace:*",
+    "svelte": "5.56.9"
+  },
+  "devDependencies": {
+    "svelte-check": "4.7.5"
+  }
+}
