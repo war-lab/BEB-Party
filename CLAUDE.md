@@ -38,7 +38,8 @@
 | `pnpm check` | 全パッケージのESLintと`tsc --noEmit` |
 | `pnpm test` | 全パッケージのvitest |
 | `pnpm validate:content` | 事件データの整合性検証（`tools`のCLI）。引数にファイルパスを渡すと1件だけ検証する |
-| `pnpm e2e` | Playwright（部屋作成から開示までの通し検証） |
+| `pnpm e2e` | Playwright（部屋作成から開示までの通し検証）。E2E用サーバは自動起動 |
+| `pnpm e2e:server` | E2E用サーバの単独起動（`client/app` のビルド + `server/core` の `wrangler dev`） |
 
 生成物を作るコマンド（生成物はコミットし、CIで再生成との差分を検査する）。
 
