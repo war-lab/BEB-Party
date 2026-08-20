@@ -159,23 +159,25 @@ body {
   font-family: var(--font-body);
 }
 
-/* 顔アイコン。色付きの円の中にプレイヤーが選んだ絵文字を置く（ADR-0022）。
-   円の大きさは画面ごとに違うため、既定はゲーム画面の小さい円（1.4rem前後）に合わせ、
-   大きい円を持つ画面が font-size を上書きする */
+/* 顔アイコン。色付きの円の中にプレイヤーが選んだアイコン画像を置く（ADR-0022）。
+   円の大きさは画面ごとに違うため、画像は円いっぱいに合わせる */
 .face {
   display: grid;
   place-items: center;
-  line-height: 1;
-  font-size: 0.85rem;
-  /* 絵文字はシステムフォントで描く。サブセットした表示用書体には収録されていない */
-  font-family: var(--font-body);
   overflow: hidden;
+}
+
+.face img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* 素材はドットの格子を持たないため、拡大は避けて平滑化した縮小で描く */
+  image-rendering: auto;
 }
 
 .beb-tile .face {
   width: 2.25rem;
   height: 2.25rem;
-  font-size: 1.35rem;
   border-radius: 50%;
   margin: 0 auto 0.3rem;
   border: var(--outline-width) solid var(--ink);

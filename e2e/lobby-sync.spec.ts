@@ -30,7 +30,10 @@ test("6 browser contexts sync to the same lobby state", async ({ browser, baseUR
     for (const page of table.pages) {
       for (const [index, icon] of TEST_ICONS.entries()) {
         const tile = page.locator(".roster .beb-tile", { hasText: `Player${index + 1}` });
-        await expect(tile.locator('[data-testid="participant-icon"]')).toHaveText(icon.emoji);
+        await expect(tile.locator('[data-testid="participant-icon"] img')).toHaveAttribute(
+          "src",
+          `/player-icons/${icon.id}.png`,
+        );
       }
     }
   } finally {

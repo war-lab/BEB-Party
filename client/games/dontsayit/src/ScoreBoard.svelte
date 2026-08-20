@@ -27,7 +27,9 @@
     <li class:me={entry.playerId === ui.myPlayerId} class:top={highlightTop && index === 0}>
       <span class="rank">{index + 1}</span>
       <span class="face" style={`background:${faceColor(entry.playerId)}`}>
-        <span aria-hidden="true">{playerIconOf(entry.playerId)}</span>
+        {#if playerIconOf(entry.playerId)}
+          <img src={playerIconOf(entry.playerId)!.src} alt="" />
+        {/if}
       </span>
       <span class="name">{nameOf(entry.playerId)}</span>
       <span class="points">{pointsOf(scores, entry.playerId)}</span>

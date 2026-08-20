@@ -54,7 +54,9 @@
               onclick={() => (selected = suspect.playerId)}
             >
               <span class="face" style={`background:${faceColor(suspect.playerId)}`}>
-                <span aria-hidden="true">{playerIconOf(suspect.playerId)}</span>
+                {#if playerIconOf(suspect.playerId)}
+                  <img src={playerIconOf(suspect.playerId)!.src} alt="" />
+                {/if}
               </span>
               <span class="tile-name">{nameOf(suspect.playerId)}</span>
               <span class="character">{suspect.characterName}</span>

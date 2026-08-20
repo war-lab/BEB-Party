@@ -54,16 +54,16 @@ export async function readStateMessages(page: Page): Promise<string[]> {
 /**
  * 参加者に割り当てるアイコン。初期選択はランダムなので、テストでは明示的に選ぶ。
  *
- * 絵文字はshared/coreのPLAYER_ICONSの値をそのまま写している。
- * 一覧を変えたときにここが落ちることで、意図しない変更に気づける。
+ * IDはshared/coreのPLAYER_ICONSに存在するものを使う。
+ * 一覧からIDを消したときにここが落ちることで、意図しない変更に気づける。
  */
 export const TEST_ICONS = [
-  { id: "cat", emoji: "🐱" },
-  { id: "dog", emoji: "🐶" },
-  { id: "fox", emoji: "🦊" },
-  { id: "bear", emoji: "🐻" },
-  { id: "panda", emoji: "🐼" },
-  { id: "rabbit", emoji: "🐰" },
+  { id: "cat" },
+  { id: "dog" },
+  { id: "fox" },
+  { id: "bear" },
+  { id: "blob" },
+  { id: "rabbit" },
 ] as const;
 
 /** ホーム画面でなまえ・レベル・アイコンを入れる（レベルとアイコンはチップ選択） */

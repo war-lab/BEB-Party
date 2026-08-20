@@ -54,7 +54,9 @@
         <li class:me={playerId === ui.myPlayerId}>
           <span class="no">{index + 1}</span>
           <span class="face" style={`background:${faceColor(playerId)}`}>
-            <span aria-hidden="true">{playerIconOf(playerId)}</span>
+            {#if playerIconOf(playerId)}
+              <img src={playerIconOf(playerId)!.src} alt="" />
+            {/if}
           </span>
           <span class="player">{nameOf(playerId)}</span>
         </li>

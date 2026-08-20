@@ -8,12 +8,12 @@ export type {
   SettingField,
 } from "./types";
 export * from "./errors";
-// プレイヤーアイコン。プロトコルに載るのはIDのみで、絵文字は表示用の対応表（ADR-0022）
+// プレイヤーアイコン。プロトコルに載るのはIDのみで、見た目はクライアントが引く（ADR-0022）
 export {
   PLAYER_ICONS,
   fallbackPlayerIconId,
   isPlayerIconId,
-  playerIconEmoji,
+  playerIconLabel,
   type PlayerIconDefinition,
   type PlayerIconId,
 } from "./player-icon";

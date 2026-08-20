@@ -169,7 +169,9 @@
       <p class="listen">声を聞いてください</p>
       <div class="speaker-now">
         <span class="face" style={`background:${faceColor(speakerId ?? "")}`}>
-          <span aria-hidden="true">{playerIconOf(speakerId ?? "")}</span>
+          {#if playerIconOf(speakerId ?? "")}
+            <img src={playerIconOf(speakerId ?? "")!.src} alt="" />
+          {/if}
         </span>
         <span class="name">{speakerId === undefined ? "" : nameOf(speakerId)}</span>
       </div>
