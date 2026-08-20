@@ -3,12 +3,15 @@ packages:
   - shared/engine
   - shared/games/detectives
   - shared/games/dontsayit
+  - shared/games/ranking
   - server/core
   - server/games/detectives
   - server/games/dontsayit
+  - server/games/ranking
   - client/core
   - client/games/detectives
   - client/games/dontsayit
+  - client/games/ranking
   - client/app
   - tools
 allowBuilds:

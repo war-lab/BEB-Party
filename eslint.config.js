@@ -7,7 +7,7 @@ import tseslint from "typescript-eslint";
 
 // 収録済みゲームのgameId。ゲームを追加したらここへ足す（07_リポジトリとツールチェーン.md 検査1・検査3）。
 // 検査をゲームごとに複製せず、この一覧から規則を組む
-const GAME_IDS = ["detectives", "dontsayit"];
+const GAME_IDS = ["detectives", "dontsayit", "ranking"];
 
 // ゲームモジュールのパッケージ名パターン（@beb/server-detectives 等）
 // サブパス（@beb/client-dontsayit/guide 等）も対象にする。exportsで公開しているため経路が実在する

@@ -183,15 +183,16 @@ interface RankingSecret {
 
 ```typescript
 interface RankingGameSecret {
-  setIds: string[];                    // 使う3セットのid。開始時に抽選して固定
-  goals: Record<string, GoalCard>;     // 現ラウンドの playerId -> 目標カード
+  setIds: string[];                       // 使う3セットのid
+  goalsByRound: Record<string, GoalCard>[]; // ラウンドごとの playerId -> 目標カード
 }
 ```
 
-3セットを開始時に決めるのは、ラウンドごとに抽選すると同じセットを引く経路が残るためである。
+セットの抽選と目標の割り当ては、どちらも `start` で全ラウンド分を決める。
+`handleAction` と `onDeadline` にはシードが渡らないため（[05](./05_ゲームモジュール.md)の呼び出し規約）、ラウンドが進むたびに抽選する形は取れない。
 
-`goals` は現ラウンド分だけを持つ。
-過去のラウンドは `RoundRecord.goals` として公開状態に移っており、二重に持つ必要がない。
+過去のラウンドの目標は `RoundRecord.goals` として公開状態にも現れる。
+`goalsByRound` を残すのは、得点の再計算ではなく開示済みかどうかの判断を公開状態側に寄せるためである。
 
 ## start の処理順
 
@@ -205,7 +206,7 @@ interface RankingGameSecret {
 
 ### 目標の割り当て
 
-1. 接続中の参加者をレベルの昇順に並べる。同値はseed由来のシャッフルで崩す
+1. 参加者をレベルの昇順に並べる。同値はseed由来のシャッフルで崩す。未接続者も含める（再接続時に目標が無い状態を作らない）
 2. セットの目標カード6枚を難度の昇順に並べる
 3. 参加者が5人のときは難度3のカードを1枚落とす（どれを落とすかはseedで決める）
 4. 並べた順に1対1で対応させる
@@ -216,7 +217,7 @@ interface RankingGameSecret {
 ## カタログ（listContents）
 
 ```typescript
-{ id: "values", labelJa: "価値観", detailJa: "9セット" }
+{ id: "values", title: "価値観", setCount: 9 }
 ```
 
 項目・目標・日本語文をカタログに載せない。
@@ -234,8 +235,10 @@ interface RankingGameSecret {
 
 ### ready
 
-二重送信は拒否する（`already_ready`）。
-接続中の人数と `readyPlayerIds` の長さが一致した時点で次のステージへ進む。
+二重送信は拒否せず冪等に扱う（[08](./08_DETECTIVESゲームモジュール.md)・[09](./09_DONTSAYITゲームモジュール.md)と同じ）。
+結果に影響せず、再送を拒否すると画面が止まる経路が増える。
+
+接続中の全員が送った時点で次のステージへ進む。
 
 ### proposeRanking
 
@@ -258,7 +261,7 @@ payloadは `{ ranking: string[] }` とする。
 ### approveRanking
 
 `proposedRanking` が `null` のときは拒否する（`no_proposal`）。
-二重送信は拒否する（`already_approved`）。
+二重送信は `ready` と同じく冪等に扱う。
 
 接続中の全員が承認した時点で確定し、`reveal` へ進む。
 
@@ -386,6 +389,10 @@ interface RankingResult {
 検証11から13は5項目の全順列120通りを総当たりする。
 項目数が5固定であり、計算量は問題にならない。
 
+検証11は単独では発火しない。
+検証7（参照の存在）と検証8（順位の範囲）を通った述語は、5項目に対して必ず達成可能な順位を持つ。
+参照が壊れたときに検証7と一緒に落ちる安全網として置く。
+
 検証12を置くのは、全員の目標が同時に通る順位があると議論に対立が生まれないためである。
 検証13を置くのは、誰も他人と協調できない設定だと説得が成立しないためである。
 
@@ -445,7 +452,7 @@ interface RankingResult {
 * `proposeRanking`: 要素数・未知のid・重複が `invalid_ranking` で拒否されること
 * `proposeRanking`: 差し替えで `approvedPlayerIds` が空になること
 * `approveRanking`: 提案が無い状態で `no_proposal` が返ること
-* `approveRanking`: 二重送信が `already_approved` で拒否されること
+* `approveRanking`: 二重送信が冪等であること（承認者が重複しない）
 * `approveRanking`: 接続中の全員が承認した時点で確定し、`reveal` へ進むこと
 * 達成判定: 4種の述語それぞれについて、真と偽の両方の順位で正しく判定されること
 * 得点: 達成者が複数いても全員に2点入ること

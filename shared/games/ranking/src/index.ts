@@ -1,0 +1,40 @@
+// お題データのスキーマ型（正本）とENGLISH RANKINGのランタイム型・表示文言の定数
+export type { Goal, GoalCard, GoalDifficulty, KeyExpression, RankingItem, RankingPack, RankingSet } from "./pack";
+export {
+  DIFFICULTY_SHAPE,
+  GOALS_PER_SET,
+  ITEMS_PER_SET,
+  MIN_HINTS,
+  MIN_SETS,
+  achieves,
+  difficultyOf,
+  goalKey,
+  permutations,
+  rankOf,
+} from "./pack";
+
+export {
+  ACTIONS,
+  DISCUSSION_SECONDS,
+  ERROR_CODES,
+  POINTS_PER_GOAL,
+  ROUNDS,
+  STAGES,
+  STAGE_DEADLINE_SECONDS,
+  STAGE_LABELS_JA,
+  hintCountFor,
+  isFinalRound,
+  pointsOf,
+  type ActionName,
+  type ErrorCode,
+  type ProposeRankingPayload,
+  type RankingPackSummary,
+  type RankingPublic,
+  type RankingResult,
+  type RankingSecret,
+  type RankingSettings,
+  type RevealedGoal,
+  type RoundRecord,
+  type ScoreEntry,
+  type Stage,
+} from "./game";
