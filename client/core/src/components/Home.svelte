@@ -278,8 +278,7 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-    /* 64pxの素材を縮小して描く。ドットの格子を持たない素材なので平滑化に任せる */
-    image-rendering: auto;
+    image-rendering: pixelated;
   }
   .icon-chip input {
     position: absolute;

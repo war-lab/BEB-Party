@@ -8,7 +8,8 @@
     "test": "vitest run --passWithNoTests",
     "dev": "vite",
     "build": "node scripts/generate-font-subsets.mjs && vite build",
-    "fonts:generate": "node scripts/generate-font-subsets.mjs"
+    "fonts:generate": "node scripts/generate-font-subsets.mjs",
+    "icons:generate": "node scripts/generate-player-icons.mjs"
   },
   "dependencies": {
     "@beb/client-core": "workspace:*",
