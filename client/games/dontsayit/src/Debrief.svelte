@@ -7,10 +7,9 @@
 <script lang="ts">
   import type { Room } from "@beb/shared-core";
   import { STAGES, type DontSayItPublic, type DontSayItResult } from "@beb/shared-dontsayit";
-  import { sendCommon } from "@beb/client-core";
+  import { sendCommon, StageTimer } from "@beb/client-core";
   import ScoreBoard from "./ScoreBoard.svelte";
   import StageGuide from "./StageGuide.svelte";
-  import StageTimer from "./StageTimer.svelte";
   import { stageLabels } from "./stage-labels";
 
   interface Props {

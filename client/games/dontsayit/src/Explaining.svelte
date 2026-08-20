@@ -17,11 +17,9 @@
     type SpeakerSecret,
     type WatcherSecret,
   } from "@beb/shared-dontsayit";
-  import { faceColor, sendAction, ui } from "@beb/client-core";
+  import { acquireWakeLock, faceColor, sendAction, StageTimer, ui } from "@beb/client-core";
   import StageGuide from "./StageGuide.svelte";
-  import StageTimer from "./StageTimer.svelte";
   import { stageLabels } from "./stage-labels";
-  import { acquireWakeLock } from "./wake-lock.svelte";
 
   interface Props {
     room: Room;

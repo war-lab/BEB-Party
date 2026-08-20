@@ -4,11 +4,9 @@
   import { ACTIONS, STAGES, type DetectivesPublic, type DetectivesSecret } from "@beb/shared-detectives";
   import RoleCutIn from "./RoleCutIn.svelte";
   import StageGuide from "./StageGuide.svelte";
-  import StageTimer from "./StageTimer.svelte";
   import { stageLabels } from "./stage-labels";
   import TestimonyCardView from "./TestimonyCardView.svelte";
-  import { acquireWakeLock } from "./wake-lock.svelte";
-  import { sendAction, ui } from "@beb/client-core";
+  import { acquireWakeLock, sendAction, StageTimer, ui } from "@beb/client-core";
 
   interface Props {
     room: Room;
