@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@beb/server-detectives": "workspace:*",
+    "@beb/server-dontsayit": "workspace:*",
     "@beb/shared-core": "workspace:*"
   },
   "devDependencies": {

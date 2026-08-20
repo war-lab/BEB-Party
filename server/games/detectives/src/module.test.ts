@@ -654,3 +654,25 @@ describe("listContents / validateSettings", () => {
     expect(detectivesModule.validateSettings({}).valid).toBe(true);
   });
 });
+
+describe("カタログの記述子", () => {
+  // 記述子と検証がずれると、ロビーで入力できる値がサーバに拒否される（ADR-0018）
+  it("settingsFieldsがvalidateSettingsと一致する", () => {
+    const fields = detectivesModule.settingsFields;
+    expect(fields).toHaveLength(1);
+    const field = fields[0];
+    if (field === undefined) {
+      throw new Error("設定の記述子がない");
+    }
+    expect(field.key).toBe("investigationSeconds");
+    expect(detectivesModule.validateSettings({ [field.key]: field.default }).valid).toBe(true);
+    expect(detectivesModule.validateSettings({ [field.key]: field.min }).valid).toBe(true);
+    expect(detectivesModule.validateSettings({ [field.key]: field.max }).valid).toBe(true);
+    expect(detectivesModule.validateSettings({ [field.key]: field.min - 1 }).valid).toBe(false);
+    expect(detectivesModule.validateSettings({ [field.key]: field.max + 1 }).valid).toBe(false);
+  });
+
+  it("コンテンツ選択の見出しを持つ", () => {
+    expect(detectivesModule.contentLabelJa.length).toBeGreaterThan(0);
+  });
+});

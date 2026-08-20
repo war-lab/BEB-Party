@@ -8,14 +8,17 @@
 
   interface Props {
     code: string;
-  }
-  let { code }: Props = $props();
+    /** ゲームごとの遊び方を開く。どのゲームかは選択カードが決める */
+  onShowGuide: (gameId: string) => void;
+}
+  let { code, onShowGuide }: Props = $props();
 
   const MAX_TILES = 6;
 
   let catalog = $state<GameSummary[]>([]);
   let qrSvg = $state<string | null>(null);
-  let investigationSeconds = $state(600);
+  // ゲーム固有の設定名を共通コアが持たない。カタログが配る記述子から組み立てる（不変条件4）
+  let settings = $state<Record<string, number>>({});
   let showQr = $state(false);
 
   $effect(() => {
@@ -46,9 +49,43 @@
     sendCommon({ type: "selectGame", gameId });
   }
 
+  // 直前に設定を組んだゲーム。$stateにしない（この$effectが自分の書き込みで再実行されるのを避ける）
+  let appliedGameId: string | null = null;
+
+  // 選択中のゲームが変わったときだけ、そのゲームの既定値で設定を組み直す。
+  // 前のゲームのキーを残すと、受け取らない側のvalidateSettingsへ無関係な値が流れる。
+  //
+  // gameIdの一致で打ち切るのは、serverStateがstate受信のたびにroomをオブジェクトごと
+  // 差し替えるためである。roomの参照だけを見ると、入室や準備完了の受信でも再実行され、
+  // ホストが入力した値が既定値へ戻る
+  $effect(() => {
+    const game = catalog.find((entry) => entry.id === room?.gameId);
+    const gameId = game?.id ?? null;
+    if (gameId === appliedGameId) {
+      return;
+    }
+    appliedGameId = gameId;
+    settings = Object.fromEntries((game?.settingsFields ?? []).map((field) => [field.key, field.default]));
+  });
+
   // コンテンツと設定は同じconfigureで送る。コンテンツ未選択のstartはサーバが拒否する（基本設計/01）
+  // settingsの中身は解釈せずそのまま渡す。受理の可否はサーバが決める（ADR-0012）
   function configure(id: string): void {
-    sendCommon({ type: "configure", contentId: id, settings: { investigationSeconds } });
+    sendCommon({ type: "configure", contentId: id, settings: { ...settings } });
+  }
+
+  /**
+   * 入力された値を控えて送り直す。
+   *
+   * 数値にならない入力は無視する。空欄は0として送られ、サーバのvalidateSettingsが拒否する
+   */
+  function updateSetting(key: string, raw: string): void {
+    const value = Number(raw);
+    if (!Number.isFinite(value)) {
+      return;
+    }
+    settings = { ...settings, [key]: value };
+    reconfigure();
   }
 
   // 設定だけを変えるときは、サーバが持っているコンテンツ選択をそのまま送り直す。
@@ -103,6 +140,7 @@
       <ul class="title-cards">
         {#each catalog as game (game.id)}
           <li>
+            <div class="title-card-row">
             <button class="title-card" class:selected={room?.gameId === game.id} onclick={() => selectGame(game.id)}>
               <span class="title-card-icon" aria-hidden="true">{game.icon}</span>
               <span class="title-card-body">
@@ -112,12 +150,21 @@
               </span>
               <span class="title-card-check" aria-hidden="true">✓</span>
             </button>
+            <button
+              class="title-card-guide"
+              data-testid="game-guide"
+              onclick={() => onShowGuide(game.id)}
+              aria-label={`${game.title}の遊び方`}
+            >
+              遊び方
+            </button>
+            </div>
           </li>
         {/each}
       </ul>
 
       {#if room?.gameId}
-        <h2>事件を選ぶ</h2>
+        <h2>{selectedGame?.contentLabelJa ?? "コンテンツを選ぶ"}</h2>
         <ul class="content-chips">
           {#each contents as content (content.id)}
             <li>
@@ -132,17 +179,19 @@
           {/each}
         </ul>
 
-        <label class="seconds">
-          <span class="seconds-label">捜査時間（秒）</span>
-          <input
-            type="number"
-            bind:value={investigationSeconds}
-            min="300"
-            max="1200"
-            step="60"
-            onchange={reconfigure}
-          />
-        </label>
+        {#each selectedGame?.settingsFields ?? [] as field (field.key)}
+          <label class="seconds">
+            <span class="seconds-label">{field.labelJa}</span>
+            <input
+              type="number"
+              value={settings[field.key] ?? field.default}
+              min={field.min}
+              max={field.max}
+              step={field.step}
+              onchange={(event) => updateSetting(field.key, event.currentTarget.value)}
+            />
+          </label>
+        {/each}
 
         <button class="beb-btn yellow" onclick={start} disabled={!room?.contentId}><span>ゲームスタート</span></button>
       {/if}
@@ -261,6 +310,26 @@
     flex-direction: column;
     gap: 0.55rem;
     width: 100%;
+  }
+  /* 選択カードと、そのゲームの遊び方を横に並べる。遊び方はカードの枠内に収める */
+  .title-card-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: stretch;
+    gap: 0.4rem;
+  }
+  .title-card-guide {
+    background: var(--ground-2);
+    color: var(--panel);
+    border: var(--outline-width) solid var(--ink);
+    border-radius: var(--radius-tile);
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    padding: 0 0.6rem;
+    cursor: pointer;
+    writing-mode: vertical-rl;
   }
   .title-cards li {
     width: 100%;

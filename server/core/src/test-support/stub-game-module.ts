@@ -28,6 +28,8 @@ export const stubGameModule: GameModule<StubPublicState, StubSecret, StubResult,
   title: "Stub Game",
   tagline: "テスト用のスタブ",
   icon: "🧪",
+  contentLabelJa: "コンテンツを選ぶ",
+  settingsFields: [],
   playerCount: [1, 8],
 
   listContents: () => [{ id: STUB_CONTENT_ID, title: "Stub Content" }],

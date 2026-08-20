@@ -81,6 +81,8 @@ function handleCatalog(): Response {
     tagline: gameModule.tagline,
     icon: gameModule.icon,
     playerCount: gameModule.playerCount,
+    contentLabelJa: gameModule.contentLabelJa,
+    settingsFields: gameModule.settingsFields,
     contents: gameModule.listContents(),
   }));
   return Response.json({ games });

@@ -24,6 +24,29 @@ export interface Room {
   gameState?: unknown;
 }
 
+/**
+ * ロビーで変更できる設定1件の記述子。
+ *
+ * 共通コアは `key` も `labelJa` も解釈せず、入力を描いて値を組み立てるだけとする。
+ * ゲーム固有の設定名が共通コアへ入り込まないようにするための仕組みである（不変条件4、ADR-0009）。
+ *
+ * `min` / `max` は入力の当たり判定であって検証ではない。
+ * 受理の可否はサーバの `validateSettings` が決める（ADR-0012）。
+ */
+export interface NumberSettingField {
+  type: "number";
+  /** settingsオブジェクトのキー。共通コアは中身を解釈しない */
+  key: string;
+  labelJa: string;
+  min: number;
+  max: number;
+  step: number;
+  default: number;
+}
+
+/** 現在は数値のみ。selectやtoggleが要るゲームが出た時点で足す（先回りしない。基本設計/05） */
+export type SettingField = NumberSettingField;
+
 // GET /api/catalog で配るカタログの1エントリ
 export interface GameSummary {
   id: string;
@@ -33,6 +56,10 @@ export interface GameSummary {
   /** 選択画面のアイコン（絵文字） */
   icon: string;
   playerCount: [number, number];
+  /** コンテンツ選択の見出し（例: 事件を選ぶ / お題を選ぶ） */
+  contentLabelJa: string;
+  /** ロビーで変更できる設定。空配列なら設定の入力を出さない */
+  settingsFields: SettingField[];
   contents: ContentSummary[];
 }
 

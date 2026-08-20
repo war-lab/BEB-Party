@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@beb/client-core": "workspace:*",
-    "@beb/client-detectives": "workspace:*"
+    "@beb/client-detectives": "workspace:*",
+    "@beb/client-dontsayit": "workspace:*"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "7.3.0",

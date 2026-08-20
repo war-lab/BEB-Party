@@ -1,5 +1,5 @@
 // GameModuleインターフェース。共通コアはこれだけを通してゲームに触る（基本設計/05_ゲームモジュール.md）
-import type { ContentSummary, Player, Room } from "./types";
+import type { ContentSummary, Player, Room, SettingField } from "./types";
 
 export interface ValidationResult {
   valid: boolean;
@@ -26,6 +26,10 @@ export interface GameModule<TPublic, TSecret, TResult, TGameSecret = unknown> {
   /** 選択画面のアイコン（絵文字1〜2字）。画像を持たないため書体で描ける文字に限る */
   icon: string;
   playerCount: [number, number];
+  /** ロビーのコンテンツ選択に出す見出し。共通コアはゲーム固有の語を持たない（不変条件4） */
+  contentLabelJa: string;
+  /** ロビーで変更できる設定の記述子。空配列なら設定の入力を出さない（ADR-0012） */
+  settingsFields: SettingField[];
 
   listContents(): ContentSummary[];
 

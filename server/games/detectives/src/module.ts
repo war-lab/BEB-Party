@@ -344,6 +344,18 @@ export const detectivesModule: GameModule<
   tagline: "英語で聞き込み、嘘つきを1人あぶり出す",
   icon: "🔍",
   playerCount: [5, 6],
+  contentLabelJa: "事件を選ぶ",
+  settingsFields: [
+    {
+      type: "number",
+      key: "investigationSeconds",
+      labelJa: "捜査時間（秒）",
+      min: INVESTIGATION_SECONDS.min,
+      max: INVESTIGATION_SECONDS.max,
+      step: 60,
+      default: INVESTIGATION_SECONDS.default,
+    },
+  ],
 
   // 「おまかせ」を先頭に置く。ロビーの既定選択にするため（基本設計/02）
   listContents: (): ContentSummary[] => [RANDOM_CASE_SUMMARY, ...CASES.map(summarize)],
