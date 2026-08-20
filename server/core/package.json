@@ -9,7 +9,8 @@
   "scripts": {
     "check": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "dev": "wrangler dev"
+    "dev": "wrangler dev",
+    "dev:e2e": "wrangler dev --log-level warn"
   },
   "dependencies": {
     "@beb/server-detectives": "workspace:*",

@@ -36,6 +36,19 @@ jobs:
 
       - run: pnpm e2e
 
+      # E2Eはアプリの不具合だけでなくwrangler devの終了でも落ちる（ADR-0021）。
+      # HTMLレポートとトレースがないと、ログのERR_CONNECTION_REFUSEDだけからは切り分けられない
+      - name: E2Eの失敗時にレポートとトレースを保存する
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
       - run: pnpm validate:content
 
       - name: 事件インデックスの再生成と差分チェック

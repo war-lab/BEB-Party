@@ -11,7 +11,8 @@
     "check": "eslint . && tsc --noEmit && pnpm -r run check",
     "test": "pnpm -r run test",
     "validate:content": "pnpm --filter @beb/tools run validate:content",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "e2e:server": "pnpm --filter @beb/client-app run build && node scripts/e2e-server.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
