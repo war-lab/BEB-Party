@@ -66,6 +66,34 @@ export const TEST_ICONS = [
   { id: "rabbit" },
 ] as const;
 
+/**
+ * 接続拒否のときだけ待って navigate をやり直す。
+ *
+ * `wrangler dev` はテスト中に落ちることがあり、監督プロセスが再起動するまで数十秒かかる
+ * （ADR-0021）。Playwrightのretryは即座に走るため、素のgotoでは3回とも再起動中の窓に入って
+ * 落ちる（CIの実行32327194361で発生）。ここで待つことで、サーバの再起動をテストの失敗にしない。
+ *
+ * 待つのは接続が確立できない場合に限る。ページが返ってきたうえでの失敗は素通しする。
+ */
+export async function gotoWithRetry(page: Page, url: string, timeoutMs = 90_000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    try {
+      await page.goto(url);
+      return;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const refused = message.includes("ERR_CONNECTION_REFUSED") || message.includes("ERR_CONNECTION_RESET");
+      if (!refused || Date.now() > deadline) {
+        throw error;
+      }
+      // 再起動待ち。原因を追えるよう1回だけ出す
+      console.warn(`[e2e] ${url} が接続拒否。サーバの再起動を待って再試行する`);
+      await page.waitForTimeout(2_000);
+    }
+  }
+}
+
 /** ホーム画面でなまえ・レベル・アイコンを入れる（レベルとアイコンはチップ選択） */
 async function fillIdentity(page: Page, name: string, level: number, iconId?: string): Promise<void> {
   await page.fill('input[placeholder="なまえ"]', name);
@@ -83,7 +111,7 @@ export async function createRoom(
   level: number,
   iconId?: string,
 ): Promise<void> {
-  await page.goto(baseURL);
+  await gotoWithRetry(page, baseURL);
   await fillIdentity(page, name, level, iconId);
   await page.click("text=部屋を作る");
   await page.waitForSelector(".room-chip .code");
@@ -98,7 +126,7 @@ export async function joinRoom(
   code: string,
   iconId?: string,
 ): Promise<void> {
-  await page.goto(baseURL);
+  await gotoWithRetry(page, baseURL);
   await fillIdentity(page, name, level, iconId);
   await page.click("text=部屋に参加する");
   await page.fill('input[placeholder="部屋コード"]', code);

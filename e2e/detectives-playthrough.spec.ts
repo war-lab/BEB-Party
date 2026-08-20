@@ -3,7 +3,7 @@
 // 受入条件3: 6人のsecretがすべて異なり、他人のカードを含まない
 // 受入条件5: 全ステージを通し、stateの受信内容に秘密が含まれない
 import { test, expect, type WebSocketRoute } from "@playwright/test";
-import { openTable, readStateMessages, readyAll, startGame, voteAll } from "./support/room";
+import { gotoWithRetry, openTable, readStateMessages, readyAll, startGame, voteAll } from "./support/room";
 
 test("6人で部屋作成から開示まで通しで進める", async ({ browser, baseURL }) => {
   test.slow();
@@ -142,7 +142,7 @@ test("捜査中に切断してもカードが消えず、自動復帰する", as
 
 test("遊び方から収録ゲームのルールを読める", async ({ page, baseURL }) => {
   // 部屋を作らないため、レート制限のためのIP分離は不要
-  await page.goto(baseURL!);
+  await gotoWithRetry(page, baseURL!);
   await page.click("text=遊び方");
 
   const sheet = page.locator("[data-testid='how-to-play']");
