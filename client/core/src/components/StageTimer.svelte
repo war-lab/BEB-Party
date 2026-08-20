@@ -3,10 +3,11 @@
   タイマーはサーバ権威であり、ここは受信したdeadlineを描くだけとする
   （時間切れの判定をクライアントで行わない。基本設計/02の禁止事項）。
 
-  重複の記録: client/games/detectives/src/StageTimer.svelte と同一である。抽出の判断は実装計画のPR-5で行う。
+  ステージ名と残り時間しか扱わずゲーム固有の概念を含まないため、共通コアに置く（不変条件4に触れない）。
+  何をラベルに出すかはゲームモジュールが決める。deadlineがundefinedのステージでは時間を出さない。
 -->
 <script lang="ts">
-  import { createServerClock, formatClock } from "@beb/client-core";
+  import { createServerClock, formatClock } from "../server-clock.svelte";
 
   interface Props {
     deadline: number | undefined;

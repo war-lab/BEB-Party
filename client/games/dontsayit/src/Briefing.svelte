@@ -2,10 +2,9 @@
 <script lang="ts">
   import type { Room } from "@beb/shared-core";
   import { ACTIONS, STAGES, type DontSayItPublic } from "@beb/shared-dontsayit";
-  import { faceColor, sendAction, ui } from "@beb/client-core";
+  import { faceColor, playerIconOf, sendAction, StageTimer, ui } from "@beb/client-core";
   import ScoreBoard from "./ScoreBoard.svelte";
   import StageGuide from "./StageGuide.svelte";
-  import StageTimer from "./StageTimer.svelte";
   import { stageLabels } from "./stage-labels";
 
   interface Props {
@@ -54,7 +53,9 @@
       {#each publicState.speakerOrder as playerId, index (playerId)}
         <li class:me={playerId === ui.myPlayerId}>
           <span class="no">{index + 1}</span>
-          <span class="face" style={`background:${faceColor(playerId)}`}></span>
+          <span class="face" style={`background:${faceColor(playerId)}`}>
+            <span aria-hidden="true">{playerIconOf(playerId)}</span>
+          </span>
           <span class="player">{nameOf(playerId)}</span>
         </li>
       {/each}

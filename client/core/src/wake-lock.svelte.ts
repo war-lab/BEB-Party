@@ -1,8 +1,8 @@
-// Screen Wake Lock API。説明タイム中のスリープを抑止する（基本設計/02）。
-//
-// 重複の記録: client/games/detectives/src/wake-lock.svelte.ts と同一の実装である。
-// 抽出の判断は実装計画のPR-5で行う。
+// Screen Wake Lock API。長い発話・議論のステージでスリープを抑止する（基本設計/02）。
 // 非対応ブラウザでは何もしない。例外を投げてはならない。
+//
+// ゲーム固有の概念を含まないため共通コアに置く（不変条件4に触れない）。
+// どのステージで取るかはゲームモジュールが決める。
 
 // 型定義はTypeScriptのDOMライブラリのバージョンに依存するため、必要な形だけを自前で持つ
 interface WakeLockSentinelLike {

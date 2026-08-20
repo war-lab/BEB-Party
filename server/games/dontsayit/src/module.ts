@@ -2,6 +2,7 @@
 //
 // すべて純粋関数として書く。storage・WebSocket・現在時刻・Math.random()に触らない（基本設計/05）。
 import type { ContentSummary, GameModule, GameTransition, Level, Player, Room, ValidationResult } from "@beb/shared-core";
+import { createRandom, shuffle } from "@beb/shared-core";
 import {
   ACTIONS,
   ERROR_CODES,
@@ -25,7 +26,6 @@ import {
   type ScoreEntry,
   type TabooSet,
 } from "@beb/shared-dontsayit";
-import { createRandom, shuffle } from "./rng";
 import { SETS, findSet, summarize } from "./sets";
 import { validateContent } from "./validate-content";
 

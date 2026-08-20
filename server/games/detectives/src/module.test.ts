@@ -1,6 +1,6 @@
 // DETECTIVESのGameModuleは純粋関数のため、Durable Objectなしで全項目をテストする（基本設計/08）
 import { describe, expect, it } from "vitest";
-import type { Level, Player, Room } from "@beb/shared-core";
+import { fallbackPlayerIconId, type Level, type Player, type Room } from "@beb/shared-core";
 import {
   RANDOM_CASE_ID,
   STAGES,
@@ -19,6 +19,7 @@ function makePlayers(levels: Level[]): Player[] {
     id: `p${index + 1}`,
     name: `Player${index + 1}`,
     level,
+    icon: fallbackPlayerIconId(`p${index + 1}`),
     connected: true,
     isHost: index === 0,
   }));

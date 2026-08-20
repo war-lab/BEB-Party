@@ -1,7 +1,7 @@
 <!-- ホーム。空色グラデ＋斜めスピードライン、丸ボタン2択（ビジュアルデザイン.mdのモック） -->
 <script lang="ts">
   import { untrack } from "svelte";
-  import type { Level } from "@beb/shared-core";
+  import { PLAYER_ICONS, type Level, type PlayerIconId } from "@beb/shared-core";
   import { connect } from "../connection";
 
   interface Props {
@@ -15,6 +15,8 @@
 
   let name = $state("");
   let level = $state<Level>(3);
+  // 初期選択はランダムにする。全員が同じ既定アイコンで入ると見分けがつかない
+  let icon = $state<PlayerIconId>(PLAYER_ICONS[Math.floor(Math.random() * PLAYER_ICONS.length)]!.id);
   // 初期表示のときだけ使う値であり、以後の変化は追わない
   let codeInput = $state(untrack(() => initialCode) ?? "");
   let creating = $state(false);
@@ -22,7 +24,7 @@
   let errorMessage = $state<string | null>(null);
 
   function enterRoom(code: string): void {
-    connect(code, name.trim() || "プレイヤー", level);
+    connect(code, name.trim() || "プレイヤー", level, icon);
     onEnter(code);
   }
 
@@ -74,6 +76,18 @@
           <span>Lv.{option}</span>
         </label>
       {/each}
+    </fieldset>
+
+    <fieldset class="icons">
+      <legend class="field-label">アイコン</legend>
+      <div class="icon-grid">
+        {#each PLAYER_ICONS as option (option.id)}
+          <label class="icon-chip" class:selected={icon === option.id} title={option.labelJa}>
+            <input type="radio" name="icon" value={option.id} bind:group={icon} aria-label={option.labelJa} />
+            <span aria-hidden="true">{option.emoji}</span>
+          </label>
+        {/each}
+      </div>
     </fieldset>
   </div>
 
@@ -225,6 +239,48 @@
     height: 0;
   }
   .level-chip:focus-within {
+    outline: var(--outline-width) solid var(--yellow);
+  }
+
+  .icons {
+    border: none;
+    margin: 0;
+    padding: 0;
+  }
+  .icons legend {
+    padding: 0;
+    margin-bottom: 0.25rem;
+  }
+
+  /* 30個を1画面に収める。行数を固定せず、幅に応じて折り返す */
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(2.1rem, 1fr));
+    gap: 0.3rem;
+  }
+
+  .icon-chip {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    font-size: 1.25rem;
+    line-height: 1;
+    background: var(--panel);
+    border: var(--outline-width) solid var(--ink);
+    border-radius: var(--radius-tile);
+    cursor: pointer;
+  }
+  .icon-chip.selected {
+    background: var(--yellow);
+    transform: scale(1.08);
+  }
+  .icon-chip input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .icon-chip:focus-within {
     outline: var(--outline-width) solid var(--yellow);
   }
 

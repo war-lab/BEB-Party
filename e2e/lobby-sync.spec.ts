@@ -1,7 +1,7 @@
 // 受入条件1: 6つのブラウザコンテキストを同時接続し、全員のロビーに6人が表示される
 // (M0完了条件そのもの。docs/実装計画/M0.md)
 import { test, expect } from "@playwright/test";
-import { openTable } from "./support/room";
+import { TEST_ICONS, openTable } from "./support/room";
 
 test("6 browser contexts sync to the same lobby state", async ({ browser, baseURL }) => {
   // 部屋作成はIPごとに5回/60秒。テストごとにIPを分ける（support/room.tsのclientIpHeaders）
@@ -24,6 +24,14 @@ test("6 browser contexts sync to the same lobby state", async ({ browser, baseUR
     await expect(dontSayIt.locator(".title-card-icon")).toHaveText("🤐");
     for (const page of table.pages) {
       await expect(page.locator(".roster .beb-tile:not(.empty)")).toHaveCount(6, { timeout: 10_000 });
+    }
+
+    // 各自が選んだアイコンは、サーバのstateを経由して全員の画面に同じ並びで出る
+    for (const page of table.pages) {
+      for (const [index, icon] of TEST_ICONS.entries()) {
+        const tile = page.locator(".roster .beb-tile", { hasText: `Player${index + 1}` });
+        await expect(tile.locator('[data-testid="participant-icon"]')).toHaveText(icon.emoji);
+      }
     }
   } finally {
     await table.close();

@@ -35,6 +35,22 @@ describe("parseClientMessage", () => {
     expect(parseClientMessage({ v: 1, type: "join", name: limit, level: 3 })).not.toBeNull();
   });
 
+  it("iconを指定したjoinを受理する", () => {
+    const result = parseClientMessage({ v: 1, type: "join", name: "Alice", level: 3, icon: "fox" });
+    expect(result).toMatchObject({ type: "join", icon: "fox" });
+  });
+
+  it("icon未指定のjoinを受理する（旧SPAのタブが再接続してくる経路。基本設計/03）", () => {
+    const result = parseClientMessage({ v: 1, type: "join", name: "Alice", level: 3 });
+    expect(result).toMatchObject({ type: "join" });
+    expect((result as { icon?: unknown }).icon).toBeUndefined();
+  });
+
+  it("一覧に無いiconを拒否する", () => {
+    expect(parseClientMessage({ v: 1, type: "join", name: "Alice", level: 3, icon: "dinosaur-king" })).toBeNull();
+    expect(parseClientMessage({ v: 1, type: "join", name: "Alice", level: 3, icon: 7 })).toBeNull();
+  });
+
   it("名前の前後の空白を落とす", () => {
     const result = parseClientMessage({ v: 1, type: "join", name: "  Alice  ", level: 3 });
     expect(result).toMatchObject({ name: "Alice" });

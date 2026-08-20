@@ -1,7 +1,8 @@
 // 配役と犯人バリアントの抽選（設計.mdの配役アルゴリズム、ADR-0007）。
 import type { Level, Player } from "@beb/shared-core";
+import { shuffle } from "@beb/shared-core";
 import type { Character, Variant } from "@beb/shared-detectives";
-import { pickWeighted, shuffle } from "./rng";
+import { pickWeighted } from "./rng";
 
 export interface CastMember {
   playerId: string;

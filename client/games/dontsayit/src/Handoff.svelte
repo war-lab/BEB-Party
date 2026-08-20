@@ -15,10 +15,9 @@
     type DontSayItSecret,
     type SpeakerSecret,
   } from "@beb/shared-dontsayit";
-  import { faceColor, sendAction, ui } from "@beb/client-core";
+  import { faceColor, playerIconOf, sendAction, StageTimer, ui } from "@beb/client-core";
   import ScoreBoard from "./ScoreBoard.svelte";
   import StageGuide from "./StageGuide.svelte";
-  import StageTimer from "./StageTimer.svelte";
   import SpeakerCutIn from "./SpeakerCutIn.svelte";
   import { stageLabels } from "./stage-labels";
 
@@ -56,7 +55,9 @@
     <h1 class="title">つぎの説明者</h1>
 
     <div class="tile" class:me={isSpeaker}>
-      <span class="face" style={`background:${faceColor(speakerId ?? "")}`}></span>
+      <span class="face" style={`background:${faceColor(speakerId ?? "")}`}>
+        <span aria-hidden="true">{playerIconOf(speakerId ?? "")}</span>
+      </span>
       <span class="name">{nameOf(speakerId)}</span>
     </div>
 

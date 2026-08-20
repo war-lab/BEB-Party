@@ -1,6 +1,6 @@
 <!-- 参加者タイル。格闘ゲームのキャラクターセレクトの文法（ビジュアルデザイン.md） -->
 <script lang="ts">
-  import type { Player } from "@beb/shared-core";
+  import { playerIconEmoji, type Player } from "@beb/shared-core";
   import { faceColor } from "../face-color";
 
   interface Props {
@@ -10,7 +10,9 @@
 </script>
 
 <div class="beb-tile" class:disconnected={!player.connected}>
-  <div class="face" style={`background:${faceColor(player.id)}`}></div>
+  <div class="face" style={`background:${faceColor(player.id)}`} data-testid="participant-icon">
+    <span aria-hidden="true">{playerIconEmoji(player.icon)}</span>
+  </div>
   <span class="tile-name">{player.name}</span>
   <span class="lv" aria-label={`レベル${player.level}`}>Lv.{player.level}</span>
   {#if player.isHost}

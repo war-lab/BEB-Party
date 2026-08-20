@@ -51,16 +51,40 @@ export async function readStateMessages(page: Page): Promise<string[]> {
   return page.evaluate(() => (window as unknown as { __states: string[] }).__states ?? []);
 }
 
-/** ホーム画面でなまえとレベルを入れる（レベルはチップ選択） */
-async function fillIdentity(page: Page, name: string, level: number): Promise<void> {
+/**
+ * 参加者に割り当てるアイコン。初期選択はランダムなので、テストでは明示的に選ぶ。
+ *
+ * 絵文字はshared/coreのPLAYER_ICONSの値をそのまま写している。
+ * 一覧を変えたときにここが落ちることで、意図しない変更に気づける。
+ */
+export const TEST_ICONS = [
+  { id: "cat", emoji: "🐱" },
+  { id: "dog", emoji: "🐶" },
+  { id: "fox", emoji: "🦊" },
+  { id: "bear", emoji: "🐻" },
+  { id: "panda", emoji: "🐼" },
+  { id: "rabbit", emoji: "🐰" },
+] as const;
+
+/** ホーム画面でなまえ・レベル・アイコンを入れる（レベルとアイコンはチップ選択） */
+async function fillIdentity(page: Page, name: string, level: number, iconId?: string): Promise<void> {
   await page.fill('input[placeholder="なまえ"]', name);
   await page.click(`.level-chip:has-text("Lv.${level}")`);
+  if (iconId) {
+    await page.click(`.icon-chip:has(input[value="${iconId}"])`);
+  }
 }
 
 /** 部屋を作ってロビーへ入る */
-export async function createRoom(page: Page, baseURL: string, name: string, level: number): Promise<void> {
+export async function createRoom(
+  page: Page,
+  baseURL: string,
+  name: string,
+  level: number,
+  iconId?: string,
+): Promise<void> {
   await page.goto(baseURL);
-  await fillIdentity(page, name, level);
+  await fillIdentity(page, name, level, iconId);
   await page.click("text=部屋を作る");
   await page.waitForSelector(".room-chip .code");
 }
@@ -72,9 +96,10 @@ export async function joinRoom(
   name: string,
   level: number,
   code: string,
+  iconId?: string,
 ): Promise<void> {
   await page.goto(baseURL);
-  await fillIdentity(page, name, level);
+  await fillIdentity(page, name, level, iconId);
   await page.click("text=部屋に参加する");
   await page.fill('input[placeholder="部屋コード"]', code);
   await page.click("text=参加する");
@@ -110,11 +135,19 @@ export async function openTable(
   }
 
   const host = pages[0]!;
-  await createRoom(host, baseURL, "Player1", levels[0]!);
+  // アイコンは参加順に割り当てる。初期選択がランダムなため、明示しないと表示が安定しない
+  await createRoom(host, baseURL, "Player1", levels[0]!, TEST_ICONS[0]!.id);
   const code = await readRoomCode(host);
 
   for (let index = 1; index < pages.length; index += 1) {
-    await joinRoom(pages[index]!, baseURL, `Player${index + 1}`, levels[index]!, code);
+    await joinRoom(
+      pages[index]!,
+      baseURL,
+      `Player${index + 1}`,
+      levels[index]!,
+      code,
+      TEST_ICONS[index % TEST_ICONS.length]!.id,
+    );
   }
 
   for (const page of pages) {

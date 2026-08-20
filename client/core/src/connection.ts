@@ -1,5 +1,13 @@
 // WebSocket接続管理: 再接続(指数バックオフ)・ハートビート・429処理（基本設計/02_クライアント.md）
-import { HEARTBEAT_PING, HEARTBEAT_PONG, PROTOCOL_VERSION, type Level, type ServerMessage } from "@beb/shared-core";
+import {
+  HEARTBEAT_PING,
+  HEARTBEAT_PONG,
+  PROTOCOL_VERSION,
+  isPlayerIconId,
+  type Level,
+  type PlayerIconId,
+  type ServerMessage,
+} from "@beb/shared-core";
 import { clearResult, setResult } from "./stores/result.svelte";
 import { clearSecret, setSecret } from "./stores/secret.svelte";
 import { clearServerState, setServerState } from "./stores/server-state.svelte";
@@ -24,7 +32,7 @@ let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
 let reconnectAttempt = 0;
 let hasOpenedOnce = false;
 let currentCode: string | null = null;
-let pendingJoin: { name: string; level: Level } | null = null;
+let pendingJoin: { name: string; level: Level; icon: PlayerIconId | undefined } | null = null;
 // 接続直後に送るメッセージ。ホスト画面は参加者ではなく観戦ソケットとして入る（基本設計/02）
 let entryMode: "join" | "spectate" = "join";
 let closedByClient = false;
@@ -43,17 +51,19 @@ function identityKey(code: string): string {
  * これが無い状態で自動接続すると、URLやQRから直接開いた人が
  * 名前もレベルも申告しないまま参加者として登録される
  */
-export function storedIdentity(code: string): { name: string; level: Level } | null {
+export function storedIdentity(code: string): { name: string; level: Level; icon: PlayerIconId | undefined } | null {
   const raw = sessionStorage.getItem(identityKey(code));
   if (!raw) {
     return null;
   }
   try {
-    const parsed = JSON.parse(raw) as { name?: unknown; level?: unknown };
+    const parsed = JSON.parse(raw) as { name?: unknown; level?: unknown; icon?: unknown };
     if (typeof parsed.name !== "string" || typeof parsed.level !== "number") {
       return null;
     }
-    return { name: parsed.name, level: parsed.level as Level };
+    // iconを持たない古いsessionStorageの値でも復帰できるようにする（サーバが既定値を割り当てる）
+    const icon = isPlayerIconId(parsed.icon) ? parsed.icon : undefined;
+    return { name: parsed.name, level: parsed.level as Level, icon };
   } catch {
     return null;
   }
@@ -72,10 +82,11 @@ function wsUrl(code: string): string {
   return `${protocol}//${location.host}/room/${code}/ws`;
 }
 
-export function connect(code: string, name: string, level: Level): void {
+/** iconのundefinedは「アイコン未選択のsessionStorageからの復帰」のみ。サーバが既定値を割り当てる */
+export function connect(code: string, name: string, level: Level, icon: PlayerIconId | undefined): void {
   currentCode = code;
-  pendingJoin = { name, level };
-  sessionStorage.setItem(identityKey(code), JSON.stringify({ name, level }));
+  pendingJoin = { name, level, icon };
+  sessionStorage.setItem(identityKey(code), JSON.stringify({ name, level, icon }));
   entryMode = "join";
   closedByClient = false;
   reconnectAttempt = 0;
@@ -204,6 +215,7 @@ function sendEntry(): void {
     type: "join",
     name: pendingJoin.name,
     level: pendingJoin.level,
+    ...(pendingJoin.icon ? { icon: pendingJoin.icon } : {}),
     ...(reconnectToken ? { reconnectToken } : {}),
   });
 }

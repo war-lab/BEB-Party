@@ -17,11 +17,9 @@
     type SpeakerSecret,
     type WatcherSecret,
   } from "@beb/shared-dontsayit";
-  import { faceColor, sendAction, ui } from "@beb/client-core";
+  import { acquireWakeLock, faceColor, playerIconOf, sendAction, StageTimer, ui } from "@beb/client-core";
   import StageGuide from "./StageGuide.svelte";
-  import StageTimer from "./StageTimer.svelte";
   import { stageLabels } from "./stage-labels";
-  import { acquireWakeLock } from "./wake-lock.svelte";
 
   interface Props {
     room: Room;
@@ -170,7 +168,9 @@
     {:else}
       <p class="listen">声を聞いてください</p>
       <div class="speaker-now">
-        <span class="face" style={`background:${faceColor(speakerId ?? "")}`}></span>
+        <span class="face" style={`background:${faceColor(speakerId ?? "")}`}>
+          <span aria-hidden="true">{playerIconOf(speakerId ?? "")}</span>
+        </span>
         <span class="name">{speakerId === undefined ? "" : nameOf(speakerId)}</span>
       </div>
       <ul class="prompts">

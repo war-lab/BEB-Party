@@ -2,6 +2,7 @@
 // プロトコルバージョンの一致判定(unsupported_versionの送出)はサーバ側の責務とする
 import type { Level } from "./types";
 import type { ClientMessage } from "./protocol";
+import { isPlayerIconId } from "./player-icon";
 
 function isLevel(value: unknown): value is Level {
   return value === 1 || value === 2 || value === 3 || value === 4 || value === 5;
@@ -46,10 +47,22 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
       if (!isValidName(raw.name) || !isLevel(raw.level)) {
         return null;
       }
+      // 未指定は受理する（旧SPAの互換）。指定があるなら一覧に無いIDは弾く
+      const icon = raw.icon;
+      if (icon !== undefined && !isPlayerIconId(icon)) {
+        return null;
+      }
       if (raw.reconnectToken !== undefined && typeof raw.reconnectToken !== "string") {
         return null;
       }
-      return { v, type: "join", name: raw.name.trim(), level: raw.level, reconnectToken: raw.reconnectToken };
+      return {
+        v,
+        type: "join",
+        name: raw.name.trim(),
+        level: raw.level,
+        icon,
+        reconnectToken: raw.reconnectToken,
+      };
     }
     case "spectate": {
       return { v, type: "spectate" };

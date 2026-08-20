@@ -2,10 +2,9 @@
 <script lang="ts">
   import type { Room } from "@beb/shared-core";
   import { ACTIONS, STAGES, type DetectivesPublic, type DetectivesSecret } from "@beb/shared-detectives";
-  import { faceColor, sendAction, ui } from "@beb/client-core";
+  import { faceColor, playerIconOf, sendAction, StageTimer, ui } from "@beb/client-core";
   import RoleCutIn from "./RoleCutIn.svelte";
   import StageGuide from "./StageGuide.svelte";
-  import StageTimer from "./StageTimer.svelte";
   import { stageLabels } from "./stage-labels";
 
   interface Props {
@@ -49,7 +48,9 @@
     <ul class="cast">
       {#each publicState.cast as entry (entry.playerId)}
         <li class:me={entry.playerId === ui.myPlayerId}>
-          <span class="face" style={`background:${faceColor(entry.playerId)}`}></span>
+          <span class="face" style={`background:${faceColor(entry.playerId)}`}>
+            <span aria-hidden="true">{playerIconOf(entry.playerId)}</span>
+          </span>
           <span class="player">{nameOf(entry.playerId)}</span>
           <span class="character">{entry.characterName}</span>
         </li>

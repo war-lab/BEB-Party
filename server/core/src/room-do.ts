@@ -4,6 +4,7 @@ import {
   HEARTBEAT_PING,
   HEARTBEAT_PONG,
   PROTOCOL_VERSION,
+  fallbackPlayerIconId,
   parseClientMessage,
   type ActionMessage,
   type ConfigureMessage,
@@ -265,6 +266,8 @@ export class RoomDO extends DurableObject<Env> {
       id: playerId,
       name: message.name,
       level: message.level,
+      // 旧SPAはiconを送らない。全員が同じ見た目になるのを避けるため、playerIdから決まる値を割り当てる
+      icon: message.icon ?? fallbackPlayerIconId(playerId),
       connected: true,
       isHost: room.players.length === 0,
     };
