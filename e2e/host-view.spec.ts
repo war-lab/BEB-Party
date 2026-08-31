@@ -4,7 +4,7 @@
 // - secretが届かない
 // - タイマーが実際に減る（サーバ時刻の補正で止まらないこと）
 import { test, expect, type Page } from "@playwright/test";
-import { clientIpHeaders, openTable, readyAll, startGame } from "./support/room";
+import { clientIpHeaders, gotoWithRetry, openTable, readyAll, startGame } from "./support/room";
 
 /** WebSocketで受けたメッセージのtypeを記録する。secretの非受信を確かめるために使う */
 async function recordMessageTypes(page: Page): Promise<void> {
@@ -102,7 +102,7 @@ test("部屋コードを含まない ?mode=host は通常のホーム導線に�
   const page = await context.newPage();
 
   try {
-    await page.goto(`${baseURL}/?mode=host`);
+    await gotoWithRetry(page, `${baseURL}/?mode=host`);
     await expect(page.locator('input[placeholder="なまえ"]')).toBeVisible();
 
     await page.fill('input[placeholder="なまえ"]', "Player1");
@@ -132,7 +132,7 @@ test("3枚目のホスト画面はspectator_limitで理由を出し、再接続�
     const screens = [];
     for (let index = 0; index < 2; index += 1) {
       const page = await context.newPage();
-      await page.goto(`${baseURL}/room/${code}?mode=host`);
+      await gotoWithRetry(page, `${baseURL}/room/${code}?mode=host`);
       await expect(page.locator("[data-testid='host-stage']")).toBeVisible({ timeout: 10_000 });
       screens.push(page);
     }

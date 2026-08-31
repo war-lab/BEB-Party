@@ -1,0 +1,88 @@
+<!--
+  得点表。目標の確認・開示の2画面で使う。
+  順位はサーバが並べた順（結果）か、その場の点数順（進行中）で描くだけとする。
+
+  重複の記録: client/games/dontsayit/src/ScoreBoard.svelte とimport元以外が同一である。
+  ゲーム固有の語彙を持たないため共通コアへ上げられるが、3つ目のコピーが出た時点で判断する（ADR-0020）。
+-->
+<script lang="ts">
+  import type { Room } from "@beb/shared-core";
+  import { pointsOf, type ScoreEntry } from "@beb/shared-ranking";
+  import { faceColor, playerIconOf, ui } from "@beb/client-core";
+
+  interface Props {
+    room: Room;
+    scores: ScoreEntry[];
+    /** 1位だけを大きく出す（結果画面） */
+    highlightTop?: boolean;
+  }
+  let { room, scores, highlightTop = false }: Props = $props();
+
+  const ranked = $derived([...scores].sort((a, b) => b.points - a.points));
+
+  function nameOf(playerId: string): string {
+    return room.players.find((player) => player.id === playerId)?.name ?? playerId;
+  }
+</script>
+
+<ul class="scores" data-testid="score-board">
+  {#each ranked as entry, index (entry.playerId)}
+    <li class:me={entry.playerId === ui.myPlayerId} class:top={highlightTop && index === 0}>
+      <span class="rank">{index + 1}</span>
+      <span class="face" style={`background:${faceColor(entry.playerId)}`}>
+        <span aria-hidden="true">{playerIconOf(entry.playerId)}</span>
+      </span>
+      <span class="name">{nameOf(entry.playerId)}</span>
+      <span class="points">{pointsOf(scores, entry.playerId)}</span>
+    </li>
+  {/each}
+</ul>
+
+<style>
+  .scores {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .scores li {
+    display: grid;
+    grid-template-columns: 1.2rem 1.4rem 1fr auto;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--ground-2);
+    border: 2px solid rgba(255, 255, 255, 0.14);
+    border-radius: var(--radius-tile);
+    padding: 0.3rem 0.6rem;
+    font-size: 0.82rem;
+  }
+  .scores li.me {
+    border-color: var(--yellow);
+  }
+  .scores li.top {
+    padding: 0.6rem;
+  }
+  .scores li.top .name,
+  .scores li.top .points {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+  }
+  .rank {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    color: var(--yellow);
+    font-variant-numeric: tabular-nums;
+  }
+  .face {
+    display: block;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.3);
+  }
+  .points {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+</style>

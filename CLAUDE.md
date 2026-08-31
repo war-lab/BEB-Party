@@ -1,7 +1,7 @@
 # BEB Party
 
 同室の5〜6人が遊ぶ**英語パーティゲーム集**のWebアプリ。
-1つの部屋基盤に複数ゲームを載せる。収録済みは英語推理ゲーム「ENGLISH DETECTIVES」（人狼型）と、禁止語を避けて人物を説明する「DON'T SAY IT」の2本。
+1つの部屋基盤に複数ゲームを載せる。収録済みは英語推理ゲーム「ENGLISH DETECTIVES」（人狼型）、禁止語を避けて人物を説明する「DON'T SAY IT」、秘密の目標を抱えて順位を議論する「ENGLISH RANKING」の3本。
 スマホブラウザSPA + Cloudflare Workers + Durable Objects。運用費¥0が絶対条件。
 
 ## 最初に読むもの
