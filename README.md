@@ -56,7 +56,7 @@ M3の次に、収録計画のP2の先頭として3本目の **ENGLISH RANKING** 
 DETECTIVESは6人プレイで1事件を完走して市民勝率を記録する（[docs/実装計画/M2.md](docs/実装計画/M2.md)）。
 DON'T SAY ITは人物の知名度・所要時間・得点分布が未実測である。
 ENGLISH RANKINGは所要時間・得点分布・議論が英語で成立するかが未実測である（[docs/既知の課題.md](docs/既知の課題.md)）。
-本番は `main` へのマージでCIがデプロイする。2026-08-18にDETECTIVESをリリース済みで、DON'T SAY ITはまだ `dev` にある（[docs/開発ガイド.md](docs/開発ガイド.md) の実プレイ前のリリース手順）。
+本番は `main` へのマージでCIがデプロイする。2026-08-18にDETECTIVES、2026-08-20にDON'T SAY IT、2026-08-31にENGLISH RANKINGをリリースした（[docs/開発ガイド.md](docs/開発ガイド.md) の実プレイ前のリリース手順）。
 
 卓の共有画面（`/room/:code?mode=host`）は、ステージ名・残り時間・参加者だけを大きく出す読み取り専用モードとして実装済みである（[docs/基本設計/02_クライアント.md](docs/基本設計/02_クライアント.md)）。
 未解消の課題は [docs/既知の課題.md](docs/既知の課題.md) にまとめている。
