@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { PLAYER_ICONS, fallbackPlayerIconId, isPlayerIconId, playerIconLabel } from "./player-icon";
+import { PLAYER_ICONS, fallbackPlayerIconId, isPlayerIconId, playerIconEmoji } from "./player-icon";
 
 describe("プレイヤーアイコン", () => {
-  it("選択肢は30件で、IDと名称が重複しない", () => {
+  it("選択肢は30件で、IDと絵文字が重複しない", () => {
     expect(PLAYER_ICONS).toHaveLength(30);
     expect(new Set(PLAYER_ICONS.map((icon) => icon.id)).size).toBe(30);
-    expect(new Set(PLAYER_ICONS.map((icon) => icon.labelJa)).size).toBe(30);
+    expect(new Set(PLAYER_ICONS.map((icon) => icon.emoji)).size).toBe(30);
   });
 
   it("IDは英小文字とハイフンのみとする（stateとURLに載せても壊れない形に限る）", () => {
@@ -31,8 +31,8 @@ describe("プレイヤーアイコン", () => {
     expect(fallbackPlayerIconId("p1")).toBe(fallbackPlayerIconId("p1"));
   });
 
-  it("未知のIDでも名称を返す（読み上げを欠落させない）", () => {
-    expect(playerIconLabel("fox")).toBe("きつね");
-    expect(playerIconLabel("unknown-id")).toBe(PLAYER_ICONS[0].labelJa);
+  it("未知のIDでも絵文字を返す（表示を欠落させない）", () => {
+    expect(playerIconEmoji("fox")).toBe("🦊");
+    expect(playerIconEmoji("unknown-id")).toBe(PLAYER_ICONS[0].emoji);
   });
 });

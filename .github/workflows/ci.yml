@@ -65,14 +65,6 @@ jobs:
           pnpm --filter @beb/server-dontsayit run generate:sets
           git diff --exit-code -- server/games/dontsayit/src/sets.generated.ts
 
-      - name: プレイヤーアイコンの再生成と差分チェック
-        # 生成物(client/public/player-icons/*.png)はコミットする。
-        # 絵の正本はicons-source/player-icons-art.mjsの描画コードであり、
-        # そこを直して再生成を忘れると画面と正本が食い違う（ADR-0022）
-        run: |
-          pnpm --filter @beb/client-app run icons:generate
-          git diff --exit-code -- client/public/player-icons
-
       - name: フォントサブセットの再生成と差分チェック
         # 生成物(client/public/fonts/*.subset.woff2)はコミットする。事件追加PRで再生成を
         # 忘れると差分が残り、このステップが失敗する（04_事件データと検証.md、07）

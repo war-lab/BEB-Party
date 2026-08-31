@@ -1,12 +1,14 @@
 // プレイヤーアイコンの正本。ゲーム固有の概念を持たないため共通コアに置く（不変条件4、ADR-0009）
 //
-// プロトコルと `state` に載るのはID（`PlayerIconId`）だけであり、見た目は載せない。
-// 画像はIDから引く（`client/public/player-icons/<id>.png`）。
-// 見た目を差し替える場合も、変わるのはクライアントの表示層だけで済む（ADR-0022）。
+// プロトコルと `state` に載るのはID（`PlayerIconId`）だけであり、絵文字は載せない。
+// 絵文字は表示のための対応表であって、アイコンの同一性はIDが持つ。
+// アイコンを生成画像に差し替える場合も、変わるのはクライアントの表示層だけで済む（ADR-0022）。
 
-/** アイコン1件の定義。`labelJa` を読むのはクライアントのみ */
+/** アイコン1件の定義。`emoji` と `labelJa` を読むのはクライアントのみ */
 export interface PlayerIconDefinition {
   id: string;
+  /** 表示に使う絵文字。サーバはこの値を扱わない */
+  emoji: string;
   /** 読み上げ・ツールチップ用の名称 */
   labelJa: string;
 }
@@ -16,39 +18,39 @@ export interface PlayerIconDefinition {
  *
  * 5〜6人の部屋で重複を避けられ、かつスマホの1画面に収まる数を上限とした。
  * 並び順は選択画面の表示順であり、IDは並び順に依存しない。
- * 人物・動物・その他の順に並べ、同じ系統が隣に来るようにする。
+ * 絵文字は端末のシステムフォントで描かれるため、収録が古く描画が安定しているものを選ぶ。
  */
 export const PLAYER_ICONS = [
-  { id: "dark-hair", labelJa: "くろかみ" },
-  { id: "smile", labelJa: "えがお" },
-  { id: "glasses", labelJa: "めがね" },
-  { id: "sunglasses", labelJa: "サングラス" },
-  { id: "red-cap", labelJa: "あかいキャップ" },
-  { id: "beanie", labelJa: "ニットぼう" },
-  { id: "headphones", labelJa: "ヘッドホン" },
-  { id: "mustache", labelJa: "ひげ" },
-  { id: "spiky", labelJa: "ツンツンあたま" },
-  { id: "bob", labelJa: "ボブ" },
-  { id: "purple-cap", labelJa: "むらさきキャップ" },
-  { id: "short-hair", labelJa: "ショートヘア" },
-  { id: "cat", labelJa: "ねこ" },
-  { id: "dog", labelJa: "いぬ" },
-  { id: "rabbit", labelJa: "うさぎ" },
-  { id: "bear", labelJa: "くま" },
-  { id: "frog", labelJa: "かえる" },
-  { id: "penguin", labelJa: "ペンギン" },
-  { id: "owl", labelJa: "ふくろう" },
-  { id: "fox", labelJa: "きつね" },
-  { id: "pig", labelJa: "ぶた" },
-  { id: "hamster", labelJa: "ハムスター" },
-  { id: "blob", labelJa: "ぷにぷに" },
-  { id: "ghost", labelJa: "おばけ" },
-  { id: "robot", labelJa: "ロボット" },
-  { id: "alien", labelJa: "うちゅうじん" },
-  { id: "dragon", labelJa: "ドラゴン" },
-  { id: "crown", labelJa: "おうかん" },
-  { id: "book", labelJa: "ほん" },
-  { id: "dice", labelJa: "サイコロ" },
+  { id: "cat", emoji: "🐱", labelJa: "ねこ" },
+  { id: "dog", emoji: "🐶", labelJa: "いぬ" },
+  { id: "fox", emoji: "🦊", labelJa: "きつね" },
+  { id: "bear", emoji: "🐻", labelJa: "くま" },
+  { id: "panda", emoji: "🐼", labelJa: "パンダ" },
+  { id: "rabbit", emoji: "🐰", labelJa: "うさぎ" },
+  { id: "hamster", emoji: "🐹", labelJa: "ハムスター" },
+  { id: "mouse", emoji: "🐭", labelJa: "ねずみ" },
+  { id: "tiger", emoji: "🐯", labelJa: "とら" },
+  { id: "lion", emoji: "🦁", labelJa: "ライオン" },
+  { id: "pig", emoji: "🐷", labelJa: "ぶた" },
+  { id: "cow", emoji: "🐮", labelJa: "うし" },
+  { id: "monkey", emoji: "🐵", labelJa: "さる" },
+  { id: "koala", emoji: "🐨", labelJa: "コアラ" },
+  { id: "frog", emoji: "🐸", labelJa: "かえる" },
+  { id: "chick", emoji: "🐤", labelJa: "ひよこ" },
+  { id: "penguin", emoji: "🐧", labelJa: "ペンギン" },
+  { id: "owl", emoji: "🦉", labelJa: "ふくろう" },
+  { id: "unicorn", emoji: "🦄", labelJa: "ユニコーン" },
+  { id: "dragon", emoji: "🐲", labelJa: "ドラゴン" },
+  { id: "octopus", emoji: "🐙", labelJa: "たこ" },
+  { id: "whale", emoji: "🐳", labelJa: "くじら" },
+  { id: "dolphin", emoji: "🐬", labelJa: "いるか" },
+  { id: "crab", emoji: "🦀", labelJa: "かに" },
+  { id: "bee", emoji: "🐝", labelJa: "はち" },
+  { id: "butterfly", emoji: "🦋", labelJa: "ちょう" },
+  { id: "dinosaur", emoji: "🦖", labelJa: "きょうりゅう" },
+  { id: "robot", emoji: "🤖", labelJa: "ロボット" },
+  { id: "alien", emoji: "👽", labelJa: "うちゅうじん" },
+  { id: "ghost", emoji: "👻", labelJa: "おばけ" },
 ] as const satisfies readonly PlayerIconDefinition[];
 
 /** 一覧に載っているIDのみを受理する。未知の値は `join` を不正として弾く（基本設計/03） */
@@ -72,7 +74,7 @@ export function fallbackPlayerIconId(seed: string): PlayerIconId {
   return PLAYER_ICONS[hash % PLAYER_ICONS.length]!.id;
 }
 
-/** IDから読み上げ用の名称を引く。未知のIDは一覧の先頭にフォールバックする */
-export function playerIconLabel(iconId: string): string {
-  return (PLAYER_ICONS.find((icon) => icon.id === iconId) ?? PLAYER_ICONS[0]).labelJa;
+/** IDから絵文字を引く。未知のIDは一覧の先頭にフォールバックする（表示を欠落させない） */
+export function playerIconEmoji(iconId: string): string {
+  return (PLAYER_ICONS.find((icon) => icon.id === iconId) ?? PLAYER_ICONS[0]).emoji;
 }

@@ -5,8 +5,8 @@
 -->
 <script lang="ts">
   import { serverState } from "../stores/server-state.svelte";
+  import { playerIconEmoji } from "@beb/shared-core";
   import { faceColor } from "../face-color";
-  import { playerIconImage } from "../player-icon";
   import { createServerClock, formatClock } from "../server-clock.svelte";
 
   interface Props {
@@ -69,9 +69,7 @@
     {#each room?.players ?? [] as player (player.id)}
       <div class="tile" class:disconnected={!player.connected}>
         <span class="face" style={`background:${faceColor(player.id)}`}>
-          {#if playerIconImage(player.icon)}
-            <img src={playerIconImage(player.icon)!.src} alt="" />
-          {/if}
+          <span aria-hidden="true">{playerIconEmoji(player.icon)}</span>
         </span>
         <span class="name">{player.name}</span>
         <span class="lv">Lv.{player.level}</span>
@@ -166,6 +164,8 @@
     opacity: 0.55;
   }
   .face {
+    /* 大画面向けに絵文字も円と一緒に拡大する */
+    font-size: clamp(1.1rem, 2.4vw, 2.4rem);
     width: clamp(2rem, 4vw, 4rem);
     height: clamp(2rem, 4vw, 4rem);
     border-radius: 50%;
