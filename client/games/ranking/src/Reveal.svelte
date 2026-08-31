@@ -79,9 +79,7 @@
           {#each latest.goals as entry (entry.playerId)}
             <li class:achieved={entry.achieved}>
               <span class="face" style={`background:${faceColor(entry.playerId)}`}>
-                {#if playerIconOf(entry.playerId)}
-                  <img src={playerIconOf(entry.playerId)!.src} alt="" />
-                {/if}
+                <span aria-hidden="true">{playerIconOf(entry.playerId)}</span>
               </span>
               <span class="text">
                 <span class="name">{nameOf(entry.playerId)}</span>
@@ -196,12 +194,6 @@
     height: 1.5rem;
     border-radius: 50%;
     border: 2px solid rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-  }
-  .face img {
-    width: 100%;
-    height: 100%;
-    display: block;
   }
   .text {
     display: grid;

@@ -56,9 +56,7 @@
 
     <div class="tile" class:me={isSpeaker}>
       <span class="face" style={`background:${faceColor(speakerId ?? "")}`}>
-        {#if playerIconOf(speakerId ?? "")}
-          <img src={playerIconOf(speakerId ?? "")!.src} alt="" />
-        {/if}
+        <span aria-hidden="true">{playerIconOf(speakerId ?? "")}</span>
       </span>
       <span class="name">{nameOf(speakerId)}</span>
     </div>

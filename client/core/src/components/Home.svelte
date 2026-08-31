@@ -3,7 +3,6 @@
   import { untrack } from "svelte";
   import { PLAYER_ICONS, type Level, type PlayerIconId } from "@beb/shared-core";
   import { connect } from "../connection";
-  import { playerIconImage } from "../player-icon";
 
   interface Props {
     onEnter: (code: string) => void;
@@ -85,7 +84,7 @@
         {#each PLAYER_ICONS as option (option.id)}
           <label class="icon-chip" class:selected={icon === option.id} title={option.labelJa}>
             <input type="radio" name="icon" value={option.id} bind:group={icon} aria-label={option.labelJa} />
-            <img src={playerIconImage(option.id)!.src} alt="" />
+            <span aria-hidden="true">{option.emoji}</span>
           </label>
         {/each}
       </div>
@@ -264,7 +263,8 @@
     display: grid;
     place-items: center;
     aspect-ratio: 1;
-    padding: 0.1rem;
+    font-size: 1.25rem;
+    line-height: 1;
     background: var(--panel);
     border: var(--outline-width) solid var(--ink);
     border-radius: var(--radius-tile);
@@ -273,11 +273,6 @@
   .icon-chip.selected {
     background: var(--yellow);
     transform: scale(1.08);
-  }
-  .icon-chip img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
   }
   .icon-chip input {
     position: absolute;

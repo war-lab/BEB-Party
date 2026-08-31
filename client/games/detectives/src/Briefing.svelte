@@ -49,9 +49,7 @@
       {#each publicState.cast as entry (entry.playerId)}
         <li class:me={entry.playerId === ui.myPlayerId}>
           <span class="face" style={`background:${faceColor(entry.playerId)}`}>
-            {#if playerIconOf(entry.playerId)}
-              <img src={playerIconOf(entry.playerId)!.src} alt="" />
-            {/if}
+            <span aria-hidden="true">{playerIconOf(entry.playerId)}</span>
           </span>
           <span class="player">{nameOf(entry.playerId)}</span>
           <span class="character">{entry.characterName}</span>

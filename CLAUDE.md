@@ -47,7 +47,6 @@
 | --- | --- |
 | `pnpm --filter @beb/server-detectives run generate:cases` | 事件インデックス（`cases.generated.ts`）の生成 |
 | `pnpm --filter @beb/client-app run fonts:generate` | フォントサブセットの生成 |
-| `pnpm --filter @beb/client-app run icons:generate` | プレイヤーアイコン（96×96 PNG）の生成 |
 
 ## Definition of Done
 
