@@ -4,7 +4,8 @@
   そのラウンドの提出を作者付きで並べ、得点表を出す（ビジュアルデザイン.mdの演出プリミティブ）。
 
   最終ラウンドではサーバが result を返して部屋が finished になる。
-  そのときだけ得点表の1位を大きく出し、ロビーへ戻る導線を置く。
+  そのときだけ得点表の1位を大きく出し、ホストにロビーへ戻る導線を置く。
+  戻す操作は nextGame の送信だけとする。切断はしない（部屋に残ったまま次のゲームを選ぶ）。
 -->
 <script lang="ts">
   import { faceColor, playerIconOf, sendAction, sendCommon, StageTimer, ui } from "@beb/client-core";
@@ -24,9 +25,8 @@
     room: Room;
     publicState: WhoWroteThisPublic;
     result: WhoWroteThisResult | null;
-    onLeave: () => void;
   }
-  let { room, publicState, result, onLeave }: Props = $props();
+  let { room, publicState, result }: Props = $props();
 
   const isFinished = $derived(room.lifecycle === "finished" && result !== null);
   const rounds = $derived<RoundRecord[]>(result?.rounds ?? publicState.rounds);
@@ -37,6 +37,7 @@
     `${Math.min(publicState.roundIndex + 1, publicState.totalRounds)} / ${publicState.totalRounds}`,
   );
   const isReady = $derived(ui.myPlayerId !== null && publicState.readyPlayerIds.includes(ui.myPlayerId));
+  const isHost = $derived(room.players.some((player) => player.id === ui.myPlayerId && player.isHost));
 
   function nameOf(playerId: string): string {
     return room.players.find((player) => player.id === playerId)?.name ?? playerId;
@@ -52,8 +53,8 @@
   }
 
   function backToLobby(): void {
+    // nextGameだけを送る。切断すると自分が部屋から出てしまう（DETECTIVES・DON'T SAY ITと同じ扱い）
     sendCommon({ type: "nextGame" });
-    onLeave();
   }
 </script>
 
@@ -96,9 +97,13 @@
     {/each}
 
     {#if isFinished}
-      <button class="beb-btn yellow" onclick={backToLobby} data-testid="back-to-lobby">
-        <span>ロビーへ戻る</span>
-      </button>
+      {#if isHost}
+        <button class="beb-btn yellow" onclick={backToLobby} data-testid="back-to-lobby">
+          <span>ロビーへ戻る</span>
+        </button>
+      {:else}
+        <p class="count" data-testid="waiting-host">ホストがロビーへ戻します。</p>
+      {/if}
     {:else}
       <p class="count" data-testid="ready-count">
         つづき {publicState.readyPlayerIds.length} / {room.players.filter((player) => player.connected).length}

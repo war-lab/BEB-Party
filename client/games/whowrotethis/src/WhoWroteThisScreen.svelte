@@ -19,9 +19,10 @@
 
   interface Props {
     room: Room;
-    onLeave: () => void;
+    /** 共通コアが渡す退出処理。結果画面はnextGameで部屋に残るため使わない */
+    onLeave?: () => void;
   }
-  let { room, onLeave }: Props = $props();
+  let { room }: Props = $props();
 
   // サーバ権威。受信済みスナップショットを描くだけで、クライアントで組み立て直さない
   const publicState = $derived(room.gameState as WhoWroteThisPublic | undefined);
@@ -40,7 +41,7 @@
 {:else if room.stage === STAGES.judging}
   <Judging {room} {publicState} />
 {:else if room.stage === STAGES.reveal}
-  <Reveal {room} {publicState} {result} {onLeave} />
+  <Reveal {room} {publicState} {result} />
 {:else}
   <main class="waiting"><p>しばらくお待ちください…</p></main>
 {/if}

@@ -1,0 +1,134 @@
+{
+  "id": "daily",
+  "title": "日常",
+  "keyExpressions": [
+    { "en": "This sounds like Ken.", "ja": "これはKenっぽい" },
+    { "en": "It is too polite for him.", "ja": "彼にしては丁寧すぎる" },
+    { "en": "Who uses this word?", "ja": "こんな単語を使うのは誰？" },
+    { "en": "He never writes a long sentence.", "ja": "彼は長い文を書かない" },
+    { "en": "I think she wrote it.", "ja": "彼女が書いたと思う" },
+    { "en": "Why do you think so?", "ja": "なぜそう思う？" }
+  ],
+  "questions": [
+    {
+      "id": "q_last_meal",
+      "en": "What would you eat for your last meal?",
+      "ja": "最後の食事に何を食べる？",
+      "hintEn": [
+        "I would eat ... with rice.",
+        "My last meal is ... because it is warm.",
+        "I want to eat ... at home."
+      ]
+    },
+    {
+      "id": "q_museum",
+      "en": "What would you take home from a museum?",
+      "ja": "美術館から何を持ち帰る？",
+      "hintEn": [
+        "I would take the ... home.",
+        "The ... is small enough to carry.",
+        "I want the old ... on the wall."
+      ]
+    },
+    {
+      "id": "q_monday",
+      "en": "What makes Monday morning better?",
+      "ja": "月曜の朝を良くするものは？",
+      "hintEn": [
+        "Hot coffee makes Monday better.",
+        "I need a long shower first.",
+        "Monday is fine if I sleep well."
+      ]
+    },
+    {
+      "id": "q_superpower",
+      "en": "What small superpower do you want?",
+      "ja": "どんなささやかな超能力が欲しい？",
+      "hintEn": [
+        "I want to sleep for one minute.",
+        "I want to find my keys.",
+        "I want to stop the rain."
+      ]
+    },
+    {
+      "id": "q_lie",
+      "en": "What is a lie everyone tells at work?",
+      "ja": "職場でみんなが言う嘘は？",
+      "hintEn": [
+        "Everyone says I am almost done.",
+        "People say they read the email.",
+        "We all say the meeting was useful."
+      ]
+    },
+    {
+      "id": "q_desert_island",
+      "en": "What one thing do you take to an island?",
+      "ja": "島にひとつだけ持っていくものは？",
+      "hintEn": [
+        "I take a big knife with me.",
+        "I bring a book and read it again.",
+        "I want a pot to boil water."
+      ]
+    },
+    {
+      "id": "q_never_again",
+      "en": "What will you never do again?",
+      "ja": "もう二度としないことは？",
+      "hintEn": [
+        "I will never run in the rain.",
+        "I never eat that much again.",
+        "I will not sing in front of people."
+      ]
+    },
+    {
+      "id": "q_time_machine",
+      "en": "Where would you go with a time machine?",
+      "ja": "タイムマシンでどこへ行く？",
+      "hintEn": [
+        "I go back to last Friday.",
+        "I want to see the old city.",
+        "I would visit my school again."
+      ]
+    },
+    {
+      "id": "q_bad_advice",
+      "en": "What is the worst advice you have heard?",
+      "ja": "聞いた中で一番ひどい助言は？",
+      "hintEn": [
+        "Someone said just be yourself.",
+        "They told me to sleep less.",
+        "My friend said money is nothing."
+      ]
+    },
+    {
+      "id": "q_house_rule",
+      "en": "What rule would you set in your house?",
+      "ja": "自分の家にどんな決まりを作る？",
+      "hintEn": [
+        "No phones at the table.",
+        "Everyone cooks on Sunday.",
+        "We do not talk before coffee."
+      ]
+    },
+    {
+      "id": "q_lost_item",
+      "en": "What do you lose most often?",
+      "ja": "一番よく失くすものは？",
+      "hintEn": [
+        "I lose my pen every week.",
+        "I always lose one glove.",
+        "My keys are never in my bag."
+      ]
+    },
+    {
+      "id": "q_free_day",
+      "en": "How do you spend a free Sunday?",
+      "ja": "何もない日曜をどう過ごす？",
+      "hintEn": [
+        "I walk in the park alone.",
+        "I sleep until noon and eat.",
+        "I clean my room and read."
+      ]
+    }
+  ]
+}
