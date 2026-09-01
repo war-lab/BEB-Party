@@ -25,8 +25,10 @@
     room: Room;
     publicState: WhoWroteThisPublic;
     result: WhoWroteThisResult | null;
+    /** 部屋から出る。ロビーへ戻す操作とは別である（08・09と同じ扱い） */
+    onLeave: () => void;
   }
-  let { room, publicState, result }: Props = $props();
+  let { room, publicState, result, onLeave }: Props = $props();
 
   const isFinished = $derived(room.lifecycle === "finished" && result !== null);
   const rounds = $derived<RoundRecord[]>(result?.rounds ?? publicState.rounds);
@@ -104,6 +106,7 @@
       {:else}
         <p class="count" data-testid="waiting-host">ホストがロビーへ戻します。</p>
       {/if}
+      <button class="beb-btn ghost leave" onclick={onLeave} data-testid="leave-room"><span>部屋を出る</span></button>
     {:else}
       <p class="count" data-testid="ready-count">
         つづき {publicState.readyPlayerIds.length} / {room.players.filter((player) => player.connected).length}
@@ -197,6 +200,9 @@
     margin: 0;
     font-size: 0.8rem;
     color: var(--mist);
+  }
+  .leave {
+    margin-top: 0.5rem;
   }
   .count {
     margin: 0 0 0.5rem;
