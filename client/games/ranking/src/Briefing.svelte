@@ -7,9 +7,8 @@
 <script lang="ts">
   import type { Room } from "@beb/shared-core";
   import { ACTIONS, STAGES, type RankingPublic, type RankingSecret } from "@beb/shared-ranking";
-  import { sendAction, StageTimer, ui } from "@beb/client-core";
+  import { ScoreBoard, sendAction, StageTimer, ui } from "@beb/client-core";
   import GoalCutIn from "./GoalCutIn.svelte";
-  import ScoreBoard from "./ScoreBoard.svelte";
   import StageGuide from "./StageGuide.svelte";
   import { stageLabels } from "./stage-labels";
 

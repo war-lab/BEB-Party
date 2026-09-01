@@ -3,6 +3,9 @@ export { default as App } from "./App.svelte";
 export { default as SecretCover } from "./components/SecretCover.svelte";
 // 上部固定のタイマーバー。ステージ名と残り時間だけを描く（基本設計/02）
 export { default as StageTimer } from "./components/StageTimer.svelte";
+
+export { default as ScoreBoard } from "./components/ScoreBoard.svelte";
+export type { ScoreEntry } from "./score-entry";
 // 長い発話・議論のステージでスリープを抑止する（基本設計/02）
 export { acquireWakeLock } from "./wake-lock.svelte";
 export { connect, disconnect, sendAction, sendCommon } from "./connection";

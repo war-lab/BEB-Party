@@ -5,10 +5,9 @@
   「かくにんした」でreadyを送る。全員が揃うか締切に達すると英作文へ進む。判定はサーバが行う。
 -->
 <script lang="ts">
-  import { sendAction, StageTimer, ui } from "@beb/client-core";
+  import { ScoreBoard, sendAction, StageTimer, ui } from "@beb/client-core";
   import type { Room } from "@beb/shared-core";
   import { ACTIONS, STAGES, type WhoWroteThisPublic, type WhoWroteThisSecret } from "@beb/shared-whowrotethis";
-  import ScoreBoard from "./ScoreBoard.svelte";
   import StageGuide from "./StageGuide.svelte";
   import { stageLabels } from "./stage-labels";
 

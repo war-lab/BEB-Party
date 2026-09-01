@@ -16,8 +16,7 @@
     type RankingResult,
     type RoundRecord,
   } from "@beb/shared-ranking";
-  import { faceColor, playerIconOf, sendAction, sendCommon, StageTimer, ui } from "@beb/client-core";
-  import ScoreBoard from "./ScoreBoard.svelte";
+  import { faceColor, playerIconOf, ScoreBoard, sendAction, sendCommon, StageTimer, ui } from "@beb/client-core";
   import StageGuide from "./StageGuide.svelte";
   import { stageLabels } from "./stage-labels";
 

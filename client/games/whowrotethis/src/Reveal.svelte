@@ -8,7 +8,7 @@
   戻す操作は nextGame の送信だけとする。切断はしない（部屋に残ったまま次のゲームを選ぶ）。
 -->
 <script lang="ts">
-  import { faceColor, playerIconOf, sendAction, sendCommon, StageTimer, ui } from "@beb/client-core";
+  import { faceColor, playerIconOf, ScoreBoard, sendAction, sendCommon, StageTimer, ui } from "@beb/client-core";
   import type { Room } from "@beb/shared-core";
   import {
     ACTIONS,
@@ -17,7 +17,6 @@
     type WhoWroteThisPublic,
     type WhoWroteThisResult,
   } from "@beb/shared-whowrotethis";
-  import ScoreBoard from "./ScoreBoard.svelte";
   import StageGuide from "./StageGuide.svelte";
   import { stageLabels } from "./stage-labels";
 
