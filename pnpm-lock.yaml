@@ -53,6 +53,9 @@ importers:
       '@beb/client-ranking':
         specifier: workspace:*
         version: link:../games/ranking
+      '@beb/client-whowrotethis':
+        specifier: workspace:*
+        version: link:../games/whowrotethis
     devDependencies:
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.0
@@ -144,6 +147,25 @@ importers:
       '@beb/shared-ranking':
         specifier: workspace:*
         version: link:../../../shared/games/ranking
+      svelte:
+        specifier: 5.56.9
+        version: 5.56.9(@typescript-eslint/types@8.67.0)
+    devDependencies:
+      svelte-check:
+        specifier: 4.7.5
+        version: 4.7.5(picomatch@4.0.5)(svelte@5.56.9(@typescript-eslint/types@8.67.0))(typescript@6.0.3)
+
+  client/games/whowrotethis:
+    dependencies:
+      '@beb/client-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../../shared/core
+      '@beb/shared-whowrotethis':
+        specifier: workspace:*
+        version: link:../../../shared/games/whowrotethis
       svelte:
         specifier: 5.56.9
         version: 5.56.9(@typescript-eslint/types@8.67.0)

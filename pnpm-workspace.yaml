@@ -14,6 +14,7 @@ packages:
   - client/games/detectives
   - client/games/dontsayit
   - client/games/ranking
+  - client/games/whowrotethis
   - client/app
   - tools
 allowBuilds:
