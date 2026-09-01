@@ -15,8 +15,7 @@
     type DontSayItSecret,
     type SpeakerSecret,
   } from "@beb/shared-dontsayit";
-  import { faceColor, playerIconOf, sendAction, StageTimer, ui } from "@beb/client-core";
-  import ScoreBoard from "./ScoreBoard.svelte";
+  import { faceColor, playerIconOf, ScoreBoard, sendAction, StageTimer, ui } from "@beb/client-core";
   import StageGuide from "./StageGuide.svelte";
   import SpeakerCutIn from "./SpeakerCutIn.svelte";
   import { stageLabels } from "./stage-labels";

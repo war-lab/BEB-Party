@@ -16,6 +16,7 @@
     "@beb/server-detectives": "workspace:*",
     "@beb/server-dontsayit": "workspace:*",
     "@beb/server-ranking": "workspace:*",
+    "@beb/server-whowrotethis": "workspace:*",
     "@beb/shared-core": "workspace:*"
   },
   "devDependencies": {
