@@ -9,6 +9,10 @@ import { fileURLToPath } from "node:url";
 import { formatFinding as formatCaseFinding, validateCase } from "@beb/server-detectives";
 import { formatFinding as formatSetFinding, validateSet } from "@beb/server-dontsayit";
 import { formatFinding as formatPackFinding, validatePack } from "@beb/server-ranking";
+import {
+  formatFinding as formatQuestionFinding,
+  validatePack as validateQuestionPack,
+} from "@beb/server-whowrotethis";
 import { runValidation, runValidationOnFile, toGameReport, type GameValidator } from "./validate/run";
 
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
@@ -26,6 +30,10 @@ const validators: GameValidator[] = [
   {
     contentPath: "content/ranking",
     validate: (content) => toGameReport(validatePack(content), formatPackFinding),
+  },
+  {
+    contentPath: "content/whowrotethis",
+    validate: (content) => toGameReport(validateQuestionPack(content), formatQuestionFinding),
   },
 ];
 

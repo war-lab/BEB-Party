@@ -163,6 +163,9 @@ importers:
       '@beb/server-ranking':
         specifier: workspace:*
         version: link:../games/ranking
+      '@beb/server-whowrotethis':
+        specifier: workspace:*
+        version: link:../games/whowrotethis
       '@beb/shared-core':
         specifier: workspace:*
         version: link:../../shared/core
@@ -203,6 +206,15 @@ importers:
       '@beb/shared-ranking':
         specifier: workspace:*
         version: link:../../../shared/games/ranking
+
+  server/games/whowrotethis:
+    dependencies:
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../../shared/core
+      '@beb/shared-whowrotethis':
+        specifier: workspace:*
+        version: link:../../../shared/games/whowrotethis
 
   shared/core: {}
 
@@ -246,6 +258,9 @@ importers:
       '@beb/server-ranking':
         specifier: workspace:*
         version: link:../server/games/ranking
+      '@beb/server-whowrotethis':
+        specifier: workspace:*
+        version: link:../server/games/whowrotethis
       '@beb/shared-core':
         specifier: workspace:*
         version: link:../shared/core

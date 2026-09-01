@@ -9,6 +9,7 @@ packages:
   - server/games/detectives
   - server/games/dontsayit
   - server/games/ranking
+  - server/games/whowrotethis
   - client/core
   - client/games/detectives
   - client/games/dontsayit
