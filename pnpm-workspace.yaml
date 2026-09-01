@@ -4,6 +4,7 @@ packages:
   - shared/games/detectives
   - shared/games/dontsayit
   - shared/games/ranking
+  - shared/games/whowrotethis
   - server/core
   - server/games/detectives
   - server/games/dontsayit
