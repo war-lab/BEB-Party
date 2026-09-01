@@ -6,8 +6,9 @@
 import { fallbackPlayerIconId, type Player } from "@beb/shared-core";
 import { MIN_QUESTIONS, type Question, type WhoWroteThisPack } from "@beb/shared-whowrotethis";
 
+/** 枠型のhint。完成した回答文にしない（11の検証10） */
 function hints(): string[] {
-  return ["I would eat curry.", "My answer is ramen.", "I want to eat sushi."];
+  return ["I would eat ... today.", "My answer is ... for now.", "I want to eat ..."];
 }
 
 export function validQuestion(suffix: number = 1): Question {

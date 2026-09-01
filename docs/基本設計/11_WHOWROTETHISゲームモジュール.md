@@ -143,6 +143,9 @@ interface ScoreEntry {
 `state` は全員へブロードキャストされるため、ここに置いた値は他のプレイヤーにも届く（[ADR-0003](../adr/0003-サーバ権威と秘密情報の個別送信.md)）。
 公開してよいのは提出済みの人のidだけである。
 
+`keyExpressions` は `guessing` の画面に出す。
+指名の議論で使う言い回しであり、出さなければ公開状態に載せる意味がない。
+
 `presented.text` は公開する。
 開示中の1件は全員が読むための値であり、伏せると指名ができない。
 作者は `gameSecret` に置いたままにする。
@@ -167,6 +170,16 @@ interface WhoWroteThisSecret {
 ```
 
 `hintEn` はレベルに応じた件数を配る（後述の「レベル差の吸収」）。
+
+`hintEn` は完成した回答文にしない。空欄（`...`）を1箇所以上含む枠とする（検証10）。
+
+理由は配布の仕組みにある。
+`hintEn` は先頭から切って配るため、1件目はレベルに関係なく全員へ届く。
+検証7が4語以上を保証するので、完成文を置くとそれは「そのまま提出できる合法な文」になり、質問の内容とは独立に複数人が同一の提出を出す経路ができる。
+提出が並ぶと作者当ては文体当てに退化し、文体が最も目立つレベル1〜2から順に特定される。
+
+枠であることは画面側で伝える。
+`briefing` と `writing` の言い回しの例には「`...` は自分の言葉に置き換えてください」を添え、入力欄の例示（placeholder）には自分の1件目をそのまま出す（[02](./02_クライアント.md) の「英文の入力」）。
 
 `submission` を返すのは、再接続した本人が自分の提出を確認して書き直せるようにするためである。
 `submit` を受理するたびに本人へ送り直す。
@@ -437,19 +450,19 @@ interface WhoWroteThisResult {
   "id": "daily",
   "title": "日常",
   "keyExpressions": [
-    { "en": "This sounds like Ken.", "ja": "これはKenっぽい" },
-    { "en": "It is too polite for him.", "ja": "彼にしては丁寧すぎる" },
-    { "en": "Who uses this word?", "ja": "こんな単語を使うのは誰？" }
+    { "en": "This sounds like Ken.", "ja": "これは〇〇っぽい" },
+    { "en": "It is not me.", "ja": "私じゃない" },
+    { "en": "Did you write this?", "ja": "これ書いた？" }
   ],
   "questions": [
     {
       "id": "q_last_meal",
       "en": "What would you eat for your last meal?",
-      "ja": "最後の食事に何を食べる？",
+      "ja": "人生最後の食事に何を食べる？",
       "hintEn": [
-        "I would eat ... with ...",
-        "My last meal is ... because ...",
-        "I want to eat ... at home."
+        "I would eat ... with rice.",
+        "I want ... as my last meal.",
+        "My last meal is ... at home."
       ]
     }
   ]
@@ -485,8 +498,12 @@ interface WhoWroteThisResult {
 | 7 | `hintEn` の各文が `MIN_WORDS`（4語）以上 |
 | 8 | `keyExpressions` が3件以上 |
 | 9 | 正規化した `en` が一致する質問が2件ない |
+| 10 | `hintEn` の各文が空欄（`...`）を1箇所以上含む |
 
 検証7を置くのは、`hintEn` をそのまま書き写した提出が `too_short` で拒否される状態を作らないためである。
+
+検証10を置くのは、`hintEn` が「配られる正解」になるのを防ぐためである（理由は「秘密情報」に書いた）。
+検証7と検証10は同時に働く。枠は4語以上あり、かつ完成文ではない。
 
 検証9の正規化は `submit` と同じ手順（空白の畳み込みと前後のトリム）で行う。
 
@@ -496,7 +513,8 @@ interface WhoWroteThisResult {
 * 答えが一意に決まる質問でないか（`What is the capital of Japan?` は全員が同じ英文を書き、作者当てが成立しない）
 * 卓の全員が答えを持てるか（家庭環境や特定の趣味に依存しないか）
 * 個人情報を尋ねていないか（[ルール案](../収録候補ゲームのルール案.md) の案11が挙げる要件）
-* `hintEn` と `keyExpressions` の英文が自然か
+* `hintEn` の枠と `keyExpressions` の英文が自然か（枠の前後が文として成立するか）
+* `keyExpressions` に否定・質問の型が揃っているか（疑われた側が返せるか）
 
 いずれも人手のレビューで見る。
 記録は `docs/お題レビュー/` に置く（DON'T SAY IT・RANKINGと同じ形）。
@@ -563,6 +581,7 @@ interface WhoWroteThisResult {
 * 得点: 当てた人が0人のとき作者に1点入ること
 * 得点: 未提出者に作者側の加点が入らないこと
 * `hintEn`: レベル1〜2に3件、レベル3以上に1件が渡ること
+* `hintEn`: 空欄を含まない完成文が検証10で落ちること
 * 秘密の切り替え: `briefing` のたびに送り直され、前のラウンドの `submission` が残らないこと
 * 締切: `writing` の締切で未提出者を除いた件数で開示が始まること
 * 締切: 提出0件のラウンドが得点を動かさずに次へ進むこと

@@ -1,6 +1,6 @@
 // お題データのスキーマ型（正本）とWHO WROTE THIS?のランタイム型・表示文言の定数
 export type { KeyExpression, Question, WhoWroteThisPack } from "./pack";
-export { MIN_HINTS, MIN_KEY_EXPRESSIONS, MIN_QUESTIONS } from "./pack";
+export { HINT_BLANK, MIN_HINTS, MIN_KEY_EXPRESSIONS, MIN_QUESTIONS, hasHintBlank } from "./pack";
 
 export {
   MAX_CHARS,

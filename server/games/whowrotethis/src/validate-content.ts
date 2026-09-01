@@ -1,22 +1,24 @@
-// WHO WROTE THIS?の質問データ検証。検証9項目を実装する（基本設計/11_WHOWROTETHISゲームモジュール.md）。
+// WHO WROTE THIS?の質問データ検証。検証10項目を実装する（基本設計/11_WHOWROTETHISゲームモジュール.md）。
 //
 // 判定は件数・一意性・語数の計数だけで足りる。英文の意味を判定しない（不変条件1）。
 // このコードはCI（tools）からのみ呼ぶ。ランタイムのコードパスには置かない（基本設計/05）。
 import type { ValidationResult } from "@beb/shared-core";
 import {
+  HINT_BLANK,
   MIN_HINTS,
   MIN_KEY_EXPRESSIONS,
   MIN_QUESTIONS,
   MIN_WORDS,
   countWords,
+  hasHintBlank,
   normalizeSubmission,
   type Question,
   type WhoWroteThisPack,
 } from "@beb/shared-whowrotethis";
 import { parsePack } from "./pack-schema";
 
-/** 検証項目。1〜9は11の検証項目、schemaは前提となる構造検証 */
-export type ValidationItem = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | "schema";
+/** 検証項目。1〜10は11の検証項目、schemaは前提となる構造検証 */
+export type ValidationItem = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | "schema";
 
 export interface Finding {
   packId: string;
@@ -96,6 +98,20 @@ function checkHintLength(question: Question, findings: Findings): void {
   }
 }
 
+/**
+ * 検証10: hintEnが完成した回答文になっていない（空欄を含む）。
+ *
+ * hintEnは全員へ先頭から配られ、検証7が4語以上を保証するためそのまま提出できる。
+ * 完成文を置くと、質問の内容とは独立に複数人が同一の提出を出す経路ができる（11の検証項目）。
+ */
+function checkHintBlank(question: Question, findings: Findings): void {
+  for (const hint of question.hintEn) {
+    if (!hasHintBlank(hint)) {
+      findings.error(10, question.id, `hintEnは空欄（${HINT_BLANK}）を含む必要がある`, [`完成文: ${hint}`]);
+    }
+  }
+}
+
 /** 検証9: 正規化したenが一致する質問が2件ない */
 function checkQuestionTextUnique(pack: WhoWroteThisPack, findings: Findings): void {
   const seen = new Map<string, string>();
@@ -141,6 +157,7 @@ export function validatePack(content: unknown): ValidationReport {
     checkDisplayCompleteness(question, findings);
     checkHintCount(question, findings);
     checkHintLength(question, findings);
+    checkHintBlank(question, findings);
   }
 
   return report(pack.id, findings.items);

@@ -75,7 +75,7 @@ WHO WROTE THIS?は所要時間・得点分布・開示順の有利不利・発�
 | 配信 | Cloudflare Workers（静的アセット） |
 | リアルタイム同期 | Cloudflare Durable Objects（部屋 = 1インスタンス、WebSocket Hibernation API） |
 | データストア | なし（部屋の状態はDO内で揮発。DBを持たない） |
-| コンテンツ | リポジトリ内の静的JSON + CI検証（DETECTIVESは前方推論、DON'T SAY ITは9項目、ENGLISH RANKINGは全順列の総当たりを含む14項目、WHO WROTE THIS?は9項目） |
+| コンテンツ | リポジトリ内の静的JSON + CI検証（DETECTIVESは前方推論、DON'T SAY ITは9項目、ENGLISH RANKINGは全順列の総当たりを含む14項目、WHO WROTE THIS?は10項目） |
 | CI/CD | GitHub Actions → `wrangler deploy` |
 
 コードは「ゲームを知らない共通コア（`core/`）」と「ゲーム1本ごとのモジュール（`games/<id>/`）」の2層に分かれる。

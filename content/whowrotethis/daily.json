@@ -2,42 +2,45 @@
   "id": "daily",
   "title": "日常",
   "keyExpressions": [
-    { "en": "This sounds like Ken.", "ja": "これはKenっぽい" },
-    { "en": "It is too polite for him.", "ja": "彼にしては丁寧すぎる" },
+    { "en": "This sounds like Ken.", "ja": "これは〇〇っぽい" },
+    { "en": "It is too polite for Ken.", "ja": "〇〇にしては丁寧すぎる" },
+    { "en": "Ken never writes a long sentence.", "ja": "〇〇は長い文を書かない" },
     { "en": "Who uses this word?", "ja": "こんな単語を使うのは誰？" },
-    { "en": "He never writes a long sentence.", "ja": "彼は長い文を書かない" },
-    { "en": "I think she wrote it.", "ja": "彼女が書いたと思う" },
-    { "en": "Why do you think so?", "ja": "なぜそう思う？" }
+    { "en": "I think Aya wrote it.", "ja": "〇〇が書いたと思う" },
+    { "en": "Why do you think so?", "ja": "なぜそう思う？" },
+    { "en": "It is not me.", "ja": "私じゃない" },
+    { "en": "Did you write this?", "ja": "これ書いた？" },
+    { "en": "I have no idea.", "ja": "見当がつかない" }
   ],
   "questions": [
     {
       "id": "q_last_meal",
       "en": "What would you eat for your last meal?",
-      "ja": "最後の食事に何を食べる？",
+      "ja": "人生最後の食事に何を食べる？",
       "hintEn": [
         "I would eat ... with rice.",
-        "My last meal is ... because it is warm.",
-        "I want to eat ... at home."
+        "I want ... as my last meal.",
+        "My last meal is ... at home."
       ]
     },
     {
       "id": "q_museum",
       "en": "What would you take home from a museum?",
-      "ja": "美術館から何を持ち帰る？",
+      "ja": "博物館の展示から何を持ち帰る？",
       "hintEn": [
         "I would take the ... home.",
         "The ... is small enough to carry.",
-        "I want the old ... on the wall."
+        "Nobody would notice the missing ..."
       ]
     },
     {
-      "id": "q_monday",
-      "en": "What makes Monday morning better?",
-      "ja": "月曜の朝を良くするものは？",
+      "id": "q_strange_bag",
+      "en": "What is the strangest thing in your bag?",
+      "ja": "かばんの中でいちばん変なものは？",
       "hintEn": [
-        "Hot coffee makes Monday better.",
-        "I need a long shower first.",
-        "Monday is fine if I sleep well."
+        "I always carry a ... with me.",
+        "There is a ... in my bag.",
+        "I keep ... for no reason."
       ]
     },
     {
@@ -45,29 +48,29 @@
       "en": "What small superpower do you want?",
       "ja": "どんなささやかな超能力が欲しい？",
       "hintEn": [
-        "I want to sleep for one minute.",
-        "I want to find my keys.",
-        "I want to stop the rain."
+        "I want to ... anytime I like.",
+        "My superpower is ... very fast.",
+        "I would like to ... at will."
       ]
     },
     {
-      "id": "q_lie",
-      "en": "What is a lie everyone tells at work?",
-      "ja": "職場でみんなが言う嘘は？",
+      "id": "q_small_lie",
+      "en": "What small lie do you often tell?",
+      "ja": "よくつく小さな嘘は？",
       "hintEn": [
-        "Everyone says I am almost done.",
-        "People say they read the email.",
-        "We all say the meeting was useful."
+        "I often say I am ...",
+        "I say ... when I am tired.",
+        "My small lie is about ..."
       ]
     },
     {
       "id": "q_desert_island",
-      "en": "What one thing do you take to an island?",
-      "ja": "島にひとつだけ持っていくものは？",
+      "en": "What one thing would you take to a desert island?",
+      "ja": "無人島にひとつだけ持っていくものは？",
       "hintEn": [
-        "I take a big knife with me.",
-        "I bring a book and read it again.",
-        "I want a pot to boil water."
+        "I would take my ... with me.",
+        "I need ... more than food.",
+        "I would bring ... to feel safe."
       ]
     },
     {
@@ -75,9 +78,9 @@
       "en": "What will you never do again?",
       "ja": "もう二度としないことは？",
       "hintEn": [
-        "I will never run in the rain.",
-        "I never eat that much again.",
-        "I will not sing in front of people."
+        "I will never ... again.",
+        "I stopped ... last year.",
+        "I do not ... anymore."
       ]
     },
     {
@@ -85,49 +88,49 @@
       "en": "Where would you go with a time machine?",
       "ja": "タイムマシンでどこへ行く？",
       "hintEn": [
-        "I go back to last Friday.",
-        "I want to see the old city.",
-        "I would visit my school again."
+        "I would go back to ...",
+        "I want to see ... again.",
+        "I would visit ... for one day."
       ]
     },
     {
       "id": "q_bad_advice",
       "en": "What is the worst advice you have heard?",
-      "ja": "聞いた中で一番ひどい助言は？",
+      "ja": "今まで聞いた中で最悪のアドバイスは？",
       "hintEn": [
-        "Someone said just be yourself.",
-        "They told me to sleep less.",
-        "My friend said money is nothing."
+        "Someone told me to ...",
+        "The worst advice was about ...",
+        "People say I should ..."
       ]
     },
     {
       "id": "q_house_rule",
-      "en": "What rule would you set in your house?",
-      "ja": "自分の家にどんな決まりを作る？",
+      "en": "What strange rule would you make in your house?",
+      "ja": "もし家に変わったルールを1つ作れるなら？",
       "hintEn": [
-        "No phones at the table.",
-        "Everyone cooks on Sunday.",
-        "We do not talk before coffee."
+        "In my house, nobody can ...",
+        "Everyone must ... before dinner.",
+        "My rule is about ... at night."
       ]
     },
     {
       "id": "q_lost_item",
       "en": "What do you lose most often?",
-      "ja": "一番よく失くすものは？",
+      "ja": "一番よくなくすものは？",
       "hintEn": [
-        "I lose my pen every week.",
-        "I always lose one glove.",
-        "My keys are never in my bag."
+        "I lose my ... every week.",
+        "I always lose one ...",
+        "My ... is never in my bag."
       ]
     },
     {
-      "id": "q_free_day",
-      "en": "How do you spend a free Sunday?",
-      "ja": "何もない日曜をどう過ごす？",
+      "id": "q_laziest",
+      "en": "What is the laziest thing you do at home?",
+      "ja": "家でやるいちばん怠けたことは？",
       "hintEn": [
-        "I walk in the park alone.",
-        "I sleep until noon and eat.",
-        "I clean my room and read."
+        "I ... in my bed sometimes.",
+        "I do not ... for days.",
+        "My laziest habit is ..."
       ]
     }
   ]

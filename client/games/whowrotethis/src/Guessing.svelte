@@ -84,6 +84,20 @@
       {/if}
 
       <p class="waiting" data-testid="guessed-count">しめい {guessedCount} / {expectedCount}</p>
+
+      {#if publicState.keyExpressions.length > 0}
+        <section class="expressions" data-testid="key-expressions">
+          <h2>言い合うときの言い方</h2>
+          <ul>
+            {#each publicState.keyExpressions as expression (expression.en)}
+              <li>
+                <span class="en">{expression.en}</span>
+                <span class="ja">{expression.ja}</span>
+              </li>
+            {/each}
+          </ul>
+        </section>
+      {/if}
     {:else}
       <p class="waiting">しばらくお待ちください…</p>
     {/if}
@@ -162,6 +176,41 @@
     border: 2px solid var(--yellow);
     border-radius: var(--radius-tile);
     font-size: 0.88rem;
+  }
+  .expressions {
+    margin: 1rem 0 0;
+    background: var(--ground-2);
+    border: 2px solid rgba(255, 255, 255, 0.14);
+    border-radius: var(--radius-tile);
+    padding: 0.55rem 0.7rem;
+  }
+  .expressions h2 {
+    margin: 0 0 0.4rem;
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--yellow);
+  }
+  .expressions ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.3rem;
+  }
+  .expressions li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+  .expressions .en {
+    font-size: 0.88rem;
+  }
+  .expressions .ja {
+    font-size: 0.72rem;
+    color: var(--mist);
   }
   .waiting {
     margin: 0.8rem 0 0;

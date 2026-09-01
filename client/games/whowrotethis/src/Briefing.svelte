@@ -7,7 +7,13 @@
 <script lang="ts">
   import { ScoreBoard, sendAction, StageTimer, ui } from "@beb/client-core";
   import type { Room } from "@beb/shared-core";
-  import { ACTIONS, STAGES, type WhoWroteThisPublic, type WhoWroteThisSecret } from "@beb/shared-whowrotethis";
+  import {
+    ACTIONS,
+    HINT_BLANK,
+    STAGES,
+    type WhoWroteThisPublic,
+    type WhoWroteThisSecret,
+  } from "@beb/shared-whowrotethis";
   import StageGuide from "./StageGuide.svelte";
   import { stageLabels } from "./stage-labels";
 
@@ -39,6 +45,7 @@
     {#if mine && mine.hintEn.length > 0}
       <section class="hints" data-testid="my-hints">
         <h2>言い方の例</h2>
+        <p class="note">{HINT_BLANK} は自分の言葉に置き換えてください。</p>
         <ul>
           {#each mine.hintEn as hint (hint)}
             <li>{hint}</li>
@@ -116,6 +123,11 @@
     padding: 0;
     display: grid;
     gap: 0.3rem;
+  }
+  .hints .note {
+    margin: 0 0 0.35rem;
+    font-size: 0.72rem;
+    color: var(--mist);
   }
   .hints li {
     font-size: 0.9rem;

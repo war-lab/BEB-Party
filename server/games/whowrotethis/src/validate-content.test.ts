@@ -1,4 +1,4 @@
-// 検証9項目。正常なパックを1項目だけ壊し、その項目だけが落ちることを確かめる（基本設計/11の検証項目）
+// 検証10項目。正常なパックを1項目だけ壊し、その項目だけが落ちることを確かめる（基本設計/11の検証項目）
 import { MIN_HINTS, MIN_KEY_EXPRESSIONS, MIN_QUESTIONS, type WhoWroteThisPack } from "@beb/shared-whowrotethis";
 import { describe, expect, it } from "vitest";
 import { validPack } from "./test-support/fixtures";
@@ -106,11 +106,12 @@ describe("検証6: hintEnの件数", () => {
 
 describe("検証7: hintEnの語数", () => {
   it("最低語数未満のhintEnを落とす", () => {
+    // 検証10と独立に見るため、空欄は含めたうえで語数だけ足りない入力を使う
     const pack = validPack();
     const broken: WhoWroteThisPack = {
       ...pack,
       questions: pack.questions.map((question, index) =>
-        index === 0 ? { ...question, hintEn: ["I do not", ...question.hintEn.slice(1)] } : question,
+        index === 0 ? { ...question, hintEn: ["I want ...", ...question.hintEn.slice(1)] } : question,
       ),
     };
     expect(itemsOf(broken)).toEqual([7]);
@@ -121,10 +122,39 @@ describe("検証7: hintEnの語数", () => {
     const ok: WhoWroteThisPack = {
       ...pack,
       questions: pack.questions.map((question, index) =>
-        index === 0 ? { ...question, hintEn: ["I　like　it　too.", ...question.hintEn.slice(1)] } : question,
+        index === 0 ? { ...question, hintEn: ["I　like　...　too.", ...question.hintEn.slice(1)] } : question,
       ),
     };
     expect(validatePack(ok).errorCount).toBe(0);
+  });
+});
+
+describe("検証10: hintEnが完成した回答文でない", () => {
+  it("空欄を含まないhintEnを落とす", () => {
+    // 語数は足りているが、そのまま提出できる完成文になっている入力
+    const pack = validPack();
+    const broken: WhoWroteThisPack = {
+      ...pack,
+      questions: pack.questions.map((question, index) =>
+        index === 0 ? { ...question, hintEn: ["I would eat curry today.", ...question.hintEn.slice(1)] } : question,
+      ),
+    };
+    expect(itemsOf(broken)).toEqual([10]);
+  });
+
+  it("空欄を含むhintEnを通す", () => {
+    expect(validatePack(validPack()).errorCount).toBe(0);
+  });
+
+  it("反例に完成文の中身を出す", () => {
+    const pack = validPack();
+    const broken: WhoWroteThisPack = {
+      ...pack,
+      questions: pack.questions.map((question, index) =>
+        index === 0 ? { ...question, hintEn: ["I would eat curry today.", ...question.hintEn.slice(1)] } : question,
+      ),
+    };
+    expect(formatFinding(validatePack(broken).findings[0]!)).toContain("I would eat curry today.");
   });
 });
 

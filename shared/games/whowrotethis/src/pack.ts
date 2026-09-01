@@ -45,3 +45,17 @@ export const MIN_HINTS = 3;
 
 /** パックが持つ keyExpressions の下限（11の検証8） */
 export const MIN_KEY_EXPRESSIONS = 3;
+
+/**
+ * hintEn の空欄を表す記号（11の検証10）。
+ *
+ * hintEn は完成した回答文にしない。`hintEn` は全員へ先頭から配られ（レベル1〜2は3件）、
+ * 検証7が4語以上を保証するためそのまま提出できる合法な文になる。完成文を置くと、
+ * 質問の内容とは独立に複数人が同一の提出を出す経路ができる。
+ */
+export const HINT_BLANK = "...";
+
+/** hintEn が空欄を含むか（完成した回答文になっていないか） */
+export function hasHintBlank(hint: string): boolean {
+  return hint.includes(HINT_BLANK);
+}

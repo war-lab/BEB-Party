@@ -10,6 +10,7 @@
   import type { Room } from "@beb/shared-core";
   import {
     ACTIONS,
+    HINT_BLANK,
     MAX_CHARS,
     MIN_WORDS,
     STAGES,
@@ -46,6 +47,8 @@
     }
   });
 
+  // 入力欄の例は自分のhintの1件目から作る。質問ごとに変わり、常に的を射た例になる
+  const placeholder = $derived(mine?.hintEn[0] ?? `I would ${HINT_BLANK}`);
   const normalized = $derived(normalizeSubmission(draft));
   const words = $derived(countWords(normalized));
   const remaining = $derived(MAX_CHARS - countChars(draft));
@@ -78,7 +81,7 @@
         bind:value={draft}
         maxlength={MAX_CHARS}
         rows="3"
-        placeholder="I would eat ..."
+        {placeholder}
         autocapitalize="sentences"
         autocomplete="off"
       ></textarea>
@@ -101,6 +104,7 @@
     {#if mine && mine.hintEn.length > 0}
       <section class="hints" data-testid="my-hints">
         <h2>言い方の例</h2>
+        <p class="note">{HINT_BLANK} は自分の言葉に置き換えてください。</p>
         <ul>
           {#each mine.hintEn as hint (hint)}
             <li>{hint}</li>
@@ -215,6 +219,11 @@
     padding: 0;
     display: grid;
     gap: 0.3rem;
+  }
+  .hints .note {
+    margin: 0 0 0.35rem;
+    font-size: 0.72rem;
+    color: var(--mist);
   }
   .hints li {
     font-size: 0.9rem;
