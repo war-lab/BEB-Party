@@ -25,6 +25,7 @@
     room: Room;
     publicState: RankingPublic;
     result: RankingResult | null;
+    /** 部屋から出る。ロビーへ戻す操作とは別である（08・09と同じ扱い） */
     onLeave: () => void;
   }
   let { room, publicState, result, onLeave }: Props = $props();
@@ -49,8 +50,8 @@
   }
 
   function backToLobby(): void {
+    // nextGameだけを送る。onLeave()（切断とホームへの遷移）を呼ぶと、押した本人が部屋から出る
     sendCommon({ type: "nextGame" });
-    onLeave();
   }
 </script>
 
@@ -99,6 +100,7 @@
 
     {#if isFinished}
       <button class="beb-btn yellow" onclick={backToLobby} data-testid="back-to-lobby"><span>ロビーへ戻る</span></button>
+      <button class="beb-btn ghost leave" onclick={onLeave} data-testid="leave-room"><span>部屋を出る</span></button>
     {:else}
       <p class="count" data-testid="ready-count">
         つづき {publicState.readyPlayerIds.length} / {room.players.filter((player) => player.connected).length}
@@ -217,6 +219,9 @@
   }
   .scores {
     margin: 0 0 1rem;
+  }
+  .leave {
+    margin-top: 0.5rem;
   }
   .count {
     margin: 0 0 0.4rem;
