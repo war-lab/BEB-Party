@@ -20,7 +20,10 @@
   // サーバ権威。受信済みスナップショットを描くだけで、クライアントで組み立て直さない
   const publicState = $derived(room.gameState as DetectivesPublic | undefined);
   const secret = $derived((secretStore.payload as DetectivesSecret | null) ?? null);
-  const result = $derived((resultStore.payload as DetectivesResult | null) ?? null);
+  // 別ゲームの結果をキャストしない。room.gameId と照合してから読む
+  const result = $derived(
+    resultStore.gameId === room.gameId ? ((resultStore.payload as DetectivesResult | null) ?? null) : null,
+  );
 </script>
 
 {#if !publicState}

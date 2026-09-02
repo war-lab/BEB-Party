@@ -30,9 +30,10 @@
   let { room, publicState, result, onLeave }: Props = $props();
 
   const isFinished = $derived(room.lifecycle === "finished" && result !== null);
-  const rounds = $derived<RoundRecord[]>(result?.rounds ?? publicState.rounds);
+  // resultを読むのは finished のときだけとする。中間の開示は公開状態を正とする
+  const rounds = $derived<RoundRecord[]>(isFinished ? (result?.rounds ?? publicState.rounds) : publicState.rounds);
   const latest = $derived(rounds.length > 0 ? rounds[rounds.length - 1] : undefined);
-  const scores = $derived(result?.scores ?? publicState.scores);
+  const scores = $derived(isFinished ? (result?.scores ?? publicState.scores) : publicState.scores);
   const roundLabel = $derived(`${Math.min(publicState.roundIndex + 1, publicState.totalRounds)} / ${publicState.totalRounds}`);
   const isReady = $derived(ui.myPlayerId !== null && publicState.readyPlayerIds.includes(ui.myPlayerId));
 

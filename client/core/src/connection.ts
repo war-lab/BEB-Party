@@ -239,6 +239,11 @@ function handleServerMessage(raw: string): void {
     case "state": {
       const { v: _v, type: _type, serverNow, ...room } = message;
       setServerState(room, serverNow);
+      // finished を抜けた時点で前ゲームの結果を捨てる。resultは切断時にしか消えないため、
+      // nextGameで同じ部屋を続けると次のゲームの画面へ前回の結果が残る（実測）
+      if (room.lifecycle !== "finished") {
+        clearResult();
+      }
       break;
     }
     case "secret": {

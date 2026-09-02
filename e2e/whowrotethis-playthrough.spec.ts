@@ -3,96 +3,20 @@
 //
 // judgingは操作を持たず締切の12秒がそのまま経過する。6件×2ラウンドで約144秒待つため、
 // 英作文は最短の60秒に設定し、test.setTimeoutを長く取る。
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { openTable, readStateMessages } from "./support/room";
+import {
+  GAME_TITLE,
+  PACK_TITLE,
+  ROUNDS,
+  confirmQuestion,
+  guessOne,
+  startWhoWroteThis,
+  submitAll,
+  waitJudging,
+} from "./support/whowrotethis";
 
-const GAME_TITLE = "WHO WROTE THIS?";
-const PACK_TITLE = "日常";
-const ROUNDS = 2;
 const PLAYER_COUNT = 6;
-
-/** ホストがWHO WROTE THIS?とお題パックを選び、英作文を最短にして開始する */
-async function startGame(host: Page, writingSeconds = 60): Promise<void> {
-  await host.click(`.title-card:has-text("${GAME_TITLE}")`);
-  await host.click(`.content-chip:has-text("${PACK_TITLE}")`);
-  await host.fill("label.seconds input[type='number']", String(writingSeconds));
-  // onchangeで送るため、focusを外して確定させる
-  await host.locator("label.seconds input[type='number']").blur();
-  await host.click(".beb-btn:has-text('ゲームスタート')");
-}
-
-/** 全員が質問を確認してreadyを送る */
-async function confirmQuestion(pages: Page[]): Promise<void> {
-  for (const page of pages) {
-    await expect(page.locator("[data-testid='ready']")).toBeVisible({ timeout: 20_000 });
-    await page.click("[data-testid='ready']");
-  }
-}
-
-/**
- * 各自が別々の英文を提出する。
- *
- * 1人目は4語未満で送信ボタンが無効であることを確かめてから書き直す
- * （クライアント側で下限を止めており、サーバの拒否を通常操作で踏ませない。基本設計/02）。
- */
-async function submitAll(pages: Page[], round: number): Promise<void> {
-  for (const [index, page] of pages.entries()) {
-    const input = page.locator("[data-testid='submission-input']");
-    await expect(input).toBeVisible({ timeout: 20_000 });
-
-    if (index === 0) {
-      await input.fill("Too short");
-      await expect(page.locator("[data-testid='submit']")).toBeDisabled();
-      await expect(page.locator("[data-testid='too-short-hint']")).toBeVisible();
-    }
-
-    await input.fill(`Player ${index + 1} wrote this in round ${round}.`);
-    await expect(page.locator("[data-testid='submit']")).toBeEnabled();
-    await page.click("[data-testid='submit']");
-  }
-}
-
-/**
- * 表示中の1件に、作者以外の全員が指名する。
- *
- * 作者の端末には候補が出ず、待機表示になる（基本設計/11の「作者は自分の件で指名しない」）。
- * 誰が作者かはクライアント側でも手元の提出との一致でしか分からないため、
- * 候補一覧が出ているページだけを指名させる。
- *
- * ページを順番に1つずつ操作しない。最後の指名でサーバが答え合わせへ進むため、
- * 作者のページを最後に見ると、そのページは次の件の指名画面を見てしまう（実測）。
- * 件番号をタイマーバーの見出しで固定し、指名は並行して送る。
- */
-async function guessOne(pages: Page[], itemIndex: number): Promise<void> {
-  const label = `${itemIndex + 1} / ${PLAYER_COUNT}件目`;
-  for (const page of pages) {
-    await expect(page.locator("[data-testid='stage-timer']")).toContainText(label, { timeout: 30_000 });
-  }
-
-  const authorFlags = await Promise.all(
-    pages.map((page) => page.locator("[data-testid='own-submission']").isVisible()),
-  );
-  // 開示中の1件の作者はちょうど1人である
-  expect(authorFlags.filter(Boolean)).toHaveLength(1);
-
-  await Promise.all(
-    pages.map(async (page, index) => {
-      if (authorFlags[index]) {
-        return;
-      }
-      await page.locator("[data-testid='candidate-list'] button").first().click();
-    }),
-  );
-}
-
-/** 答え合わせが出るのを待つ。締切の12秒で次の件へ自動で進む */
-async function waitJudging(pages: Page[]): Promise<void> {
-  // 12秒で次へ進むため、全ページを並行して確かめる
-  await Promise.all(
-    pages.map((page) => expect(page.locator("[data-testid='author']")).toBeVisible({ timeout: 20_000 })),
-  );
-  await expect(pages[0]!.locator("[data-testid='guess-breakdown'] li")).toHaveCount(PLAYER_COUNT - 1);
-}
 
 test("6人で部屋作成からWHO WROTE THIS?の結果まで進める", async ({ browser, baseURL }) => {
   // judgingの締切待ちが6件×2ラウンドで約144秒ある。既定の3倍でも足りない
@@ -104,16 +28,22 @@ test("6人で部屋作成からWHO WROTE THIS?の結果まで進める", async (
 
   try {
     const host = table.pages[0]!;
-    await startGame(host);
+    await startWhoWroteThis(host);
 
     for (let round = 1; round <= ROUNDS; round += 1) {
       await confirmQuestion(table.pages);
-      await submitAll(table.pages, round);
+      // 1件目は4語未満で送信ボタンが無効であることを確かめてから書き直す
+      const first = table.pages[0]!;
+      await first.locator("[data-testid='submission-input']").fill("Too short");
+      await expect(first.locator("[data-testid='submit']")).toBeDisabled();
+      await expect(first.locator("[data-testid='too-short-hint']")).toBeVisible();
+
+      await submitAll(table.pages, (index) => `Player ${index + 1} wrote this in round ${round}.`);
 
       // 提出の件数だけ「作者当て → 答え合わせ」をくり返す
       for (let item = 0; item < PLAYER_COUNT; item += 1) {
-        await guessOne(table.pages, item);
-        await waitJudging(table.pages);
+        await guessOne(table.pages, item, PLAYER_COUNT);
+        await waitJudging(table.pages, PLAYER_COUNT - 1);
       }
 
       // 開示: そのラウンドの提出が作者付きで並ぶ

@@ -364,6 +364,77 @@ describe("submit", () => {
   });
 });
 
+describe("提出の識別子", () => {
+  it("startで全ラウンド分を振り、ラウンド内で重複しない", () => {
+    const started = startGame();
+    const ids = started.gameSecret?.submissionIds ?? [];
+    expect(ids).toHaveLength(ROUNDS);
+    for (const round of ids) {
+      const values = Object.values(round);
+      expect(values).toHaveLength(players.length);
+      expect(new Set(values).size).toBe(values.length);
+      expect(values.every((value) => value !== "")).toBe(true);
+    }
+  });
+
+  it("識別子がplayerIdから導かれていない（作者を逆算できない）", () => {
+    const started = startGame();
+    for (const round of started.gameSecret?.submissionIds ?? []) {
+      for (const [playerId, id] of Object.entries(round)) {
+        expect(id).not.toContain(playerId);
+        expect(playerId).not.toContain(id);
+      }
+    }
+  });
+
+  it("本人の秘密に自分の識別子だけが入る", () => {
+    const started = startGame();
+    const assigned = started.gameSecret?.submissionIds[0] ?? {};
+    for (const player of players) {
+      const secret = started.secrets.get(player.id) as WhoWroteThisSecret;
+      expect(secret.submissionId).toBe(assigned[player.id]);
+      // 他人の識別子は配らない
+      const others = players.filter((entry) => entry.id !== player.id).map((entry) => assigned[entry.id]);
+      expect(others).not.toContain(secret.submissionId);
+    }
+  });
+
+  it("開示中の件の識別子が作者のものと一致する", () => {
+    const guessing = submitAll(readyAll(begin()));
+    const author = authorOf(guessing);
+    const assigned = guessing.gameSecret.submissionIds[0] ?? {};
+    expect(guessing.publicState.presented?.submissionId).toBe(assigned[author]);
+  });
+
+  it("同じ英文を2人が提出しても、識別子は作者だけを指す", () => {
+    // 同一の提出は合法である。テキストの一致で作者を判定すると作者でない側まで作者になる
+    let current = readyAll(begin());
+    for (const player of players) {
+      current = act(current, player.id, ACTIONS.submit, { text: "I do the same thing." });
+    }
+    const author = authorOf(current);
+    const assigned = current.gameSecret.submissionIds[0] ?? {};
+    const presentedId = current.publicState.presented?.submissionId;
+
+    expect(presentedId).toBe(assigned[author]);
+    for (const player of players) {
+      if (player.id !== author) {
+        expect(presentedId).not.toBe(assigned[player.id]);
+      }
+    }
+  });
+
+  it("同じ英文でも作者以外の全員が指名でき、judgingへ進む", () => {
+    let current = readyAll(begin());
+    for (const player of players) {
+      current = act(current, player.id, ACTIONS.submit, { text: "I do the same thing." });
+    }
+    const after = guessAll(current, (_, authorId) => authorId);
+    expect(after.stage).toBe(STAGES.judging);
+    expect(after.publicState.revealedItems[0]?.guesses).toHaveLength(players.length - 1);
+  });
+});
+
 describe("guess", () => {
   function toGuessing(): Progress {
     return submitAll(readyAll(begin()));
@@ -399,6 +470,22 @@ describe("guess", () => {
     const second = act(first, guesser, ACTIONS.guess, { index: 0, targetPlayerId: guesser === author ? author : author });
     expect(second.reject?.code).toBe(ERROR_CODES.alreadyGuessed);
     expect(first.gameSecret.currentGuesses[guesser]).toBe(author);
+  });
+
+  it("素早い2回の指名で初回が採点対象になる（2回目は拒否）", () => {
+    const guessing = toGuessing();
+    const author = authorOf(guessing);
+    const others = players.filter((player) => player.id !== author);
+    const guesser = others[0]!.id;
+    const first = others[1]!.id;
+    const second = others[2]!.id;
+
+    const a = act(guessing, guesser, ACTIONS.guess, { index: 0, targetPlayerId: first });
+    const b = act(a, guesser, ACTIONS.guess, { index: 0, targetPlayerId: second });
+
+    expect(b.reject?.code).toBe(ERROR_CODES.alreadyGuessed);
+    expect(a.gameSecret.currentGuesses[guesser]).toBe(first);
+    expect(b.gameSecret.currentGuesses[guesser]).toBe(first);
   });
 
   it("自分自身と未提出者への指名をinvalid_targetで拒否する", () => {

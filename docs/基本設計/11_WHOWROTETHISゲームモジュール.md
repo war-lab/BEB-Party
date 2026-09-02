@@ -82,6 +82,16 @@ gameIdは `whowrotethis` とする。
 
 その件の収集対象は「作者を除く接続中の全員」となる。
 
+画面が「自分の文が出ているか」を判定するために、提出には識別子（`submissionId`）を振る。
+`start` で全ラウンド分をseedから振り、本人へは `secret` で、開示中の1件については `presented` で配る。
+他人の識別子は配らないため、この値から作者は割れない。
+
+提出テキストの一致で判定しない。
+同じ英文は合法であり（重複を弾く規則を置いていない）、2人が同じ文を出すと作者でない側まで作者として扱われる。
+その人の画面から指名の候補が消える一方、サーバはその人の指名を待ち続けるため、締切まで進行が止まって得点機会も失われる。
+
+識別子は `playerId` から導かない。導くと識別子から作者を逆算できる。
+
 ### 消去法は禁じない
 
 `judging` で作者を明かすため、後半の件では候補が絞れる。
@@ -112,6 +122,7 @@ interface PresentedItem {
   index: number;                // 現ラウンドの何件目か（0始まり）
   total: number;                // 現ラウンドの開示件数
   text: string;                 // 提出テキスト。作者は載せない
+  submissionId: string;         // 提出の識別子。作者を表さない値（startでseedから振る）
   guessedPlayerIds: string[];   // 指名を済ませた人。指名先は載せない
 }
 
@@ -166,6 +177,7 @@ interface WhoWroteThisSecret {
   roundIndex: number;
   hintEn: string[];      // 英文を書くときに使える言い回し
   submission?: string;   // 自分の提出。未提出なら省略する
+  submissionId: string;  // このラウンドの自分の提出の識別子。presented と突き合わせる
 }
 ```
 
@@ -198,6 +210,7 @@ interface WhoWroteThisGameSecret {
   questionIds: string[];                  // 使う2問。startで抽選して固定する
   revealOrders: string[][];               // ラウンドごとの開示順（playerIdの並び）
   submissions: Record<string, string>[];  // ラウンドごとの playerId -> 提出テキスト
+  submissionIds: Record<string, string>[]; // ラウンドごとの playerId -> 提出の識別子
   currentGuesses: Record<string, string>; // 表示中の件の playerId -> 指名先
 }
 ```
@@ -280,6 +293,10 @@ payloadは `{ index: number, targetPlayerId: string }` とする。
 | `targetPlayerId` が送信者自身 | `invalid_target` |
 
 二重送信を拒否するのは、得点に直結する入力であり、上書きを許すと締切直前の変更が続くためである（DETECTIVESの `vote` と同じ扱い）。
+
+クライアントは送信済みの指名を件番号つきで持ち、サーバの応答を待たずに2件目を送らせない。
+サーバは初回を採用して2件目を `already_guessed` で拒否するため、画面側で止めないと「押した先」と「採点された先」が食い違う。
+件番号を併せて持つのは、次の件へ進んだときにガードが自然に解けるようにするためである。
 
 自分自身への指名を拒否するのは、送信者は自分の提出かどうかを知っており、常に誤りであるためである。
 誤操作で1点を失う経路を残さない。
@@ -387,7 +404,7 @@ RANKINGの目標カードと同じ手法である（[10](./10_ENGLISHRANKINGゲ�
 
 1. `contentId` からパックを引く。`listContents` に載るidだけを受理する
 2. `seed` から乱数を作り、パックの質問を `shuffle` して先頭2件を `questionIds` に固定する
-3. ラウンドごとに参加者の並びを `shuffle` し、`revealOrders` に固定する
+3. ラウンドごとに参加者の並びを `shuffle` し、`revealOrders` に固定する。併せて提出の識別子をラウンドごとに振る
 4. ラウンド0の `hintEn` を各自のレベルに応じた件数で配る
 5. `stage` を `briefing`、`deadlineSeconds` を60として返す
 
@@ -537,6 +554,7 @@ interface WhoWroteThisResult {
 | 文体の識別しやすさとレベル | レベル1〜2の提出は特定されやすく、隠し通しの点を取りにくい構造が残る。当て主軸にして影響を小さくしたが、未検証である |
 | 書き直しの書き込み量 | `submit` の上書きを許すため、締切直前に全員が書き直すと `writing` 中の書き込みが増える。実測していない |
 | 質問が次のゲームで再登場する | `nextGame` で `gameSecret` が破棄されるため、同じ部屋で続けて遊ぶと同じ質問を引きうる。持ち越すには共通コアの変更が要るため、[05](./05_ゲームモジュール.md) の手順6に従って先送りする（DON'T SAY ITの同じ論点と合わせて判断する） |
+| 同じ英文の提出 | 重複を弾く規則を置いていない。作者の判定は識別子で行うため進行は壊れないが、開示に同じ文が並ぶと指名の手がかりが消える。実プレイで起きる頻度は未検証 |
 | 提出内容の適切さ | 自由英文であり、場を壊す内容を機械で弾かない。同室プレイのため運用に委ねる（[収録計画](../実装計画/ゲーム構想20案の収録計画.md) のリスク表と同じ判断） |
 
 ## 原案からの変更
@@ -573,6 +591,9 @@ interface WhoWroteThisResult {
 * `submit`: 提出しても他のプレイヤーの秘密が書き換わらないこと
 * `submit`: 接続中の全員が提出した時点で `guessing` へ進むこと
 * `guess`: 作者からの指名が `own_submission` で拒否されること
+* 識別子: ラウンド内で重複せず、`playerId` から導かれていないこと
+* 識別子: 同じ英文を2人が提出しても、開示中の識別子が作者だけを指すこと
+* 識別子: 本人の秘密に自分の識別子だけが入ること
 * `guess`: `index` 不一致が `stale_guess` で拒否されること
 * `guess`: 二重送信が `already_guessed` で拒否され、初回が残ること
 * `guess`: 未提出者と自分自身への指名が `invalid_target` で拒否されること

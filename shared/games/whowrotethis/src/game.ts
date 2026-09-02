@@ -69,6 +69,13 @@ export interface WhoWroteThisSecret {
   hintEn: string[];
   /** 自分の提出。未提出なら省略する */
   submission?: string;
+  /**
+   * このラウンドの自分の提出の識別子。
+   *
+   * 開示中の PresentedItem.submissionId と突き合わせて「自分の文が出ているか」を判定する。
+   * 他人の識別子は配らないため、この値から作者は割れない。
+   */
+  submissionId: string;
 }
 
 // --- 公開状態 ---
@@ -104,6 +111,13 @@ export interface PresentedItem {
   /** 現ラウンドの開示件数 */
   total: number;
   text: string;
+  /**
+   * 提出の識別子。作者を表さない値であり、開始時にseedから振る。
+   *
+   * 自分が作者かどうかは、本人だけが持つ WhoWroteThisSecret.submissionId との一致で判定する。
+   * 提出テキストの一致で判定すると、2人が同じ英文を出したとき作者でない側まで作者として扱われる。
+   */
+  submissionId: string;
   /** 指名を済ませた人。指名先は載せない（先に見えると同調が起きる） */
   guessedPlayerIds: string[];
 }
