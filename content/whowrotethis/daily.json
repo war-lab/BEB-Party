@@ -1,0 +1,137 @@
+{
+  "id": "daily",
+  "title": "日常",
+  "keyExpressions": [
+    { "en": "This sounds like Ken.", "ja": "これは〇〇っぽい" },
+    { "en": "It is too polite for Ken.", "ja": "〇〇にしては丁寧すぎる" },
+    { "en": "Ken never writes a long sentence.", "ja": "〇〇は長い文を書かない" },
+    { "en": "Who uses this word?", "ja": "こんな単語を使うのは誰？" },
+    { "en": "I think Aya wrote it.", "ja": "〇〇が書いたと思う" },
+    { "en": "Why do you think so?", "ja": "なぜそう思う？" },
+    { "en": "It is not me.", "ja": "私じゃない" },
+    { "en": "Did you write this?", "ja": "これ書いた？" },
+    { "en": "I have no idea.", "ja": "見当がつかない" }
+  ],
+  "questions": [
+    {
+      "id": "q_last_meal",
+      "en": "What would you eat for your last meal?",
+      "ja": "人生最後の食事に何を食べる？",
+      "hintEn": [
+        "I would eat ... with rice.",
+        "I want ... as my last meal.",
+        "My last meal is ... at home."
+      ]
+    },
+    {
+      "id": "q_museum",
+      "en": "What would you take home from a museum?",
+      "ja": "博物館の展示から何を持ち帰る？",
+      "hintEn": [
+        "I would take the ... home.",
+        "The ... is small enough to carry.",
+        "Nobody would notice the missing ..."
+      ]
+    },
+    {
+      "id": "q_strange_bag",
+      "en": "What is the strangest thing in your bag?",
+      "ja": "かばんの中でいちばん変なものは？",
+      "hintEn": [
+        "I always carry a ... with me.",
+        "There is a ... in my bag.",
+        "I keep ... for no reason."
+      ]
+    },
+    {
+      "id": "q_superpower",
+      "en": "What small superpower do you want?",
+      "ja": "どんなささやかな超能力が欲しい？",
+      "hintEn": [
+        "I want to ... anytime I like.",
+        "My superpower is ... very fast.",
+        "I would like to ... at will."
+      ]
+    },
+    {
+      "id": "q_small_lie",
+      "en": "What small lie do you often tell?",
+      "ja": "よくつく小さな嘘は？",
+      "hintEn": [
+        "I often say I am ...",
+        "I say ... when I am tired.",
+        "My small lie is about ..."
+      ]
+    },
+    {
+      "id": "q_desert_island",
+      "en": "What one thing would you take to a desert island?",
+      "ja": "無人島にひとつだけ持っていくものは？",
+      "hintEn": [
+        "I would take my ... with me.",
+        "I need ... more than food.",
+        "I would bring ... to feel safe."
+      ]
+    },
+    {
+      "id": "q_never_again",
+      "en": "What will you never do again?",
+      "ja": "もう二度としないことは？",
+      "hintEn": [
+        "I will never ... again.",
+        "I stopped ... last year.",
+        "I do not ... anymore."
+      ]
+    },
+    {
+      "id": "q_time_machine",
+      "en": "Where would you go with a time machine?",
+      "ja": "タイムマシンでどこへ行く？",
+      "hintEn": [
+        "I would go back to ...",
+        "I want to see ... again.",
+        "I would visit ... for one day."
+      ]
+    },
+    {
+      "id": "q_bad_advice",
+      "en": "What is the worst advice you have heard?",
+      "ja": "今まで聞いた中で最悪のアドバイスは？",
+      "hintEn": [
+        "Someone told me to ...",
+        "The worst advice was about ...",
+        "People say I should ..."
+      ]
+    },
+    {
+      "id": "q_house_rule",
+      "en": "What strange rule would you make in your house?",
+      "ja": "もし家に変わったルールを1つ作れるなら？",
+      "hintEn": [
+        "In my house, nobody can ...",
+        "Everyone must ... before dinner.",
+        "My rule is about ... at night."
+      ]
+    },
+    {
+      "id": "q_lost_item",
+      "en": "What do you lose most often?",
+      "ja": "一番よくなくすものは？",
+      "hintEn": [
+        "I lose my ... every week.",
+        "I always lose one ...",
+        "My ... is never in my bag."
+      ]
+    },
+    {
+      "id": "q_laziest",
+      "en": "What is the laziest thing you do at home?",
+      "ja": "家でやるいちばん怠けたことは？",
+      "hintEn": [
+        "I ... in my bed sometimes.",
+        "I do not ... for days.",
+        "My laziest habit is ..."
+      ]
+    }
+  ]
+}

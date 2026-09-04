@@ -16,18 +16,29 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export const NAME_MAX_LENGTH = 24;
 /** ゲーム固有設定のシリアライズ長（文字数）の上限。中身の意味は各ゲームが検証する（ADR-0012） */
 export const SETTINGS_MAX_CHARS = 2048;
+/**
+ * actionの残余ペイロードのシリアライズ長（文字数）の上限（ADR-0023）。
+ *
+ * 自由英文を運ぶゲームでは、提出テキストがgameSecretへ蓄積され、開示時に公開状態と
+ * resultを経由して全員へ再配信される。1件の入力が以後の配信量を増幅する構造はnameと
+ * 同じであり、器の側が上限を持つ。settingsより小さいのは、settingsがロビーで1回だけ
+ * 送られるのに対しactionはゲーム中に繰り返し送られるためである。
+ *
+ * ゲームのルールとして適切な長さ（提出の文字数等）はゲームモジュールが別に検証する。
+ */
+export const ACTION_MAX_CHARS = 512;
 
 function isValidName(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0 && [...value].length <= NAME_MAX_LENGTH;
 }
 
 /** シリアライズ長で上限を課す。循環参照など文字列化できない値も弾く */
-function isWithinSettingsLimit(value: unknown): boolean {
+function isWithinSerializedLimit(value: unknown, maxChars: number): boolean {
   if (value === undefined) {
     return true;
   }
   try {
-    return (JSON.stringify(value) ?? "").length <= SETTINGS_MAX_CHARS;
+    return (JSON.stringify(value) ?? "").length <= maxChars;
   } catch {
     return false;
   }
@@ -77,7 +88,7 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
       if (raw.contentId !== undefined && typeof raw.contentId !== "string") {
         return null;
       }
-      if (!isWithinSettingsLimit(raw.settings)) {
+      if (!isWithinSerializedLimit(raw.settings, SETTINGS_MAX_CHARS)) {
         return null;
       }
       return { v, type: "configure", contentId: raw.contentId, settings: raw.settings };
@@ -93,6 +104,10 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
         return null;
       }
       const { v: _v, type: _type, action: _action, ...payload } = raw;
+      // 残余ペイロードのサイズだけを見る。中身の意味はゲームモジュールが検証する（ADR-0023）
+      if (!isWithinSerializedLimit(payload, ACTION_MAX_CHARS)) {
+        return null;
+      }
       return { ...payload, v, type: "action", action: raw.action };
     }
     default:

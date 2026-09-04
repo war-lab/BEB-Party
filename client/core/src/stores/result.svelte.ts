@@ -15,6 +15,11 @@ export function setResult(gameId: string, payload: unknown): void {
 }
 
 export function clearResult(): void {
+  // 空のときは書き込まない。stateの受信ごとに呼ばれるため、毎回書くと
+  // resultを読むコンポーネントが state 1件ごとに再描画される（E2Eが負荷で落ちた）
+  if (state.gameId === null && state.payload === null) {
+    return;
+  }
   state.gameId = null;
   state.payload = null;
 }

@@ -1,11 +1,15 @@
 <!--
-  得点表。ルール確認・交代・結果の3画面で使う。
+  得点表。得点を持つゲームの結果・途中表示で使う（ADR-0020の判断基準で共通コアへ移した部品）。
+
   順位はサーバが並べた順（結果）か、その場の点数順（進行中）で描くだけとする。
+  ゲーム固有の語彙を持たない。得点の意味・加点の規則は各ゲームモジュールが決める。
 -->
 <script lang="ts">
   import type { Room } from "@beb/shared-core";
-  import { pointsOf, type ScoreEntry } from "@beb/shared-dontsayit";
-  import { faceColor, playerIconOf, ui } from "@beb/client-core";
+  import { faceColor } from "../face-color";
+  import { playerIconOf } from "../player-icon";
+  import type { ScoreEntry } from "../score-entry";
+  import { ui } from "../stores/ui.svelte";
 
   interface Props {
     room: Room;
@@ -30,7 +34,7 @@
         <span aria-hidden="true">{playerIconOf(entry.playerId)}</span>
       </span>
       <span class="name">{nameOf(entry.playerId)}</span>
-      <span class="points">{pointsOf(scores, entry.playerId)}</span>
+      <span class="points">{entry.points}</span>
     </li>
   {/each}
 </ul>

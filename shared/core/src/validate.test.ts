@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NAME_MAX_LENGTH, SETTINGS_MAX_CHARS, parseClientMessage } from "./validate";
+import { ACTION_MAX_CHARS, NAME_MAX_LENGTH, SETTINGS_MAX_CHARS, parseClientMessage } from "./validate";
 
 describe("parseClientMessage", () => {
   it("非オブジェクトを拒否する", () => {
@@ -125,5 +125,50 @@ describe("parseClientMessage", () => {
 
   it("actionフィールドが欠けているactionを拒否する", () => {
     expect(parseClientMessage({ v: 1, type: "action", targetPlayerId: "p1" })).toBeNull();
+  });
+
+  it("上限を超えるactionペイロードを拒否する（ADR-0023）", () => {
+    const overLimit = "x".repeat(ACTION_MAX_CHARS);
+    expect(parseClientMessage({ v: 1, type: "action", action: "submit", text: overLimit })).toBeNull();
+  });
+
+  it("上限内のactionペイロードを受理する（ADR-0023）", () => {
+    // 判定はJSON.stringifyの長さで行う。{"text":"..."} の分だけ余裕を取る
+    const withinLimit = "x".repeat(ACTION_MAX_CHARS - 20);
+    const result = parseClientMessage({ v: 1, type: "action", action: "submit", text: withinLimit });
+    expect(result).toMatchObject({ type: "action", action: "submit", text: withinLimit });
+  });
+
+  it("actionの長さ判定に action名 と v・type を数えない（ADR-0023）", () => {
+    // 上限は残余ペイロードに課す。action名を長くしても残余の判定は変わらない
+    const payload = { text: "x".repeat(ACTION_MAX_CHARS - 20) };
+    const longActionName = "a".repeat(200);
+    expect(parseClientMessage({ v: 1, type: "action", action: longActionName, ...payload })).not.toBeNull();
+  });
+
+  it("シリアライズできないactionペイロードを拒否する（ADR-0023）", () => {
+    const circular: Record<string, unknown> = { self: undefined };
+    circular.self = circular;
+    expect(parseClientMessage({ v: 1, type: "action", action: "submit", loop: circular })).toBeNull();
+  });
+
+  it("既収録3本のactionはいずれも上限に触れない（ADR-0023）", () => {
+    // detectives: vote / dontsayit: reportViolation 等 / ranking: proposeRanking
+    const shipped = [
+      { v: 1, type: "action", action: "ready" },
+      { v: 1, type: "action", action: "vote", targetPlayerId: "p1234" },
+      { v: 1, type: "action", action: "correct", answeredPlayerId: "p1234" },
+      { v: 1, type: "action", action: "reportViolation" },
+      {
+        v: 1,
+        type: "action",
+        action: "proposeRanking",
+        ranking: ["sleep", "money", "friends", "food", "work"],
+      },
+      { v: 1, type: "action", action: "approveRanking" },
+    ];
+    for (const message of shipped) {
+      expect(parseClientMessage(message)).not.toBeNull();
+    }
   });
 });

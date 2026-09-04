@@ -8,6 +8,7 @@
     detectives: () => import("@beb/client-detectives") as Promise<{ default: Component }>,
     dontsayit: () => import("@beb/client-dontsayit") as Promise<{ default: Component }>,
     ranking: () => import("@beb/client-ranking") as Promise<{ default: Component }>,
+    whowrotethis: () => import("@beb/client-whowrotethis") as Promise<{ default: Component }>,
   };
 
   // gameId→遊び方ローダーのテーブル。ルール説明もゲームモジュールが持つ
@@ -15,6 +16,7 @@
     detectives: () => import("@beb/client-detectives/guide") as Promise<{ default: Component }>,
     dontsayit: () => import("@beb/client-dontsayit/guide") as Promise<{ default: Component }>,
     ranking: () => import("@beb/client-ranking/guide") as Promise<{ default: Component }>,
+    whowrotethis: () => import("@beb/client-whowrotethis/guide") as Promise<{ default: Component }>,
   };
 
   // gameId→ステージ表示文言のローダー。ホスト画面がステージ名を出すために使う（基本設計/02）
@@ -22,6 +24,7 @@
     detectives: () => import("@beb/client-detectives/stage-labels"),
     dontsayit: () => import("@beb/client-dontsayit/stage-labels"),
     ranking: () => import("@beb/client-ranking/stage-labels"),
+    whowrotethis: () => import("@beb/client-whowrotethis/stage-labels"),
   };
 </script>
 

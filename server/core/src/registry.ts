@@ -4,9 +4,11 @@ import type { GameModule } from "@beb/shared-core";
 import { detectivesModule } from "@beb/server-detectives";
 import { dontSayItModule } from "@beb/server-dontsayit";
 import { rankingModule } from "@beb/server-ranking";
+import { whoWroteThisModule } from "@beb/server-whowrotethis";
 
 export const registry: Record<string, GameModule<unknown, unknown, unknown>> = {
   detectives: detectivesModule as unknown as GameModule<unknown, unknown, unknown>,
   dontsayit: dontSayItModule as unknown as GameModule<unknown, unknown, unknown>,
   ranking: rankingModule as unknown as GameModule<unknown, unknown, unknown>,
+  whowrotethis: whoWroteThisModule as unknown as GameModule<unknown, unknown, unknown>,
 };
