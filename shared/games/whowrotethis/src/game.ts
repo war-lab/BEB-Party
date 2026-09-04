@@ -69,6 +69,13 @@ export interface WhoWroteThisSecret {
   hintEn: string[];
   /** 自分の提出。未提出なら省略する */
   submission?: string;
+  /**
+   * このラウンドの開示順における自分の位置。
+   *
+   * 開示中の PresentedItem.slot と突き合わせて「自分の文が出ているか」を判定する。
+   * 他人のslotは配らない。
+   */
+  slot: number;
 }
 
 // --- 公開状態 ---
@@ -104,6 +111,17 @@ export interface PresentedItem {
   /** 現ラウンドの開示件数 */
   total: number;
   text: string;
+  /**
+   * 作者の開示順における位置（未提出者を除く前の並びでの添字）。
+   *
+   * 自分が作者かどうかは、本人だけが持つ WhoWroteThisSecret.slot との一致で判定する。
+   * 全員が提出した回では index と同じ値になり、開示の順序から読める情報しか持たない。
+   * 他人のslotは配らないため、この値から作者は割れない。
+   *
+   * 乱数から識別子を振らない。mulberry32は32bitの状態を加算で進めるため、
+   * 自分の識別子1つから状態を総当たりすれば全系列を復元でき、全員の作者が割れる。
+   */
+  slot: number;
   /** 指名を済ませた人。指名先は載せない（先に見えると同調が起きる） */
   guessedPlayerIds: string[];
 }

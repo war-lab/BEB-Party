@@ -364,6 +364,94 @@ describe("submit", () => {
   });
 });
 
+describe("開示順のスロット", () => {
+  it("本人の秘密に自分のスロットだけが入る", () => {
+    const started = startGame();
+    const order = started.gameSecret?.revealOrders[0] ?? [];
+    for (const player of players) {
+      const secret = started.secrets.get(player.id) as WhoWroteThisSecret;
+      expect(secret.slot).toBe(order.indexOf(player.id));
+      // 他人のスロットは配らない（秘密に載るのは自分の分だけ）
+      expect(Object.keys(secret)).not.toContain("slots");
+    }
+  });
+
+  it("秘密から乱数の系列を復元できる値を配らない", () => {
+    // 乱数由来の識別子を配ると、mulberry32は32bitの状態を加算で進めるため
+    // 自分の1件から状態を総当たりして全系列を復元でき、全員の作者が割れる。
+    // 配ってよいのは開示順の添字だけであり、参加人数の範囲に収まる
+    const started = startGame();
+    for (const player of players) {
+      const secret = started.secrets.get(player.id) as WhoWroteThisSecret;
+      expect(Number.isInteger(secret.slot)).toBe(true);
+      expect(secret.slot).toBeGreaterThanOrEqual(0);
+      expect(secret.slot).toBeLessThan(players.length);
+    }
+    // gameSecretにも識別子の対応表を持たない
+    expect(Object.keys(started.gameSecret ?? {})).not.toContain("submissionIds");
+  });
+
+  it("開示中の件のスロットが作者のものと一致する", () => {
+    const guessing = submitAll(readyAll(begin()));
+    const author = authorOf(guessing);
+    const order = guessing.gameSecret.revealOrders[0] ?? [];
+    expect(guessing.publicState.presented?.slot).toBe(order.indexOf(author));
+  });
+
+  it("全員が提出した回では slot と index が一致する", () => {
+    // slotは開示の順序から読める情報しか持たない（公開しても作者は割れない）
+    let current = submitAll(readyAll(begin()));
+    for (let item = 0; item < players.length; item += 1) {
+      expect(current.publicState.presented?.index).toBe(item);
+      expect(current.publicState.presented?.slot).toBe(item);
+      current = guessAll(current, (_, authorId) => authorId);
+      current = deadline(current);
+      if (current.stage !== STAGES.guessing) {
+        break;
+      }
+    }
+  });
+
+  it("未提出者がいる回はその分のslotが飛ぶ", () => {
+    const submitted = [players[0]!.id, players[2]!.id, players[4]!.id];
+    const writing = submitAll(readyAll(begin()), submitted);
+    const guessing = deadline(writing);
+    const order = guessing.gameSecret.revealOrders[0] ?? [];
+    const author = authorOf(guessing);
+    expect(guessing.publicState.presented?.index).toBe(0);
+    expect(guessing.publicState.presented?.slot).toBe(order.indexOf(author));
+    expect(submitted).toContain(author);
+  });
+
+  it("同じ英文を2人が提出しても、スロットは作者だけを指す", () => {
+    // 同一の提出は合法である。テキストの一致で作者を判定すると作者でない側まで作者になる
+    let current = readyAll(begin());
+    for (const player of players) {
+      current = act(current, player.id, ACTIONS.submit, { text: "I do the same thing." });
+    }
+    const author = authorOf(current);
+    const order = current.gameSecret.revealOrders[0] ?? [];
+    const presentedSlot = current.publicState.presented?.slot;
+
+    expect(presentedSlot).toBe(order.indexOf(author));
+    for (const player of players) {
+      if (player.id !== author) {
+        expect(presentedSlot).not.toBe(order.indexOf(player.id));
+      }
+    }
+  });
+
+  it("同じ英文でも作者以外の全員が指名でき、judgingへ進む", () => {
+    let current = readyAll(begin());
+    for (const player of players) {
+      current = act(current, player.id, ACTIONS.submit, { text: "I do the same thing." });
+    }
+    const after = guessAll(current, (_, authorId) => authorId);
+    expect(after.stage).toBe(STAGES.judging);
+    expect(after.publicState.revealedItems[0]?.guesses).toHaveLength(players.length - 1);
+  });
+});
+
 describe("guess", () => {
   function toGuessing(): Progress {
     return submitAll(readyAll(begin()));
@@ -399,6 +487,22 @@ describe("guess", () => {
     const second = act(first, guesser, ACTIONS.guess, { index: 0, targetPlayerId: guesser === author ? author : author });
     expect(second.reject?.code).toBe(ERROR_CODES.alreadyGuessed);
     expect(first.gameSecret.currentGuesses[guesser]).toBe(author);
+  });
+
+  it("素早い2回の指名で初回が採点対象になる（2回目は拒否）", () => {
+    const guessing = toGuessing();
+    const author = authorOf(guessing);
+    const others = players.filter((player) => player.id !== author);
+    const guesser = others[0]!.id;
+    const first = others[1]!.id;
+    const second = others[2]!.id;
+
+    const a = act(guessing, guesser, ACTIONS.guess, { index: 0, targetPlayerId: first });
+    const b = act(a, guesser, ACTIONS.guess, { index: 0, targetPlayerId: second });
+
+    expect(b.reject?.code).toBe(ERROR_CODES.alreadyGuessed);
+    expect(a.gameSecret.currentGuesses[guesser]).toBe(first);
+    expect(b.gameSecret.currentGuesses[guesser]).toBe(first);
   });
 
   it("自分自身と未提出者への指名をinvalid_targetで拒否する", () => {

@@ -24,11 +24,11 @@
   const hasGuessed = $derived(
     ui.myPlayerId !== null && (presented?.guessedPlayerIds.includes(ui.myPlayerId) ?? false),
   );
-  // サーバは作者を伏せる。自分が作者かどうかは、手元の秘密（自分の提出）と一致するかで判定する。
-  // サーバが正規化した文と同じ文字列が返るため一致する。
-  // 2人の提出が完全に同じ文字列だった場合は両方が作者として表示される（11の未解決の論点）
-  const mySubmission = $derived(secret?.roundIndex === publicState.roundIndex ? secret.submission : undefined);
-  const isAuthor = $derived(presented !== null && mySubmission !== undefined && presented.text === mySubmission);
+  // サーバは作者を伏せる。自分が作者かどうかは、本人だけが持つ開示順のスロットで判定する。
+  // 提出テキストの一致では判定しない。同じ英文は合法であり、2人が同じ文を出すと
+  // 作者でない側まで作者として扱われ、その人の指名UIが消えて締切まで進行が止まる
+  const mySlot = $derived(secret?.roundIndex === publicState.roundIndex ? secret.slot : undefined);
+  const isAuthor = $derived(presented !== null && mySlot !== undefined && presented.slot === mySlot);
   const candidates = $derived(
     room.players.filter(
       (player) => publicState.submittedPlayerIds.includes(player.id) && player.id !== ui.myPlayerId,
@@ -40,14 +40,32 @@
   // 提出を読んで英語で言い合うステージ。指名を押すまで画面に触らない時間が続く
   $effect(() => acquireWakeLock());
 
+  // 送信済みの指名を件番号つきで持つ。サーバのhasGuessedが返るまでの間に2件目を送ると、
+  // サーバは初回を採用して2件目をalready_guessedで拒否する一方、画面は2件目を指名先として出す。
+  // 件番号を併せて持つことで、次の件へ進んだときに自然と解ける
   let picked = $state<string | null>(null);
+  let pickedIndex = $state<number | null>(null);
+  const hasPicked = $derived(picked !== null && pickedIndex === presented?.index);
+  const locked = $derived(hasGuessed || hasPicked);
+
+  // 送れなかった指名は画面のロックも解く。再接続中はsendActionが送らずに戻るため、
+  // ロックしたままにするとサーバへ届いていない指名を再送できず、締切まで待たれる
+  $effect(() => {
+    if (ui.connectionStatus !== "connected" && !hasGuessed) {
+      picked = null;
+      pickedIndex = null;
+    }
+  });
 
   function guess(targetPlayerId: string): void {
-    if (presented === null || hasGuessed) {
+    if (presented === null || locked) {
+      return;
+    }
+    if (!sendAction(ACTIONS.guess, { index: presented.index, targetPlayerId })) {
       return;
     }
     picked = targetPlayerId;
-    sendAction(ACTIONS.guess, { index: presented.index, targetPlayerId });
+    pickedIndex = presented.index;
   }
 </script>
 
@@ -64,15 +82,17 @@
 
       {#if isAuthor}
         <p class="picked" data-testid="own-submission">これはあなたの文です。指名はできません。</p>
-      {:else if hasGuessed}
+      {:else if locked}
         <p class="picked" data-testid="picked">
-          指名しました。{picked === null ? "" : (room.players.find((player) => player.id === picked)?.name ?? "")}
+          指名しました。{hasPicked && picked !== null
+            ? (room.players.find((player) => player.id === picked)?.name ?? "")
+            : ""}
         </p>
       {:else}
         <ul class="candidates" data-testid="candidate-list">
           {#each candidates as player (player.id)}
             <li>
-              <button type="button" data-testid={`guess-${player.id}`} onclick={() => guess(player.id)}>
+              <button type="button" disabled={locked} data-testid={`guess-${player.id}`} onclick={() => guess(player.id)}>
                 <span class="face" style={`background:${faceColor(player.id)}`}>
                   <span aria-hidden="true">{playerIconOf(player.id)}</span>
                 </span>

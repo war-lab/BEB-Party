@@ -135,9 +135,12 @@ function buildSecret(
   roundIndex: number,
   playerId: string,
   submission: string | undefined,
+  slot: number,
 ): WhoWroteThisSecret {
   const hintEn = question.hintEn.slice(0, hintCountFor(levelOf(players, playerId)));
-  return submission === undefined ? { roundIndex, hintEn } : { roundIndex, hintEn, submission };
+  return submission === undefined
+    ? { roundIndex, hintEn, slot }
+    : { roundIndex, hintEn, submission, slot };
 }
 
 /** そのラウンドの秘密情報を全員分作る。前のラウンドの提出が手元に残らないようにする */
@@ -146,10 +149,14 @@ function buildSecrets(
   question: Question,
   roundIndex: number,
   submissions: Record<string, string>,
+  revealOrder: readonly string[],
 ): Map<string, WhoWroteThisSecret> {
   const secrets = new Map<string, WhoWroteThisSecret>();
   for (const player of players) {
-    secrets.set(player.id, buildSecret(players, question, roundIndex, player.id, submissions[player.id]));
+    secrets.set(
+      player.id,
+      buildSecret(players, question, roundIndex, player.id, submissions[player.id], revealOrder.indexOf(player.id)),
+    );
   }
   return secrets;
 }
@@ -223,15 +230,17 @@ function presentItem(
   const authorId = order[index];
   const submissions = gameSecret.submissions[publicState.roundIndex] ?? {};
   const text = authorId === undefined ? undefined : submissions[authorId];
-  if (text === undefined) {
+  if (authorId === undefined || text === undefined) {
     // orderは提出のある人だけで作るため到達しない
     return finishRound(publicState, gameSecret);
   }
 
+  // slotは未提出者を除く前の並びでの添字。全員が提出した回では index と一致する
+  const slot = (gameSecret.revealOrders[publicState.roundIndex] ?? []).indexOf(authorId);
   return {
     publicState: {
       ...publicState,
-      presented: { index, total: order.length, text, guessedPlayerIds: [] },
+      presented: { index, total: order.length, text, slot, guessedPlayerIds: [] },
     },
     stage: STAGES.guessing,
     deadlineSeconds: STAGE_DEADLINE_SECONDS.guessing,
@@ -361,7 +370,7 @@ function startNextRound(room: Room, publicState: WhoWroteThisPublic, gameSecret:
     publicState: nextPublic,
     stage: STAGES.briefing,
     deadlineSeconds: STAGE_DEADLINE_SECONDS.briefing,
-    secrets: buildSecrets(room.players, question, nextIndex, {}),
+    secrets: buildSecrets(room.players, question, nextIndex, {}, gameSecret.revealOrders[nextIndex] ?? []),
   };
 }
 
@@ -433,10 +442,11 @@ function handleSubmit(
 
   const pack = resolvePack(publicState.packId);
   const question = resolveQuestion(pack, gameSecret.questionIds[publicState.roundIndex]);
+  const slot = (gameSecret.revealOrders[publicState.roundIndex] ?? []).indexOf(playerId);
   const secrets =
     question === undefined
       ? undefined
-      : new Map([[playerId, buildSecret(room.players, question, publicState.roundIndex, playerId, text)]]);
+      : new Map([[playerId, buildSecret(room.players, question, publicState.roundIndex, playerId, text, slot)]]);
 
   if (!allConnectedIn(room, submittedPlayerIds)) {
     return { publicState: next, gameSecret: nextSecret, secrets };
@@ -569,7 +579,7 @@ export const whoWroteThisModule: GameModule<
       stage: STAGES.briefing,
       deadlineSeconds: STAGE_DEADLINE_SECONDS.briefing,
       publicState,
-      secrets: first === undefined ? new Map() : buildSecrets(players, first, 0, {}),
+      secrets: first === undefined ? new Map() : buildSecrets(players, first, 0, {}, revealOrders[0] ?? []),
       gameSecret: {
         questionIds,
         revealOrders,

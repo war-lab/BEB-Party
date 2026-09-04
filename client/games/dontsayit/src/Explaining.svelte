@@ -61,7 +61,11 @@
     if (sheetCardId === null) {
       return;
     }
-    sendAction(ACTIONS.claimCorrect, { playerId, cardId: sheetCardId });
+    // 送れたときだけシートを閉じる。未接続だとsendActionは送らずに戻るため、
+    // 閉じてしまうと届いていない加点が受け付けられたように見える（基本設計/02）
+    if (!sendAction(ACTIONS.claimCorrect, { playerId, cardId: sheetCardId })) {
+      return;
+    }
     sheetOpen = false;
     sheetCardId = null;
   }
