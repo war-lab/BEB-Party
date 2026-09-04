@@ -24,13 +24,11 @@
   const hasGuessed = $derived(
     ui.myPlayerId !== null && (presented?.guessedPlayerIds.includes(ui.myPlayerId) ?? false),
   );
-  // サーバは作者を伏せる。自分が作者かどうかは、本人だけが持つ提出の識別子との一致で判定する。
+  // サーバは作者を伏せる。自分が作者かどうかは、本人だけが持つ開示順のスロットで判定する。
   // 提出テキストの一致では判定しない。同じ英文は合法であり、2人が同じ文を出すと
   // 作者でない側まで作者として扱われ、その人の指名UIが消えて締切まで進行が止まる
-  const mySubmissionId = $derived(secret?.roundIndex === publicState.roundIndex ? secret.submissionId : undefined);
-  const isAuthor = $derived(
-    presented !== null && mySubmissionId !== undefined && presented.submissionId === mySubmissionId,
-  );
+  const mySlot = $derived(secret?.roundIndex === publicState.roundIndex ? secret.slot : undefined);
+  const isAuthor = $derived(presented !== null && mySlot !== undefined && presented.slot === mySlot);
   const candidates = $derived(
     room.players.filter(
       (player) => publicState.submittedPlayerIds.includes(player.id) && player.id !== ui.myPlayerId,
@@ -50,13 +48,24 @@
   const hasPicked = $derived(picked !== null && pickedIndex === presented?.index);
   const locked = $derived(hasGuessed || hasPicked);
 
+  // 送れなかった指名は画面のロックも解く。再接続中はsendActionが送らずに戻るため、
+  // ロックしたままにするとサーバへ届いていない指名を再送できず、締切まで待たれる
+  $effect(() => {
+    if (ui.connectionStatus !== "connected" && !hasGuessed) {
+      picked = null;
+      pickedIndex = null;
+    }
+  });
+
   function guess(targetPlayerId: string): void {
     if (presented === null || locked) {
       return;
     }
+    if (!sendAction(ACTIONS.guess, { index: presented.index, targetPlayerId })) {
+      return;
+    }
     picked = targetPlayerId;
     pickedIndex = presented.index;
-    sendAction(ACTIONS.guess, { index: presented.index, targetPlayerId });
   }
 </script>
 

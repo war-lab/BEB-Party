@@ -364,62 +364,79 @@ describe("submit", () => {
   });
 });
 
-describe("提出の識別子", () => {
-  it("startで全ラウンド分を振り、ラウンド内で重複しない", () => {
+describe("開示順のスロット", () => {
+  it("本人の秘密に自分のスロットだけが入る", () => {
     const started = startGame();
-    const ids = started.gameSecret?.submissionIds ?? [];
-    expect(ids).toHaveLength(ROUNDS);
-    for (const round of ids) {
-      const values = Object.values(round);
-      expect(values).toHaveLength(players.length);
-      expect(new Set(values).size).toBe(values.length);
-      expect(values.every((value) => value !== "")).toBe(true);
+    const order = started.gameSecret?.revealOrders[0] ?? [];
+    for (const player of players) {
+      const secret = started.secrets.get(player.id) as WhoWroteThisSecret;
+      expect(secret.slot).toBe(order.indexOf(player.id));
+      // 他人のスロットは配らない（秘密に載るのは自分の分だけ）
+      expect(Object.keys(secret)).not.toContain("slots");
     }
   });
 
-  it("識別子がplayerIdから導かれていない（作者を逆算できない）", () => {
+  it("秘密から乱数の系列を復元できる値を配らない", () => {
+    // 乱数由来の識別子を配ると、mulberry32は32bitの状態を加算で進めるため
+    // 自分の1件から状態を総当たりして全系列を復元でき、全員の作者が割れる。
+    // 配ってよいのは開示順の添字だけであり、参加人数の範囲に収まる
     const started = startGame();
-    for (const round of started.gameSecret?.submissionIds ?? []) {
-      for (const [playerId, id] of Object.entries(round)) {
-        expect(id).not.toContain(playerId);
-        expect(playerId).not.toContain(id);
+    for (const player of players) {
+      const secret = started.secrets.get(player.id) as WhoWroteThisSecret;
+      expect(Number.isInteger(secret.slot)).toBe(true);
+      expect(secret.slot).toBeGreaterThanOrEqual(0);
+      expect(secret.slot).toBeLessThan(players.length);
+    }
+    // gameSecretにも識別子の対応表を持たない
+    expect(Object.keys(started.gameSecret ?? {})).not.toContain("submissionIds");
+  });
+
+  it("開示中の件のスロットが作者のものと一致する", () => {
+    const guessing = submitAll(readyAll(begin()));
+    const author = authorOf(guessing);
+    const order = guessing.gameSecret.revealOrders[0] ?? [];
+    expect(guessing.publicState.presented?.slot).toBe(order.indexOf(author));
+  });
+
+  it("全員が提出した回では slot と index が一致する", () => {
+    // slotは開示の順序から読める情報しか持たない（公開しても作者は割れない）
+    let current = submitAll(readyAll(begin()));
+    for (let item = 0; item < players.length; item += 1) {
+      expect(current.publicState.presented?.index).toBe(item);
+      expect(current.publicState.presented?.slot).toBe(item);
+      current = guessAll(current, (_, authorId) => authorId);
+      current = deadline(current);
+      if (current.stage !== STAGES.guessing) {
+        break;
       }
     }
   });
 
-  it("本人の秘密に自分の識別子だけが入る", () => {
-    const started = startGame();
-    const assigned = started.gameSecret?.submissionIds[0] ?? {};
-    for (const player of players) {
-      const secret = started.secrets.get(player.id) as WhoWroteThisSecret;
-      expect(secret.submissionId).toBe(assigned[player.id]);
-      // 他人の識別子は配らない
-      const others = players.filter((entry) => entry.id !== player.id).map((entry) => assigned[entry.id]);
-      expect(others).not.toContain(secret.submissionId);
-    }
-  });
-
-  it("開示中の件の識別子が作者のものと一致する", () => {
-    const guessing = submitAll(readyAll(begin()));
+  it("未提出者がいる回はその分のslotが飛ぶ", () => {
+    const submitted = [players[0]!.id, players[2]!.id, players[4]!.id];
+    const writing = submitAll(readyAll(begin()), submitted);
+    const guessing = deadline(writing);
+    const order = guessing.gameSecret.revealOrders[0] ?? [];
     const author = authorOf(guessing);
-    const assigned = guessing.gameSecret.submissionIds[0] ?? {};
-    expect(guessing.publicState.presented?.submissionId).toBe(assigned[author]);
+    expect(guessing.publicState.presented?.index).toBe(0);
+    expect(guessing.publicState.presented?.slot).toBe(order.indexOf(author));
+    expect(submitted).toContain(author);
   });
 
-  it("同じ英文を2人が提出しても、識別子は作者だけを指す", () => {
+  it("同じ英文を2人が提出しても、スロットは作者だけを指す", () => {
     // 同一の提出は合法である。テキストの一致で作者を判定すると作者でない側まで作者になる
     let current = readyAll(begin());
     for (const player of players) {
       current = act(current, player.id, ACTIONS.submit, { text: "I do the same thing." });
     }
     const author = authorOf(current);
-    const assigned = current.gameSecret.submissionIds[0] ?? {};
-    const presentedId = current.publicState.presented?.submissionId;
+    const order = current.gameSecret.revealOrders[0] ?? [];
+    const presentedSlot = current.publicState.presented?.slot;
 
-    expect(presentedId).toBe(assigned[author]);
+    expect(presentedSlot).toBe(order.indexOf(author));
     for (const player of players) {
       if (player.id !== author) {
-        expect(presentedId).not.toBe(assigned[player.id]);
+        expect(presentedSlot).not.toBe(order.indexOf(player.id));
       }
     }
   });

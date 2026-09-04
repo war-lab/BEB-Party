@@ -61,14 +61,6 @@ export interface WhoWroteThisGameSecret {
   revealOrders: string[][];
   /** ラウンドごとの playerId -> 提出テキスト（正規化済み） */
   submissions: Record<string, string>[];
-  /**
-   * ラウンドごとの playerId -> 提出の識別子。開始時にseedから振る。
-   *
-   * 作者を表さない値であり、本人へは secret で、開示中の1件については公開状態で配る。
-   * 提出テキストの一致で作者を判定すると、2人が同じ英文を出したとき作者でない側まで
-   * 作者として扱われ、その人の指名UIが消えて締切まで進行が止まる。
-   */
-  submissionIds: Record<string, string>[];
   /** 表示中の件の playerId -> 指名先。judging で公開状態へ移して空へ戻す */
   currentGuesses: Record<string, string>;
 }
@@ -143,12 +135,12 @@ function buildSecret(
   roundIndex: number,
   playerId: string,
   submission: string | undefined,
-  submissionId: string,
+  slot: number,
 ): WhoWroteThisSecret {
   const hintEn = question.hintEn.slice(0, hintCountFor(levelOf(players, playerId)));
   return submission === undefined
-    ? { roundIndex, hintEn, submissionId }
-    : { roundIndex, hintEn, submission, submissionId };
+    ? { roundIndex, hintEn, slot }
+    : { roundIndex, hintEn, submission, slot };
 }
 
 /** そのラウンドの秘密情報を全員分作る。前のラウンドの提出が手元に残らないようにする */
@@ -157,36 +149,16 @@ function buildSecrets(
   question: Question,
   roundIndex: number,
   submissions: Record<string, string>,
-  submissionIds: Record<string, string>,
+  revealOrder: readonly string[],
 ): Map<string, WhoWroteThisSecret> {
   const secrets = new Map<string, WhoWroteThisSecret>();
   for (const player of players) {
     secrets.set(
       player.id,
-      buildSecret(players, question, roundIndex, player.id, submissions[player.id], submissionIds[player.id] ?? ""),
+      buildSecret(players, question, roundIndex, player.id, submissions[player.id], revealOrder.indexOf(player.id)),
     );
   }
   return secrets;
-}
-
-/**
- * 1ラウンド分の提出の識別子を振る。
- *
- * playerIdから導かない。導くと、識別子から作者を逆算できる。
- * ラウンド内で衝突しないよう、重複したら引き直す。
- */
-function assignSubmissionIds(players: readonly Player[], random: () => number): Record<string, string> {
-  const used = new Set<string>();
-  const ids: Record<string, string> = {};
-  for (const player of players) {
-    let id = Math.floor(random() * 0xffffffff).toString(36);
-    while (id === "" || used.has(id)) {
-      id = Math.floor(random() * 0xffffffff).toString(36);
-    }
-    used.add(id);
-    ids[player.id] = id;
-  }
-  return ids;
 }
 
 // --- 得点 ---
@@ -263,11 +235,12 @@ function presentItem(
     return finishRound(publicState, gameSecret);
   }
 
-  const submissionId = (gameSecret.submissionIds[publicState.roundIndex] ?? {})[authorId] ?? "";
+  // slotは未提出者を除く前の並びでの添字。全員が提出した回では index と一致する
+  const slot = (gameSecret.revealOrders[publicState.roundIndex] ?? []).indexOf(authorId);
   return {
     publicState: {
       ...publicState,
-      presented: { index, total: order.length, text, submissionId, guessedPlayerIds: [] },
+      presented: { index, total: order.length, text, slot, guessedPlayerIds: [] },
     },
     stage: STAGES.guessing,
     deadlineSeconds: STAGE_DEADLINE_SECONDS.guessing,
@@ -397,7 +370,7 @@ function startNextRound(room: Room, publicState: WhoWroteThisPublic, gameSecret:
     publicState: nextPublic,
     stage: STAGES.briefing,
     deadlineSeconds: STAGE_DEADLINE_SECONDS.briefing,
-    secrets: buildSecrets(room.players, question, nextIndex, {}, gameSecret.submissionIds[nextIndex] ?? {}),
+    secrets: buildSecrets(room.players, question, nextIndex, {}, gameSecret.revealOrders[nextIndex] ?? []),
   };
 }
 
@@ -469,13 +442,11 @@ function handleSubmit(
 
   const pack = resolvePack(publicState.packId);
   const question = resolveQuestion(pack, gameSecret.questionIds[publicState.roundIndex]);
-  const submissionId = (gameSecret.submissionIds[publicState.roundIndex] ?? {})[playerId] ?? "";
+  const slot = (gameSecret.revealOrders[publicState.roundIndex] ?? []).indexOf(playerId);
   const secrets =
     question === undefined
       ? undefined
-      : new Map([
-          [playerId, buildSecret(room.players, question, publicState.roundIndex, playerId, text, submissionId)],
-        ]);
+      : new Map([[playerId, buildSecret(room.players, question, publicState.roundIndex, playerId, text, slot)]]);
 
   if (!allConnectedIn(room, submittedPlayerIds)) {
     return { publicState: next, gameSecret: nextSecret, secrets };
@@ -588,10 +559,6 @@ export const whoWroteThisModule: GameModule<
       ),
     );
 
-    // 提出の識別子も全ラウンド分をここで振る。作者を表さない値にするため、
-    // playerIdからは導かず乱数から作る（11の「作者は自分の件で指名しない」）
-    const submissionIds = questionIds.map(() => assignSubmissionIds(players, random));
-
     const first = resolveQuestion(pack, questionIds[0]);
     const publicState: WhoWroteThisPublic = {
       packId: pack.id,
@@ -612,12 +579,11 @@ export const whoWroteThisModule: GameModule<
       stage: STAGES.briefing,
       deadlineSeconds: STAGE_DEADLINE_SECONDS.briefing,
       publicState,
-      secrets: first === undefined ? new Map() : buildSecrets(players, first, 0, {}, submissionIds[0] ?? {}),
+      secrets: first === undefined ? new Map() : buildSecrets(players, first, 0, {}, revealOrders[0] ?? []),
       gameSecret: {
         questionIds,
         revealOrders,
         submissions: questionIds.map(() => ({})),
-        submissionIds,
         currentGuesses: {},
       },
     };

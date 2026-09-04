@@ -127,8 +127,14 @@ export function disconnect(): void {
   ui.connectionStatus = "disconnected";
 }
 
-export function sendAction(action: string, payload: Record<string, unknown> = {}): void {
-  send({ v: PROTOCOL_VERSION, type: "action", action, ...payload });
+/**
+ * ゲーム固有の操作を送る。送信できたかを返す。
+ *
+ * 呼び出し側は戻り値を見る。再接続中は送信されないため、送ったつもりで
+ * 画面だけを操作済みにすると、サーバは締切までその人を待ち続ける。
+ */
+export function sendAction(action: string, payload: Record<string, unknown> = {}): boolean {
+  return send({ v: PROTOCOL_VERSION, type: "action", action, ...payload });
 }
 
 export function sendCommon(
@@ -141,10 +147,13 @@ export function sendCommon(
   send({ v: PROTOCOL_VERSION, ...message });
 }
 
-function send(message: Record<string, unknown>): void {
+/** 送信できたかを返す。未接続のときは送らずfalseを返す */
+function send(message: Record<string, unknown>): boolean {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(message));
+    return true;
   }
+  return false;
 }
 
 function openSocket(): void {

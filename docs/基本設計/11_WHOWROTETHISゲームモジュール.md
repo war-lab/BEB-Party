@@ -82,15 +82,22 @@ gameIdは `whowrotethis` とする。
 
 その件の収集対象は「作者を除く接続中の全員」となる。
 
-画面が「自分の文が出ているか」を判定するために、提出には識別子（`submissionId`）を振る。
-`start` で全ラウンド分をseedから振り、本人へは `secret` で、開示中の1件については `presented` で配る。
-他人の識別子は配らないため、この値から作者は割れない。
+画面が「自分の文が出ているか」を判定するために、開示順における位置（`slot`）を使う。
+本人へは `secret` で自分の `slot` を、開示中の1件については `presented` で作者の `slot` を配る。
+他人の `slot` は配らない。
+
+`slot` は未提出者を除く前の並びでの添字である。
+全員が提出した回では `presented.index` と同じ値になり、開示の順序から読める情報しか持たない。
+公開しても作者が割れないのはこのためである。
 
 提出テキストの一致で判定しない。
 同じ英文は合法であり（重複を弾く規則を置いていない）、2人が同じ文を出すと作者でない側まで作者として扱われる。
 その人の画面から指名の候補が消える一方、サーバはその人の指名を待ち続けるため、締切まで進行が止まって得点機会も失われる。
 
-識別子は `playerId` から導かない。導くと識別子から作者を逆算できる。
+乱数から識別子を振る方式は採らない。
+`createRandom` は mulberry32 であり、32bitの状態を定数の加算で進める。
+自分の識別子1つから状態を総当たりすれば前後の全系列を復元でき、全員の `playerId` と識別子の対応を作れるため、開示された値を見るだけで作者が割れる。
+`playerId` から導かないことを検査しても、この経路は塞げない。
 
 ### 消去法は禁じない
 
@@ -122,7 +129,7 @@ interface PresentedItem {
   index: number;                // 現ラウンドの何件目か（0始まり）
   total: number;                // 現ラウンドの開示件数
   text: string;                 // 提出テキスト。作者は載せない
-  submissionId: string;         // 提出の識別子。作者を表さない値（startでseedから振る）
+  slot: number;                 // 作者の開示順における位置。全員提出の回では index と一致する
   guessedPlayerIds: string[];   // 指名を済ませた人。指名先は載せない
 }
 
@@ -177,7 +184,7 @@ interface WhoWroteThisSecret {
   roundIndex: number;
   hintEn: string[];      // 英文を書くときに使える言い回し
   submission?: string;   // 自分の提出。未提出なら省略する
-  submissionId: string;  // このラウンドの自分の提出の識別子。presented と突き合わせる
+  slot: number;          // このラウンドの開示順における自分の位置。presented と突き合わせる
 }
 ```
 
@@ -210,7 +217,6 @@ interface WhoWroteThisGameSecret {
   questionIds: string[];                  // 使う2問。startで抽選して固定する
   revealOrders: string[][];               // ラウンドごとの開示順（playerIdの並び）
   submissions: Record<string, string>[];  // ラウンドごとの playerId -> 提出テキスト
-  submissionIds: Record<string, string>[]; // ラウンドごとの playerId -> 提出の識別子
   currentGuesses: Record<string, string>; // 表示中の件の playerId -> 指名先
 }
 ```
@@ -297,6 +303,11 @@ payloadは `{ index: number, targetPlayerId: string }` とする。
 クライアントは送信済みの指名を件番号つきで持ち、サーバの応答を待たずに2件目を送らせない。
 サーバは初回を採用して2件目を `already_guessed` で拒否するため、画面側で止めないと「押した先」と「採点された先」が食い違う。
 件番号を併せて持つのは、次の件へ進んだときにガードが自然に解けるようにするためである。
+
+このガードは送信できたときだけ掛ける。
+`sendAction` は未接続のとき送らずに戻るため（[02](./02_クライアント.md)）、送信の成否を見ずにロックすると、再接続中のタップでサーバへ届いていない指名が確定したように見える。
+その端末は再送もできず、サーバは締切までその人を待ち続ける。
+接続が切れている間はロックを解き、復帰後に押し直せるようにする。
 
 自分自身への指名を拒否するのは、送信者は自分の提出かどうかを知っており、常に誤りであるためである。
 誤操作で1点を失う経路を残さない。
@@ -404,7 +415,7 @@ RANKINGの目標カードと同じ手法である（[10](./10_ENGLISHRANKINGゲ�
 
 1. `contentId` からパックを引く。`listContents` に載るidだけを受理する
 2. `seed` から乱数を作り、パックの質問を `shuffle` して先頭2件を `questionIds` に固定する
-3. ラウンドごとに参加者の並びを `shuffle` し、`revealOrders` に固定する。併せて提出の識別子をラウンドごとに振る
+3. ラウンドごとに参加者の並びを `shuffle` し、`revealOrders` に固定する（`slot` はこの並びの添字である）
 4. ラウンド0の `hintEn` を各自のレベルに応じた件数で配る
 5. `stage` を `briefing`、`deadlineSeconds` を60として返す
 
@@ -591,9 +602,11 @@ interface WhoWroteThisResult {
 * `submit`: 提出しても他のプレイヤーの秘密が書き換わらないこと
 * `submit`: 接続中の全員が提出した時点で `guessing` へ進むこと
 * `guess`: 作者からの指名が `own_submission` で拒否されること
-* 識別子: ラウンド内で重複せず、`playerId` から導かれていないこと
-* 識別子: 同じ英文を2人が提出しても、開示中の識別子が作者だけを指すこと
-* 識別子: 本人の秘密に自分の識別子だけが入ること
+* `slot`: 本人の秘密に自分の位置だけが入り、他人の位置が入らないこと
+* `slot`: 秘密に載る値が参加人数の範囲に収まり、乱数の系列を復元できる値を含まないこと
+* `slot`: 全員が提出した回では `presented.index` と一致すること
+* `slot`: 未提出者がいる回はその分だけ飛ぶこと
+* `slot`: 同じ英文を2人が提出しても、開示中の位置が作者だけを指すこと
 * `guess`: `index` 不一致が `stale_guess` で拒否されること
 * `guess`: 二重送信が `already_guessed` で拒否され、初回が残ること
 * `guess`: 未提出者と自分自身への指名が `invalid_target` で拒否されること

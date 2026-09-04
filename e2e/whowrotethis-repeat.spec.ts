@@ -4,10 +4,11 @@
 // 1. 同じ部屋で2ゲーム目を遊ぶ（前ゲームの結果が残らないか）
 // 2. 2人が同じ英文を提出する（作者の判定がテキスト一致で壊れないか）
 // 3. 指名を素早く2回押す（表示した指名先と採点対象が食い違わないか）
+// 4. 再接続中に指名する（送れていないのに画面だけ操作済みにならないか）
 //
 // 5人卓で回す。開示件数が5件になり、judgingの待ち（12秒×件数）が1ラウンドあたり12秒短くなる。
 // 人数は対応範囲（5〜6人）の下限であり、経路の検証には十分である。
-import { expect, test } from "@playwright/test";
+import { expect, test, type WebSocketRoute } from "@playwright/test";
 import { openTable } from "./support/room";
 import {
   ROUNDS,
@@ -147,6 +148,60 @@ test("指名を素早く2回押しても、表示と採点対象が食い違わ�
     );
     await waitJudging(table.pages, PLAYER_COUNT - 1);
     await expect(host.locator("[data-testid='guess-breakdown'] li")).toHaveCount(PLAYER_COUNT - 1);
+  } finally {
+    await table.close();
+  }
+});
+
+test("再接続中に指名しても、画面が送信済みのまま固まらない", async ({ browser, baseURL }) => {
+  test.setTimeout(300_000);
+  let route: WebSocketRoute | undefined;
+  const table = await openTable(browser, baseURL!, [5, 4, 3, 2, 1], {
+    testTitle: test.info().title,
+    prepare: async (page, index) => {
+      if (index !== 1) {
+        return;
+      }
+      await page.routeWebSocket(/\/room\/.*\/ws/, (ws) => {
+        const server = ws.connectToServer();
+        ws.onMessage((message) => server.send(message));
+        server.onMessage((message) => ws.send(message));
+        route = ws;
+      });
+    },
+  });
+
+  try {
+    const host = table.pages[0]!;
+    await startWhoWroteThis(host);
+    await confirmQuestion(table.pages);
+    await submitAll(table.pages, (index) => `Player ${index + 1} wrote this today.`);
+
+    const label = `1 / ${PLAYER_COUNT}件目`;
+    for (const page of table.pages) {
+      await expect(page.locator("[data-testid='stage-timer']")).toContainText(label, { timeout: 30_000 });
+    }
+
+    // 切断する端末が作者だと指名できないため、作者でないことを確かめる
+    const target = table.pages[1]!;
+    await expect(target.locator("[data-testid='candidate-list']")).toBeVisible({ timeout: 10_000 });
+
+    route?.close();
+    await expect(target.locator("text=再接続しています")).toBeVisible({ timeout: 5000 });
+
+    // 切断中に指名する。送信できないため、画面も指名済みにしてはならない
+    await target.locator("[data-testid='candidate-list'] button").first().click();
+    await expect(target.locator("[data-testid='picked']")).toHaveCount(0);
+    await expect(target.locator("[data-testid='candidate-list']")).toBeVisible();
+
+    // 復帰後に指名し直せる（サーバへ届き、指名済みの表示になる）
+    await expect(target.locator("text=再接続しています")).not.toBeVisible({ timeout: 30_000 });
+    await expect(target.locator("[data-testid='candidate-list'] button").first()).toBeVisible({ timeout: 10_000 });
+    await target.locator("[data-testid='candidate-list'] button").first().click();
+    await expect(target.locator("[data-testid='picked']")).toBeVisible({ timeout: 10_000 });
+
+    // サーバ側でも指名として数えられている
+    await expect(host.locator("[data-testid='guessed-count']")).toContainText("しめい 1 /", { timeout: 10_000 });
   } finally {
     await table.close();
   }
