@@ -18,7 +18,8 @@ DON'T SAY ITの検証項目は、人物の知名度・禁止語の並び順・�
 
 | ゲーム | セット | 内容 | 記録 |
 | --- | --- | --- | --- |
-| DON'T SAY IT | Famous Figures | 実在の人物と広く知られたキャラクター100枚 | [famous-figures.md](./famous-figures.md) |
+| DON'T SAY IT | Famous Figures | キャラクターと現代の有名人200枚 | [famous-figures.md](./famous-figures.md) |
+| DON'T SAY IT | Great Figures | 学校で習う偉人200枚 | [great-figures.md](./great-figures.md) |
 | DON'T SAY IT | Everyday Things | 身の回りのもの100枚 | [everyday-things.md](./everyday-things.md) |
 | DON'T SAY IT | Places and Landmarks | 世界の名所と身近な場所100枚 | [places.md](./places.md) |
 | WHO WROTE THIS? | 日常 | 答えが一意に決まらない質問12件 | [daily.md](./daily.md) |
