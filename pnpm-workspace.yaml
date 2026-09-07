@@ -17,6 +17,7 @@ packages:
   - client/games/whowrotethis
   - client/app
   - tools
+  - movies
 allowBuilds:
   esbuild: true
   workerd: true
