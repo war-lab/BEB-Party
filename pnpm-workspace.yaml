@@ -21,6 +21,11 @@ packages:
 allowBuilds:
   esbuild: true
   workerd: true
+  # ムービーの書き出しに使うffmpeg/ffprobeの実体（@motion-canvas/ffmpegの依存）。
+  # postinstallは同梱バイナリへの `chmod u+x` であり、Linuxではこれが無いと実行できない。
+  # pnpm 11は未承認のビルドを警告ではなくエラーにするため、CI(Linux)の依存名で宣言する
+  "@ffmpeg-installer/linux-x64": true
+  "@ffprobe-installer/linux-x64": true
 minimumReleaseAgeExclude:
   - '@cloudflare/vitest-pool-workers@0.21.2'
   - '@cloudflare/workers-types@5.20260813.1'
