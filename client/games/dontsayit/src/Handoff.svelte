@@ -112,10 +112,7 @@
     border-color: var(--yellow);
   }
   .tile .face {
-    display: block;
-    width: 3.2rem;
-    height: 3.2rem;
-    border-radius: 50%;
+    --face-size: 3.2rem;
     border: 3px solid rgba(0, 0, 0, 0.3);
   }
   .tile .name {

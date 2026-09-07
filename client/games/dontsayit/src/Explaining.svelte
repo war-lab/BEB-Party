@@ -355,10 +355,7 @@
     padding: 0.5rem 0.7rem;
   }
   .speaker-now .face {
-    display: block;
-    width: 2.2rem;
-    height: 2.2rem;
-    border-radius: 50%;
+    --face-size: 2.2rem;
     border: 2px solid rgba(0, 0, 0, 0.3);
   }
   .speaker-now .name {
