@@ -175,13 +175,8 @@
     border-color: var(--yellow);
   }
   .face {
-    display: block;
-    width: 1.6rem;
-    height: 1.6rem;
-    border-radius: 50%;
+    --face-size: 1.6rem;
     border: 2px solid rgba(0, 0, 0, 0.3);
-    text-align: center;
-    line-height: 1.5rem;
   }
   .name {
     overflow: hidden;

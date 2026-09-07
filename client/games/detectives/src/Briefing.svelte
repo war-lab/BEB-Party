@@ -141,10 +141,7 @@
     border-color: var(--yellow);
   }
   .face {
-    display: block;
-    width: 1.4rem;
-    height: 1.4rem;
-    border-radius: 50%;
+    --face-size: 1.4rem;
     border: 2px solid rgba(0, 0, 0, 0.3);
   }
   .character {
