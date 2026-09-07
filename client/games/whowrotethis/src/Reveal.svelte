@@ -180,13 +180,8 @@
     color: var(--ink-soft);
   }
   .face {
-    display: block;
-    width: 1.3rem;
-    height: 1.3rem;
-    border-radius: 50%;
+    --face-size: 1.3rem;
     border: 2px solid rgba(0, 0, 0, 0.3);
-    text-align: center;
-    line-height: 1.2rem;
   }
   .name {
     font-weight: 700;

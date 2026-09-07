@@ -191,10 +191,7 @@
     border-color: var(--yellow);
   }
   .face {
-    display: block;
-    width: 1.5rem;
-    height: 1.5rem;
-    border-radius: 50%;
+    --face-size: 1.5rem;
     border: 2px solid rgba(0, 0, 0, 0.3);
   }
   .text {
