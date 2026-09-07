@@ -116,6 +116,14 @@ export default tseslint.config(
       globals: { ...globals.node },
     },
   },
+  {
+    // movies/scripts/ はNodeからブラウザ（Motion Canvasのエディタ）を操作する。
+    // page.evaluate()に渡す関数はブラウザ側で走るため、DOMのグローバルも許す
+    files: ["movies/scripts/**/*.mjs"],
+    languageOptions: {
+      globals: { ...globals.node, ...globals.browser },
+    },
+  },
   // server/core/（registry.ts、テストコード以外）
   // 検査1: ゲームモジュールのimportはregistry.tsだけ（静的・動的とも。不変条件4、ADR-0009）
   // 検査3: gameIdリテラル禁止

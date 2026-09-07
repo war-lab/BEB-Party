@@ -1,0 +1,29 @@
+/*
+  動画で使う書体。アプリと同じものを使い、映像と実画面で見た目が割れないようにする。
+
+  リポジトリにある原本（client/app/fonts-source/）を参照する。
+  client/public/fonts/ の配信物はサブセットであり、字幕で使う文字が欠ける可能性があるため使わない。
+  複製もしない（同じバイナリを2箇所に置くと、差し替えたときに片方が古くなる）。
+
+  ライセンスはOFL。表記は各fonts-sourceディレクトリのOFL.txtにある。
+*/
+@font-face {
+  font-family: "Dela Gothic One";
+  src: url("../../../client/app/fonts-source/dela-gothic-one/DelaGothicOne-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "M PLUS Rounded 1c";
+  src: url("../../../client/app/fonts-source/m-plus-rounded-1c/MPLUSRounded1c-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "M PLUS Rounded 1c";
+  src: url("../../../client/app/fonts-source/m-plus-rounded-1c/MPLUSRounded1c-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: block;
+}
