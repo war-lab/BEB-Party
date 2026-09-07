@@ -31,10 +31,16 @@ export interface DontSayItSetSummary extends ContentSummary {
 
 export type Role = "speaker" | "watcher" | "answerer";
 
-/** 説明者に配る。正解を見られるのはこの役だけである */
+/**
+ * 説明者に配る。正解を見られるのはこの役だけである。
+ *
+ * `ja` を含めるのは、英語名を見てお題を認識できない説明者を救うためである（09の日本語のお題補助）。
+ * `aliases` はレベルに関係なく全件を送る。説明者が言えない語であり、
+ * レベルで見せる数を変えるとレベル1〜2だけが「言ってよい別名」を持つことになる。
+ */
 export interface SpeakerSecret {
   role: "speaker";
-  card: { cardId: string; answer: string; taboo: string[] };
+  card: { cardId: string; answer: string; ja: string; aliases: string[]; taboo: string[] };
 }
 
 /**
@@ -52,6 +58,10 @@ export interface WatcherSecret {
   taboo: string[];
   /** 正解。説明者が口に出したかを判定するために渡す */
   answer: string;
+  /** 正解の日本語名。監視役が正解そのものを言われたかを判定する助けになる */
+  ja: string;
+  /** 正解として受理する別名。説明者も言えないため、監視役の判定対象に含める（09の言えない語の範囲） */
+  aliases: string[];
 }
 
 /**
@@ -185,7 +195,7 @@ export interface DontSayItResult {
    * そのゲームで場に出ていないお題を振り返りに混ぜないためである。
    * 次のゲームの山札はセット全件から作り直されるため、再利用のためではない（09の結果）。
    */
-  usedCards: { answer: string; taboo: string[] }[];
+  usedCards: { answer: string; ja: string; taboo: string[] }[];
   keyExpressions: KeyExpression[];
 }
 

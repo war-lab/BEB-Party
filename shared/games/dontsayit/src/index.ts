@@ -1,6 +1,6 @@
 // お題データのスキーマ型（正本）とDON'T SAY ITのランタイム型・表示文言の定数
 export type { Card, ConstraintCard, KeyExpression, TabooSet } from "./set";
-export { MIN_CARDS, TABOO_PER_CARD } from "./set";
+export { ALIASES_MAX, MIN_CARDS, TABOO_PER_CARD } from "./set";
 
 export {
   ACTIONS,

@@ -133,7 +133,14 @@ function buildSecrets(
       const level = levelOf(players, player.id);
       secrets.set(player.id, {
         role: "speaker",
-        card: { cardId: card.id, answer: card.answer, taboo: tabooFor(card, level) },
+        card: {
+          cardId: card.id,
+          answer: card.answer,
+          ja: card.ja,
+          // aliasesはレベルに関係なく全件送る（09の言えない語の範囲）
+          aliases: [...(card.aliases ?? [])],
+          taboo: tabooFor(card, level),
+        },
       });
       continue;
     }
@@ -146,6 +153,8 @@ function buildSecrets(
         cardId: card.id,
         taboo: tabooFor(card, speakerLevel),
         answer: card.answer,
+        ja: card.ja,
+        aliases: [...(card.aliases ?? [])],
       });
       continue;
     }
@@ -246,7 +255,7 @@ function buildResult(target: TabooSet, publicState: DontSayItPublic, gameSecret:
   const usedCards = gameSecret.usedCardIds
     .map((cardId) => findCard(target, cardId))
     .filter((card): card is Card => card !== undefined)
-    .map((card) => ({ answer: card.answer, taboo: [...card.taboo] }));
+    .map((card) => ({ answer: card.answer, ja: card.ja, taboo: [...card.taboo] }));
 
   return {
     scores: [...publicState.scores].sort((a, b) => b.points - a.points),

@@ -19,7 +19,7 @@ DON'T SAY ITの検証項目は、人物の知名度・禁止語の並び順・�
 | ゲーム | セット | 内容 | 記録 |
 | --- | --- | --- | --- |
 | DON'T SAY IT | Famous Figures | キャラクターと現代の有名人200枚 | [famous-figures.md](./famous-figures.md) |
-| DON'T SAY IT | Great Figures | 学校で習う偉人200枚 | [great-figures.md](./great-figures.md) |
+| DON'T SAY IT | Great Figures | 学校で習う偉人173枚 | [great-figures.md](./great-figures.md) |
 | DON'T SAY IT | Everyday Things | 身の回りのもの100枚 | [everyday-things.md](./everyday-things.md) |
 | DON'T SAY IT | Places and Landmarks | 世界の名所と身近な場所100枚 | [places.md](./places.md) |
 | WHO WROTE THIS? | 日常 | 答えが一意に決まらない質問12件 | [daily.md](./daily.md) |
@@ -47,3 +47,18 @@ DON'T SAY ITの検証項目は、人物の知名度・禁止語の並び順・�
 
 水準を書かないと、一覧に並んだ時点でどれも同じ確からしさに見える。
 自己点検だけのセットは、機械検証が通っていることしか担保されていない。
+
+## レビューの観点を固定する
+
+DON'T SAY ITのクロスレビューは3観点で行う。観点の分担は固定し、記録に明記する。
+
+| 観点 | 担当 |
+| --- | --- |
+| A | 知名度と参加者適合 |
+| B | 説明の成立性と英語の質 |
+| C | 場の安全性とパーティゲームとしての面白さ |
+
+観点を固定するのは、巡ごとに担当が変わると「前の巡で誰が何を見たか」が追えなくなるためである。
+[famous-figures.md](./famous-figures.md) の1巡目からこの3観点を使っている。
+
+各観点は互いの結論を見ずに独立に評価する。衝突の裁定は全観点の報告が揃ったあとに行う。

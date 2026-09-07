@@ -114,6 +114,16 @@
     <!-- 説明者: 正解を最大に置き、その下に禁止語を赤地で並べる -->
     {#if role === "speaker" && speakerSecret}
       <p class="answer" data-testid="answer">{speakerSecret.card.answer}</p>
+      <!-- 英語名だけでは何を指すか分からない場合の補助（基本設計/09の日本語のお題補助） -->
+      <p class="answer-ja" data-testid="answer-ja">{speakerSecret.card.ja}</p>
+
+      {#if speakerSecret.card.aliases.length > 0}
+        <ul class="taboo alias" data-testid="speaker-aliases">
+          {#each speakerSecret.card.aliases as alias (alias)}
+            <li>{alias}</li>
+          {/each}
+        </ul>
+      {/if}
 
       <ul class="taboo">
         {#each speakerSecret.card.taboo as word (word)}
@@ -154,7 +164,17 @@
       <p class="watched-answer" data-testid="watched-answer">
         <span class="watched-label">言ったら違反</span>
         <span class="watched-value">{watcherSecret.answer}</span>
+        <span class="watched-ja" data-testid="watched-answer-ja">{watcherSecret.ja}</span>
       </p>
+
+      {#if watcherSecret.aliases.length > 0}
+        <!-- 別名は正解として受理する語であり、説明者が言えば違反になる（基本設計/09の言えない語の範囲） -->
+        <ul class="taboo big alias" data-testid="watcher-aliases">
+          {#each watcherSecret.aliases as alias (alias)}
+            <li>{alias}</li>
+          {/each}
+        </ul>
+      {/if}
 
       <ul class="taboo big">
         {#each watcherSecret.taboo as word (word)}
@@ -258,8 +278,17 @@
     font-family: var(--font-display);
     font-size: 2.4rem;
     line-height: 1.15;
-    margin: 0.2rem 0 0.8rem;
+    margin: 0.2rem 0 0.1rem;
     text-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+    word-break: break-word;
+  }
+  /* 日本語名は補助であり、正解より小さく置く。読む順を英語→日本語に固定する */
+  .answer-ja {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 700;
+    opacity: 0.75;
+    margin: 0 0 0.8rem;
     word-break: break-word;
   }
 
@@ -283,6 +312,13 @@
     font-size: 1.35rem;
     padding: 0.55rem 0.8rem;
   }
+  /* 別名は禁止語と同じ赤にしつつ、枠線を破線にして「5語の枠外」であることを示す */
+  .taboo.alias {
+    margin-bottom: 0.35rem;
+  }
+  .taboo.alias li {
+    border-style: dashed;
+  }
 
   .watched-answer {
     display: grid;
@@ -305,6 +341,12 @@
     font-size: 1.6rem;
     line-height: 1.2;
     word-break: break-word;
+  }
+  .watched-ja {
+    font-family: var(--font-body);
+    font-size: 0.86rem;
+    font-weight: 700;
+    opacity: 0.75;
   }
 
   .actions {

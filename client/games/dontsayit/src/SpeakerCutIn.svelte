@@ -23,6 +23,16 @@
     <div class="beb-cutin cutin">
       <p class="label">お題</p>
       <p class="answer">{secret.card.answer}</p>
+      <!-- 英語名だけでは何を指すか分からない場合の補助（基本設計/09の日本語のお題補助） -->
+      <p class="answer-ja" data-testid="answer-ja">{secret.card.ja}</p>
+      {#if secret.card.aliases.length > 0}
+        <p class="label">この言い方も使えない</p>
+        <ul class="taboo alias">
+          {#each secret.card.aliases as alias (alias)}
+            <li>{alias}</li>
+          {/each}
+        </ul>
+      {/if}
       <p class="label">使えない語</p>
       <ul class="taboo">
         {#each secret.card.taboo as word (word)}
@@ -73,8 +83,21 @@
     font-size: 1.9rem;
     line-height: 1.15;
     color: var(--ink);
+    margin: 0 0 0.15rem;
+    word-break: break-word;
+  }
+  .cutin .answer-ja {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--ink);
+    opacity: 0.72;
     margin: 0 0 0.7rem;
     word-break: break-word;
+  }
+  /* 別名は禁止語と同じ赤で並べる。言えない語であることを色で示す */
+  .taboo.alias {
+    margin-bottom: 0.55rem;
   }
   .taboo {
     list-style: none;

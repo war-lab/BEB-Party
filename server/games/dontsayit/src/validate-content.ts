@@ -3,11 +3,11 @@
 // 推論エンジンを使わない。判定は文字列比較と枚数の計数だけで足りる。
 // このコードはCI（tools）からのみ呼ぶ。ランタイムのコードパスには置かない（基本設計/05）。
 import type { ValidationResult } from "@beb/shared-core";
-import { MIN_CARDS, TABOO_PER_CARD, type Card, type TabooSet } from "@beb/shared-dontsayit";
+import { ALIASES_MAX, MIN_CARDS, TABOO_PER_CARD, type Card, type TabooSet } from "@beb/shared-dontsayit";
 import { parseSet } from "./set-schema";
 
-/** 検証項目。1〜9は09の検証項目、schemaは前提となる構造検証 */
-export type ValidationItem = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | "schema";
+/** 検証項目。1〜12は09の検証項目、schemaは前提となる構造検証 */
+export type ValidationItem = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | "schema";
 
 export interface Finding {
   setId: string;
@@ -86,6 +86,17 @@ const TABOO_WORD_MAX_LENGTH = 15;
 const TABOO_MAX_WORDS = 2;
 
 /**
+ * 検証10で複合語の構成要素として扱う最短の長さ。
+ *
+ * 2文字以下を構成要素として扱うと、`Ed Sheeran` の `red` のような無関係な語まで落ちる。
+ * 3文字を下限にすると `rain` / `book` / `shoe` / `top` / `light` はいずれも捕まる。
+ */
+const MIN_COMPOUND_PART_LENGTH = 3;
+
+/** 日本語の文字（ひらがな・カタカナ・漢字・長音符）を1文字でも含むか。検証11 */
+const JAPANESE_PATTERN = /[\u3040-\u309f\u30a0-\u30ff\u3005\u3006\u30fc\u4e00-\u9fff]/;
+
+/**
  * 検証9: 禁止語の形。
  *
  * 文字種を英字に限るのは、非ASCIIの禁止語がフォントサブセットの入力に含まれず豆腐になるためである
@@ -109,6 +120,115 @@ function checkTabooShape(card: Card, findings: Findings): void {
     const tooLong = words.find((word) => word.length > TABOO_WORD_MAX_LENGTH);
     if (tooLong !== undefined) {
       findings.error(9, card.id, `禁止語の1語は${TABOO_WORD_MAX_LENGTH}文字以内とする`, [`実際: ${tooLong}`]);
+    }
+  }
+}
+
+/**
+ * 検証10: 禁止語が正解の複合語の構成要素と一致しない。
+ *
+ * 遊び方は「お題の名前そのものと、その一部」を言えないものとし、複合語の構成要素を含める
+ * （`raincoat` に対する `rain` / `coat`。09の言えない語の範囲）。
+ * 規則で既に禁止されている語を禁止語の5枠に書くと、実効的な禁止語数がレベルごとにずれる。
+ * このゲームは提示する禁止語の数で難度を調整するため、枠の目減りを無視できない。
+ *
+ * 判定は先頭一致と末尾一致に限り、複数形の `s` / `es` だけを吸収する。
+ * 部分文字列一致は採らない。`Katniss Everdeen` の `cat`、`Bart Simpson` の `art` のような
+ * 無関係な語まで拒否し、書ける禁止語がなくなる（09の言えない語の範囲でも部分文字列は除く）。
+ *
+ * 不規則な変化形（`toothbrush` に対する `teeth`）はこの検査では落ちない。
+ * 語幹の同一性は文字列比較では判定できないため、卓の裁定に委ねる（09の禁止語の語形変化）。
+ */
+function checkTabooNotCompoundPart(card: Card, findings: Findings): void {
+  const answerWords = wordsOf(card.answer);
+  for (const taboo of card.taboo) {
+    for (const tabooWord of tabooWordsOf(taboo)) {
+      const stems = [tabooWord, tabooWord.replace(/es$/, ""), tabooWord.replace(/s$/, "")].filter(
+        (stem) => stem.length >= MIN_COMPOUND_PART_LENGTH,
+      );
+      const hit = answerWords.find(
+        (answerWord) =>
+          answerWord.length > tabooWord.length &&
+          stems.some((stem) => answerWord.startsWith(stem) || answerWord.endsWith(stem)),
+      );
+      if (hit !== undefined) {
+        findings.error(10, card.id, "禁止語が正解の複合語の構成要素と一致している", [
+          `正解: ${card.answer}`,
+          `禁止語: ${taboo}`,
+          `一致した構成要素: ${hit}`,
+          "規則で既に禁止されているため、別の連想語へ差し替える",
+        ]);
+      }
+    }
+  }
+}
+
+/**
+ * 検証11: 日本語名が入っている。
+ *
+ * 空文字と欠落は構造検証（`schema`）が落とすため、ここが見るのは
+ * 「英語をそのまま複写していないか」だけである。
+ * 日本語の文字が1文字も含まれない `ja` は、翻訳の書き忘れとして落とす。
+ */
+function checkJapaneseName(card: Card, findings: Findings): void {
+  if (card.ja.length === 0) {
+    return;
+  }
+  if (!JAPANESE_PATTERN.test(card.ja)) {
+    findings.error(11, card.id, "日本語名に日本語の文字が含まれていない", [
+      `正解: ${card.answer}`,
+      `ja: ${card.ja}`,
+    ]);
+  }
+}
+
+/**
+ * 検証12: 別名の形と重複。
+ *
+ * 別名は正解として受理する語であり、説明者も言えない（09の言えない語の範囲）。
+ * 禁止語と同じ制約（文字種・語数・長さ）を課すのは、監視役が口頭で踏んだかを判定するためである。
+ *
+ * 禁止語との重複を落とすのは、同じ語が2箇所に出ると監視役の画面で二重に並ぶためである。
+ * 正解の構成語との一致を落とすのは、別名として意味がないためである。
+ */
+function checkAliases(card: Card, findings: Findings): void {
+  const aliases = card.aliases ?? [];
+  if (aliases.length === 0) {
+    return;
+  }
+  if (aliases.length > ALIASES_MAX) {
+    findings.error(12, card.id, `別名は${ALIASES_MAX}件以内とする`, [`実際: ${aliases.length}件`]);
+  }
+
+  const answerWords = new Set(wordsOf(card.answer));
+  const tabooKeys = new Set(card.taboo.map((entry) => entry.trim().toLowerCase()));
+  const seen = new Set<string>();
+
+  for (const alias of aliases) {
+    if (!TABOO_PATTERN.test(alias)) {
+      findings.error(12, card.id, "別名は英字・空白・ハイフン・アポストロフィのみで構成する", [`実際: ${alias}`]);
+      continue;
+    }
+    const words = tabooWordsOf(alias);
+    if (words.length > TABOO_MAX_WORDS) {
+      findings.error(12, card.id, `別名は${TABOO_MAX_WORDS}語以内とする`, [`実際: ${words.length}語（${alias}）`]);
+    }
+    const tooLong = words.find((word) => word.length > TABOO_WORD_MAX_LENGTH);
+    if (tooLong !== undefined) {
+      findings.error(12, card.id, `別名の1語は${TABOO_WORD_MAX_LENGTH}文字以内とする`, [`実際: ${tooLong}`]);
+    }
+
+    const key = alias.trim().toLowerCase();
+    if (seen.has(key)) {
+      findings.error(12, card.id, "別名が重複している", [`重複: ${alias}`]);
+    }
+    seen.add(key);
+
+    if (tabooKeys.has(key)) {
+      findings.error(12, card.id, "別名が禁止語と重複している", [`重複: ${alias}`]);
+    }
+    if (words.every((word) => answerWords.has(word))) {
+      findings.error(12, card.id, "別名が正解の構成語と一致している", [`正解: ${card.answer}`, `別名: ${alias}`]);
     }
   }
 }
@@ -188,6 +308,9 @@ export function validateSet(content: unknown): ValidationReport {
     checkAnswerNotExposed(card, findings);
     checkAnswerCharacters(card, findings);
     checkTabooShape(card, findings);
+    checkTabooNotCompoundPart(card, findings);
+    checkJapaneseName(card, findings);
+    checkAliases(card, findings);
   }
   checkAnswerUnique(target, findings);
 

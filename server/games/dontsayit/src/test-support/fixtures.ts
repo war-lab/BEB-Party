@@ -23,6 +23,7 @@ export function card(index: number): Card {
   return {
     id: `card_${suffix}`,
     answer: `Name${suffix}`,
+    ja: `なまえ${suffix}`,
     taboo: Array.from({ length: TABOO_PER_CARD }, (_, position) => `clue${suffix}${letters(position + 1)}`),
   };
 }

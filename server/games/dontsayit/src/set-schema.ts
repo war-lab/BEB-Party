@@ -28,15 +28,33 @@ function readString(source: Record<string, unknown>, key: string, path: string, 
 function parseCard(value: unknown, path: string, issues: SchemaIssue[]): Card {
   if (!isObject(value)) {
     issues.push({ path, message: "オブジェクトである必要がある" });
-    return { id: "", answer: "", taboo: [] };
+    return { id: "", answer: "", ja: "", taboo: [] };
   }
   const id = readString(value, "id", path, issues);
   const answer = readString(value, "answer", path, issues);
+  const ja = readString(value, "ja", path, issues);
+
+  // aliasesは省略可。省略時は空配列として扱う（別名を持たないカードにキーを書かせない）
+  let aliases: string[] | undefined;
+  const rawAliases = value["aliases"];
+  if (rawAliases !== undefined) {
+    if (!Array.isArray(rawAliases)) {
+      issues.push({ path: `${path}.aliases`, message: "配列である必要がある" });
+    } else {
+      aliases = rawAliases.map((entry, index) => {
+        if (typeof entry !== "string" || entry.length === 0) {
+          issues.push({ path: `${path}.aliases[${index}]`, message: "空でない文字列である必要がある" });
+          return "";
+        }
+        return entry;
+      });
+    }
+  }
 
   const rawTaboo = value["taboo"];
   if (!Array.isArray(rawTaboo)) {
     issues.push({ path: `${path}.taboo`, message: "配列である必要がある" });
-    return { id, answer, taboo: [] };
+    return { id, answer, ja, aliases, taboo: [] };
   }
   const taboo = rawTaboo.map((entry, index) => {
     if (typeof entry !== "string" || entry.length === 0) {
@@ -45,7 +63,7 @@ function parseCard(value: unknown, path: string, issues: SchemaIssue[]): Card {
     }
     return entry;
   });
-  return { id, answer, taboo };
+  return { id, answer, ja, aliases, taboo };
 }
 
 function parseConstraint(value: unknown, path: string, issues: SchemaIssue[]): ConstraintCard {
