@@ -21,7 +21,18 @@ const ROOT = path.join(import.meta.dirname, "..");
 const OUTPUT = path.join(ROOT, "output");
 
 /** src/projects/*.ts のファイル名。プロジェクトのURLもこの名前で決まる */
-const PROJECTS = ["detectives", "dontsayit", "ranking", "whowrotethis"];
+const ALL_PROJECTS = ["detectives", "dontsayit", "ranking", "whowrotethis"];
+
+/**
+ * 引数で本数を絞れる（例: `node scripts/render.mjs detectives`）。
+ * 見せ方を直したときに1本だけ出して確かめるための口である。
+ */
+const PROJECTS = process.argv.slice(2).length > 0 ? process.argv.slice(2) : ALL_PROJECTS;
+for (const name of PROJECTS) {
+  if (!ALL_PROJECTS.includes(name)) {
+    throw new Error(`そのプロジェクトはない: ${name}（${ALL_PROJECTS.join(" / ")}）`);
+  }
+}
 
 /**
  * 空いているポートを順に探す。
