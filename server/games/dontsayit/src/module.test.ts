@@ -177,7 +177,7 @@ describe("start", () => {
 });
 
 describe("秘密の非混入", () => {
-  it("公開状態に人物名・禁止語・山札が現れない", () => {
+  it("公開状態に正解・禁止語・山札が現れない", () => {
     const live = toExplaining(start(SIX));
     const serialized = JSON.stringify(live.publicState);
     const card = live.gameSecret.deck[0] as string;
@@ -186,7 +186,7 @@ describe("秘密の非混入", () => {
     expect(serialized).not.toContain(card);
   });
 
-  it("カタログに人物名と禁止語が現れない", () => {
+  it("カタログに正解と禁止語が現れない", () => {
     const serialized = JSON.stringify(dontSayItModule.listContents());
     expect(serialized).not.toContain("Name");
     expect(serialized).not.toContain("clue");

@@ -18,7 +18,9 @@ DON'T SAY ITの検証項目は、人物の知名度・禁止語の並び順・�
 
 | ゲーム | セット | 内容 | 記録 |
 | --- | --- | --- | --- |
-| DON'T SAY IT | Famous Figures | 実在の人物と広く知られたキャラクター36枚 | [famous-figures.md](./famous-figures.md) |
+| DON'T SAY IT | Famous Figures | 実在の人物と広く知られたキャラクター100枚 | [famous-figures.md](./famous-figures.md) |
+| DON'T SAY IT | Everyday Things | 身の回りのもの100枚 | [everyday-things.md](./everyday-things.md) |
+| DON'T SAY IT | Places and Landmarks | 世界の名所と身近な場所100枚 | [places.md](./places.md) |
 | WHO WROTE THIS? | 日常 | 答えが一意に決まらない質問12件 | [daily.md](./daily.md) |
 
 ## 記録の書き方
@@ -36,3 +38,11 @@ DON'T SAY ITの検証項目は、人物の知名度・禁止語の並び順・�
 
 事件データのレビュー（[../事件レビュー/](../事件レビュー/)）と同じ方針で書く。
 違いは、DON'T SAY ITには推論の骨格がなく、代わりに「禁止語の並び順」と「参加者が名前を口頭で言えるか」が確認の中心になる点である。
+
+## レビューの水準を記録に書く
+
+セットによってレビューの水準が違う。
+複数観点のクロスレビューを経たものと、作成時の自己点検だけのものを、記録の「結論」で区別する。
+
+水準を書かないと、一覧に並んだ時点でどれも同じ確からしさに見える。
+自己点検だけのセットは、機械検証が通っていることしか担保されていない。

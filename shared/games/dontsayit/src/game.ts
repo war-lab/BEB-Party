@@ -1,7 +1,7 @@
 // DON'T SAY ITのランタイム型と表示文言の定数（基本設計/09_DONTSAYITゲームモジュール.md）。
 //
 // 公開状態・秘密情報・結果を別の型で表す。同じ型に混ぜると、片方だけを配るコードが書けなくなる（ADR-0003）。
-// 人物名と禁止語は秘密情報の型にだけ現れる。公開状態の型には現れない。
+// 正解と禁止語は秘密情報の型にだけ現れる。公開状態の型には現れない。
 import type { ContentSummary, Level } from "@beb/shared-core";
 import type { ConstraintCard, KeyExpression } from "./set";
 
@@ -31,7 +31,7 @@ export interface DontSayItSetSummary extends ContentSummary {
 
 export type Role = "speaker" | "watcher" | "answerer";
 
-/** 説明者に配る。人物名を見られるのはこの役だけである */
+/** 説明者に配る。正解を見られるのはこの役だけである */
 export interface SpeakerSecret {
   role: "speaker";
   card: { cardId: string; answer: string; taboo: string[] };
@@ -58,7 +58,7 @@ export interface WatcherSecret {
  * 回答者に配る。内容を持たない。
  *
  * 役が変わったことだけを伝えるために送る。中身のない型にしているのは、
- * 回答者の端末に人物名も禁止語も届かないことを型で示すためである。
+ * 回答者の端末に正解も禁止語も届かないことを型で示すためである。
  */
 export interface AnswererSecret {
   role: "answerer";
@@ -84,7 +84,7 @@ export interface RoundSummary {
 /**
  * 全員へブロードキャストされる公開状態。
  *
- * 人物名・禁止語・制約カード・山札の残り枚数を含めない（ADR-0003）。
+ * 正解・禁止語・制約カード・山札の残り枚数を含めない（ADR-0003）。
  * 残り枚数を伏せるのは、あと何枚あるかが分かると回答者が山札の構成を推測できるためである。
  */
 export interface DontSayItPublic {
@@ -182,7 +182,7 @@ export interface DontSayItResult {
   /**
    * 使い終えたカードだけを開示する。
    *
-   * そのゲームで場に出ていない人物を振り返りに混ぜないためである。
+   * そのゲームで場に出ていないお題を振り返りに混ぜないためである。
    * 次のゲームの山札はセット全件から作り直されるため、再利用のためではない（09の結果）。
    */
   usedCards: { answer: string; taboo: string[] }[];
@@ -258,7 +258,7 @@ export const ROUND_SECONDS = {
  * レベル別に提示する禁止語の数。
  *
  * 収録は常に5語とし、提示数だけを変える（09のレベル差の吸収）。
- * カード側に難度を持たせないのは、人物の知名度が英語力と相関しないためである。
+ * カード側に難度を持たせないのは、お題の知名度が英語力と相関しないためである。
  */
 export const TABOO_COUNT: Record<Level, number> = {
   1: 3,

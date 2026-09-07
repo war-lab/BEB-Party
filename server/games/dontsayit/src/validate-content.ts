@@ -142,8 +142,8 @@ function checkAnswerCharacters(card: Card, findings: Findings): void {
 /**
  * 検証8: 正解がセット内で一意である。
  *
- * 一意性がidにしか課されていないと、同じ人物を並べたセットが全項目を通る（実測）。
- * 2ラウンド目以降に場が既に当てた人物が再登場し、回答者は説明を聞かずに答えられる。
+ * 一意性がidにしか課されていないと、同じお題を並べたセットが全項目を通る（実測）。
+ * 2ラウンド目以降に場が既に当てたお題が再登場し、回答者は説明を聞かずに答えられる。
  */
 function checkAnswerUnique(target: TabooSet, findings: Findings): void {
   const seen = new Map<string, string>();

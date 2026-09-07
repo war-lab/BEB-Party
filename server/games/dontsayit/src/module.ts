@@ -260,7 +260,7 @@ function buildResult(target: TabooSet, publicState: DontSayItPublic, gameSecret:
  * ラウンドを終えて次へ進む。最後のラウンドか山札が尽きた場合は結果を返す。
  *
  * 表示中のカードは捨て札にする。当てられなかったカードを次のラウンドへ持ち越すと、
- * 場が既に聞いた人物を次の説明者が説明することになる。
+ * 場が既に聞いたお題を次の説明者が説明することになる。
  */
 function endRound(
   room: Room,
@@ -472,7 +472,7 @@ export const dontSayItModule: GameModule<
   DontSayItGameSecret
 > = {
   title: "DON'T SAY IT",
-  tagline: "禁止語を避けて、英語で人物を説明する",
+  tagline: "禁止語を避けて、英語でお題を説明する",
   icon: "🤐",
   playerCount: [5, 6],
   contentLabelJa: "お題を選ぶ",

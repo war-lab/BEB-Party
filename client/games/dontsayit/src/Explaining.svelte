@@ -33,7 +33,7 @@
 
   // 役は公開状態と秘密の両方が一致したときだけ認める。
   // 再接続直後は「新しいstate + 1ラウンド前のsecret」を一度持つため、secretだけで判定すると
-  // 回答者の端末に前の役の画面（人物名を含む）が出る（Handoff.svelteと同じ条件にそろえる）
+  // 回答者の端末に前の役の画面（正解を含む）が出る（Handoff.svelteと同じ条件にそろえる）
   const isSpeaker = $derived(ui.myPlayerId !== null && ui.myPlayerId === speakerId && secret?.role === "speaker");
   const isWatcher = $derived(ui.myPlayerId !== null && ui.myPlayerId === watcherId && secret?.role === "watcher");
   const role = $derived(isSpeaker ? "speaker" : isWatcher ? "watcher" : "answerer");
@@ -111,7 +111,7 @@
     {/if}
     <StageGuide step="explaining" {role} />
 
-    <!-- 説明者: 人物名を最大に置き、その下に禁止語を赤地で並べる -->
+    <!-- 説明者: 正解を最大に置き、その下に禁止語を赤地で並べる -->
     {#if role === "speaker" && speakerSecret}
       <p class="answer" data-testid="answer">{speakerSecret.card.answer}</p>
 

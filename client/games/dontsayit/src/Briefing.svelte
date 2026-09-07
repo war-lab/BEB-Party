@@ -35,7 +35,7 @@
     <ul class="roles">
       <li class="speaker">
         <span class="role-name">説明者</span>
-        <span class="role-desc">人物名を英語で説明する。禁止語を使うと1点減る</span>
+        <span class="role-desc">お題を英語で説明する。禁止語を使うと1点減る</span>
       </li>
       <li class="watcher">
         <span class="role-name">監視役</span>
@@ -43,7 +43,7 @@
       </li>
       <li class="answerer">
         <span class="role-name">回答者</span>
-        <span class="role-desc">声を聞いて人物名を当てる。当てると1点</span>
+        <span class="role-desc">声を聞いてお題を当てる。当てると1点</span>
       </li>
     </ul>
 
