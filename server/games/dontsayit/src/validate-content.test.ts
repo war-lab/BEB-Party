@@ -1,4 +1,4 @@
-// 検証12項目それぞれについて、意図的に違反させたセットを用意し、その項目だけが落ちることを確かめる（09）
+// 検証13項目それぞれについて、意図的に違反させたセットを用意し、その項目だけが落ちることを確かめる（09）
 import { describe, expect, it } from "vitest";
 import { MIN_CARDS } from "@beb/shared-dontsayit";
 import { card, validSet } from "./test-support/fixtures";
@@ -373,5 +373,49 @@ describe("検証12: 別名", () => {
 
   it("正解と別の語である別名は通る", () => {
     expect(itemsOf(withAliases(["fridge", "icebox"]))).not.toContain(12);
+  });
+});
+
+describe("検証13: 禁止語の枠の重複", () => {
+  function withTaboo(taboo: string[]) {
+    const target = validSet();
+    const first = target.cards[0];
+    if (first === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    first.taboo = [...taboo, ...first.taboo.slice(taboo.length)];
+    return target;
+  }
+
+  it("複合語の構成語が単独で禁止されている枠が落ちる", () => {
+    // cheek が単独で禁止されていれば red cheek は絶対に言えないため、追加効果がない
+    expect(itemsOf(withTaboo(["cheek", "red cheek"]))).toContain(13);
+  });
+
+  it("複合語の両方の語が別々に禁止されている枠も落ちる", () => {
+    expect(itemsOf(withTaboo(["straight", "line", "straight line"]))).toContain(13);
+  });
+
+  it("複数形の違いだけの枠が落ちる", () => {
+    expect(itemsOf(withTaboo(["boy", "boys"]))).toContain(13);
+  });
+
+  it("es の複数形も落ちる", () => {
+    expect(itemsOf(withTaboo(["box", "boxes"]))).toContain(13);
+  });
+
+  it("構成語が単独で禁止されていない複合語は通る", () => {
+    expect(itemsOf(withTaboo(["red cheek", "yellow"]))).not.toContain(13);
+  });
+
+  it("複合語どうしで語が重なるだけなら落とさない（単独では禁止されていない）", () => {
+    // 単語だけを言う経路は塞がれていないため、どちらの枠にも役割がある
+    expect(itemsOf(withTaboo(["red cheek", "red nose"]))).not.toContain(13);
+  });
+
+  // 不規則変化（children / child）は文字列比較では判定できないため検査対象外とする。
+  // 語形変化を同じ語とみなす規則は卓の裁定に委ねる（09の禁止語の語形変化）
+  it("不規則変化の重複は落とさない（検査の限界として明示）", () => {
+    expect(itemsOf(withTaboo(["child", "children"]))).not.toContain(13);
   });
 });

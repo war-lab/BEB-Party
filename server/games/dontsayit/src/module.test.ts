@@ -224,11 +224,11 @@ describe("レベル別の禁止語の提示数", () => {
     expect(live.publicState.constraint).toBeNull();
   });
 
-  it("レベル5の説明者には収録数と同じ15語を渡し、制約は公開状態へ載せる", () => {
+  it("レベル5の説明者には収録数と同じ10語を渡し、制約は公開状態へ載せる", () => {
     // 制約は秘密ではない。場の全員が見なければ遵守を判定できない（09の3役）
     const live = toExplaining(start([5, 5, 5, 5, 5, 5] as Level[]));
     const speaker = live.secrets.get(speakerOf(live)) as SpeakerSecret;
-    expect(speaker.card.taboo).toHaveLength(15);
+    expect(speaker.card.taboo).toHaveLength(10);
     expect(live.publicState.constraint).not.toBeNull();
     expect(JSON.stringify(speaker)).not.toContain("constraint");
   });

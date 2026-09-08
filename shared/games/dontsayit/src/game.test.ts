@@ -95,13 +95,14 @@ describe("レベル別の禁止語の提示数", () => {
     }
   });
 
-  // カーブは 3/5/8/11/15。レベル1は5語時代と同じ3語に据え置き、上を広げた。
-  // レベル1を上げると初心者の負荷が現行のレベル5相当になるため（09のレベル差の吸収）
-  it("レベル1は3語、レベル5は収録数と同じである", () => {
+  // カーブは 3/3/5/7/10 の暫定値。レベル1〜2は5語時代と同じ3語に据え置く。
+  // レベル1〜2を上げると初心者の負荷が5語時代のレベル5相当になり、
+  // 「簡単すぎて困っている」という根拠もない（09のレベル差の吸収）
+  it("レベル1〜2は3語、レベル5は収録数と同じである", () => {
     expect(tabooCountFor(1)).toBe(3);
-    expect(tabooCountFor(2)).toBe(5);
-    expect(tabooCountFor(3)).toBe(8);
-    expect(tabooCountFor(4)).toBe(11);
+    expect(tabooCountFor(2)).toBe(3);
+    expect(tabooCountFor(3)).toBe(5);
+    expect(tabooCountFor(4)).toBe(7);
     expect(tabooCountFor(5)).toBe(TABOO_PER_CARD);
   });
 
