@@ -133,7 +133,14 @@ function buildSecrets(
       const level = levelOf(players, player.id);
       secrets.set(player.id, {
         role: "speaker",
-        card: { cardId: card.id, answer: card.answer, taboo: tabooFor(card, level) },
+        card: {
+          cardId: card.id,
+          answer: card.answer,
+          ja: card.ja,
+          // aliasesはレベルに関係なく全件送る（09の言えない語の範囲）
+          aliases: [...(card.aliases ?? [])],
+          taboo: tabooFor(card, level),
+        },
       });
       continue;
     }
@@ -146,6 +153,8 @@ function buildSecrets(
         cardId: card.id,
         taboo: tabooFor(card, speakerLevel),
         answer: card.answer,
+        ja: card.ja,
+        aliases: [...(card.aliases ?? [])],
       });
       continue;
     }
@@ -246,7 +255,7 @@ function buildResult(target: TabooSet, publicState: DontSayItPublic, gameSecret:
   const usedCards = gameSecret.usedCardIds
     .map((cardId) => findCard(target, cardId))
     .filter((card): card is Card => card !== undefined)
-    .map((card) => ({ answer: card.answer, taboo: [...card.taboo] }));
+    .map((card) => ({ answer: card.answer, ja: card.ja, taboo: [...card.taboo] }));
 
   return {
     scores: [...publicState.scores].sort((a, b) => b.points - a.points),
@@ -260,7 +269,7 @@ function buildResult(target: TabooSet, publicState: DontSayItPublic, gameSecret:
  * ラウンドを終えて次へ進む。最後のラウンドか山札が尽きた場合は結果を返す。
  *
  * 表示中のカードは捨て札にする。当てられなかったカードを次のラウンドへ持ち越すと、
- * 場が既に聞いた人物を次の説明者が説明することになる。
+ * 場が既に聞いたお題を次の説明者が説明することになる。
  */
 function endRound(
   room: Room,
@@ -472,7 +481,7 @@ export const dontSayItModule: GameModule<
   DontSayItGameSecret
 > = {
   title: "DON'T SAY IT",
-  tagline: "禁止語を避けて、英語で人物を説明する",
+  tagline: "禁止語を避けて、英語でお題を説明する",
   icon: "🤐",
   playerCount: [5, 6],
   contentLabelJa: "お題を選ぶ",

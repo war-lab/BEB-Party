@@ -177,7 +177,7 @@ describe("start", () => {
 });
 
 describe("秘密の非混入", () => {
-  it("公開状態に人物名・禁止語・山札が現れない", () => {
+  it("公開状態に正解・禁止語・山札が現れない", () => {
     const live = toExplaining(start(SIX));
     const serialized = JSON.stringify(live.publicState);
     const card = live.gameSecret.deck[0] as string;
@@ -186,7 +186,7 @@ describe("秘密の非混入", () => {
     expect(serialized).not.toContain(card);
   });
 
-  it("カタログに人物名と禁止語が現れない", () => {
+  it("カタログに正解と禁止語が現れない", () => {
     const serialized = JSON.stringify(dontSayItModule.listContents());
     expect(serialized).not.toContain("Name");
     expect(serialized).not.toContain("clue");
@@ -604,5 +604,32 @@ describe("カタログ", () => {
     expect(dontSayItModule.tagline.length).toBeGreaterThan(0);
     expect(dontSayItModule.icon.length).toBeGreaterThan(0);
     expect(dontSayItModule.playerCount).toEqual([5, 6]);
+  });
+});
+
+describe("日本語のお題補助", () => {
+  it("説明者と監視役の秘密に日本語名が入る", () => {
+    // 物を知っていることと、英語名を見てそれを認識できることは別である（09の日本語のお題補助）
+    const live = toExplaining(start(SIX));
+    const speaker = live.secrets.get(speakerOf(live)) as SpeakerSecret;
+    const watcher = live.secrets.get(watcherOf(live)) as WatcherSecret;
+    expect(speaker.card.ja).toMatch(/^なまえ/);
+    expect(watcher.ja).toBe(speaker.card.ja);
+  });
+
+  it("回答者の秘密には日本語名も別名も入らない", () => {
+    const live = toExplaining(start(SIX));
+    expect(live.secrets.get(answererOf(live))).toEqual({ role: "answerer" });
+  });
+
+  it("公開状態に日本語名が現れない", () => {
+    const live = toExplaining(start(SIX));
+    expect(JSON.stringify(live.publicState)).not.toContain("なまえ");
+  });
+
+  it("別名を持たないカードは空配列を配る", () => {
+    const live = toExplaining(start(SIX));
+    const speaker = live.secrets.get(speakerOf(live)) as SpeakerSecret;
+    expect(speaker.card.aliases).toEqual([]);
   });
 });

@@ -155,18 +155,19 @@ test("指名を素早く2回押しても、表示と採点対象が食い違わ�
 
 test("再接続中に指名しても、画面が送信済みのまま固まらない", async ({ browser, baseURL }) => {
   test.setTimeout(300_000);
-  let route: WebSocketRoute | undefined;
+  // 切断する端末は「開示された文の作者でない人」から選ぶ必要がある（作者は指名できない）。
+  // 誰が作者かはサーバのシャッフルで決まり事前に分からないため、全端末へフックを張ってから選ぶ。
+  // フックは goto より前に仕込む契約なので、対象が決まってから張ることはできない（support/room.ts の prepare）
+  const routes = new Map<number, WebSocketRoute>();
   const table = await openTable(browser, baseURL!, [5, 4, 3, 2, 1], {
     testTitle: test.info().title,
     prepare: async (page, index) => {
-      if (index !== 1) {
-        return;
-      }
       await page.routeWebSocket(/\/room\/.*\/ws/, (ws) => {
         const server = ws.connectToServer();
         ws.onMessage((message) => server.send(message));
         server.onMessage((message) => ws.send(message));
-        route = ws;
+        // 再接続で新しいソケットが張られるたびに上書きする
+        routes.set(index, ws);
       });
     },
   });
@@ -182,11 +183,21 @@ test("再接続中に指名しても、画面が送信済みのまま固まら�
       await expect(page.locator("[data-testid='stage-timer']")).toContainText(label, { timeout: 30_000 });
     }
 
-    // 切断する端末が作者だと指名できないため、作者でないことを確かめる
-    const target = table.pages[1]!;
+    // 指名欄が出ている端末（=作者でない端末）を選ぶ。
+    // ホスト（index 0）は後段で guessed-count を読むため対象から外す。
+    // 5人卓で作者は1人なので、index 1〜4 のうち少なくとも3つは候補になる
+    let targetIndex = -1;
+    for (let index = 1; index < table.pages.length; index += 1) {
+      if ((await table.pages[index]!.locator("[data-testid='candidate-list']").count()) > 0) {
+        targetIndex = index;
+        break;
+      }
+    }
+    expect(targetIndex, "ホスト以外に指名できる端末が1つもない").toBeGreaterThan(0);
+    const target = table.pages[targetIndex]!;
     await expect(target.locator("[data-testid='candidate-list']")).toBeVisible({ timeout: 10_000 });
 
-    route?.close();
+    routes.get(targetIndex)?.close();
     await expect(target.locator("text=再接続しています")).toBeVisible({ timeout: 5000 });
 
     // 切断中に指名する。送信できないため、画面も指名済みにしてはならない

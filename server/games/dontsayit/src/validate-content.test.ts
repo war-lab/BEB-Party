@@ -1,4 +1,4 @@
-// 検証9項目それぞれについて、意図的に違反させたセットを用意し、その項目だけが落ちることを確かめる（09）
+// 検証12項目それぞれについて、意図的に違反させたセットを用意し、その項目だけが落ちることを確かめる（09）
 import { describe, expect, it } from "vitest";
 import { MIN_CARDS } from "@beb/shared-dontsayit";
 import { card, validSet } from "./test-support/fixtures";
@@ -252,5 +252,126 @@ describe("反例出力", () => {
     target.constraints = [];
     const line = formatFinding(validateSet(target).findings[0] as never);
     expect(line).toContain("セット全体");
+  });
+});
+
+describe("検証10: 複合語の構成要素", () => {
+  function withCard(answer: string, taboo: string[]) {
+    const target = validSet();
+    const first = target.cards[0];
+    if (first === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    first.answer = answer;
+    first.taboo = taboo;
+    return target;
+  }
+
+  it("正解の先頭に一致する禁止語が落ちる（raincoat に対する rain）", () => {
+    expect(itemsOf(withCard("raincoat", ["rain", "wet", "hood", "plastic", "wear"]))).toContain(10);
+  });
+
+  it("正解の末尾に一致する禁止語が落ちる（rooftop に対する top）", () => {
+    expect(itemsOf(withCard("rooftop", ["top", "building", "view", "wind", "above"]))).toContain(10);
+  });
+
+  it("複数形の禁止語も落ちる（bookshelf に対する books）", () => {
+    expect(itemsOf(withCard("bookshelf", ["books", "wall", "wood", "rows", "tall"]))).toContain(10);
+  });
+
+  it("「〜するもの」の形も落ちる（hanger に対する hang）", () => {
+    expect(itemsOf(withCard("hanger", ["hang", "closet", "wire", "shirt", "clothes"]))).toContain(10);
+  });
+
+  // 検証1の比較単位と同じ理由で、部分文字列一致は採らない。
+  // 採ると無関係な語まで拒否し、書ける禁止語がなくなる（09の言えない語の範囲）
+  it("先頭でも末尾でもない部分文字列は拒否しない（Katniss に対する cat）", () => {
+    expect(itemsOf(withCard("Katniss Everdeen", ["cat", "arrow", "games", "braid", "district"]))).not.toContain(10);
+  });
+
+  it("2文字以下は構成要素として扱わない", () => {
+    expect(itemsOf(withCard("Ed Sheeran", ["red hair", "singer", "guitar", "British", "songs"]))).not.toContain(10);
+  });
+
+  it("正解より長い禁止語は落ちない", () => {
+    expect(itemsOf(withCard("pen", ["pencil", "write", "ink", "hold", "blue"]))).not.toContain(10);
+  });
+});
+
+describe("検証11: 日本語名", () => {
+  it("英語をそのまま複写した日本語名が落ちる", () => {
+    const target = validSet();
+    const first = target.cards[0];
+    if (first === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    first.ja = "NameA";
+    expect(itemsOf(target)).toContain(11);
+  });
+
+  it("片仮名だけの日本語名は通る", () => {
+    const target = validSet();
+    const first = target.cards[0];
+    if (first === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    first.ja = "ネームエー";
+    expect(itemsOf(target)).not.toContain(11);
+  });
+
+  it("空の日本語名はschemaで落ちる（検証11では二重に見ない）", () => {
+    const target = validSet();
+    const first = target.cards[0];
+    if (first === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    first.ja = "";
+    const items = itemsOf(target);
+    expect(items).toContain("schema");
+    expect(items).not.toContain(11);
+  });
+});
+
+describe("検証12: 別名", () => {
+  function withAliases(aliases: string[]) {
+    const target = validSet();
+    const first = target.cards[0];
+    if (first === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    first.aliases = aliases;
+    return target;
+  }
+
+  it("別名を持たないカードは通る", () => {
+    expect(itemsOf(validSet())).not.toContain(12);
+  });
+
+  it("英字以外を含む別名が落ちる", () => {
+    expect(itemsOf(withAliases(["べつめい"]))).toContain(12);
+  });
+
+  it("3語以上の別名が落ちる", () => {
+    expect(itemsOf(withAliases(["a very long name"]))).toContain(12);
+  });
+
+  it("上限を超える件数が落ちる", () => {
+    expect(itemsOf(withAliases(["one", "two", "three", "four"]))).toContain(12);
+  });
+
+  it("別名の重複が落ちる", () => {
+    expect(itemsOf(withAliases(["Fridge", "fridge"]))).toContain(12);
+  });
+
+  it("禁止語と重複する別名が落ちる", () => {
+    expect(itemsOf(withAliases(["clueAA"]))).toContain(12);
+  });
+
+  it("正解の構成語と一致する別名が落ちる", () => {
+    expect(itemsOf(withAliases(["NameA"]))).toContain(12);
+  });
+
+  it("正解と別の語である別名は通る", () => {
+    expect(itemsOf(withAliases(["fridge", "icebox"]))).not.toContain(12);
   });
 });

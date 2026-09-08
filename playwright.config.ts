@@ -6,8 +6,17 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   // 1テストが最大6つのブラウザコンテキストを開き、それらが1つのwrangler devへ同時接続する。
-  // 既定の並列度(CPU数の半分)ではローカルもCIも飽和し、無関係なテストがタイムアウトする（実測）
-  workers: 2,
+  // 既定の並列度(CPU数の半分)ではローカルもCIも飽和し、無関係なテストがタイムアウトする（実測）。
+  //
+  // 2でも足りなかった。workers=2の全件実行では毎回2〜3件が落ち、落ちるspecが実行ごとに
+  // 変わり（host-view / detectives-playthrough / whowrotethis-repeat）、単独実行では全部通る。
+  // 症状はタイムアウトと接続拒否だけでアサーション不一致は出ない（実測、2026-09-07）。
+  // whowrotethis-repeat.spec.ts が自ファイル内を `mode: "serial"` で守っていたのは同じ問題への
+  // 対処だが、ファイル間の並列は防げない。
+  //
+  // CIは retries: 2 で吸収するため露出しなかった。ローカル(retries: 0)では毎回見える。
+  // 直列化の代償は実測で9.3分→12.5分であり、フレークの調査コストのほうが高いと判断した。
+  workers: 1,
   reporter: "html",
   use: {
     baseURL: "http://127.0.0.1:8787",
