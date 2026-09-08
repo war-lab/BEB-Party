@@ -164,11 +164,8 @@
     opacity: 0.55;
   }
   .face {
-    /* 大画面向けに絵文字も円と一緒に拡大する */
-    font-size: clamp(1.1rem, 2.4vw, 2.4rem);
-    width: clamp(2rem, 4vw, 4rem);
-    height: clamp(2rem, 4vw, 4rem);
-    border-radius: 50%;
+    /* 大画面向けに円を拡大する。絵文字はtokens.cssが円の大きさに比例させる */
+    --face-size: clamp(2rem, 4vw, 4rem);
     margin: 0 auto 0.3rem;
     border: var(--outline-width) solid var(--ink);
   }
