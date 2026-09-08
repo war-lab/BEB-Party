@@ -262,14 +262,23 @@ function checkNoRedundantTaboo(card: Card, findings: Findings): void {
 
   for (const [index, { entry, words }] of entries.entries()) {
     if (words.length >= 2) {
-      const covered = words.filter((word) => singles.has(word));
-      if (covered.length > 0) {
-        const first = covered[0] as string;
+      // 単複差も吸収して照合する。完全一致だけで見ると `gloves` と `white glove` を見逃す。
+      // 語形変化を同じ語とみなす規則があるため、`gloves` が禁止なら単数形も禁止であり、
+      // `white glove` は絶対に言えない（09の禁止語の語形変化）
+      const covered = words
+        .map((word) => {
+          const hit = [...singles.keys()].find((single) => sameStem(word, single));
+          return hit === undefined ? undefined : { word, single: hit };
+        })
+        .filter((item): item is { word: string; single: string } => item !== undefined);
+      const first = covered[0];
+      if (first !== undefined) {
         findings.error(13, card.id, "複合語の禁止語の構成語が、別の枠で単独に禁止されている", [
           `枠: ${entry}`,
-          `単独で禁止済み: ${singles.get(first) ?? first}`,
+          `単独で禁止済み: ${singles.get(first.single) ?? first.single}`,
+          first.word === first.single ? "" : `単複差で一致: ${first.word} と ${first.single}`,
           "この枠は絶対に言えないため追加効果がない。別の説明経路を塞ぐ語へ差し替える",
-        ]);
+        ].filter((line) => line.length > 0));
       }
       continue;
     }

@@ -404,6 +404,20 @@ describe("検証13: 禁止語の枠の重複", () => {
     expect(itemsOf(withTaboo(["box", "boxes"]))).toContain(13);
   });
 
+  // 語句の構成語と単独の禁止語の照合でも単複差を吸収する。
+  // 完全一致だけで見ると `gloves` と `white glove` を見逃した（実測。573枚中7枠）
+  it("複数形で禁止した語の単数形を含む複合語が落ちる", () => {
+    expect(itemsOf(withTaboo(["gloves", "white glove"]))).toContain(13);
+  });
+
+  it("単数形で禁止した語の複数形を含む複合語も落ちる", () => {
+    expect(itemsOf(withTaboo(["glove", "white gloves"]))).toContain(13);
+  });
+
+  it("es の複数形でも語句側を落とす", () => {
+    expect(itemsOf(withTaboo(["boxes", "lunch box"]))).toContain(13);
+  });
+
   it("構成語が単独で禁止されていない複合語は通る", () => {
     expect(itemsOf(withTaboo(["red cheek", "yellow"]))).not.toContain(13);
   });

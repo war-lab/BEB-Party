@@ -15,7 +15,7 @@
     { "id": "card_011", "answer": "Godzilla", "ja": "ゴジラ", "taboo": ["monster", "Tokyo", "giant", "movie", "breath", "sea", "big", "roar", "film", "green"] },
     { "id": "card_012", "answer": "Totoro", "ja": "トトロ", "taboo": ["forest", "umbrella", "Ghibli", "furry", "rain", "big", "grey", "bus", "cat", "children"] },
     { "id": "card_013", "answer": "Snoopy", "ja": "スヌーピー", "taboo": ["dog", "Charlie Brown", "comic", "house", "friend", "white", "black ears", "roof", "beagle", "pilot"] },
-    { "id": "card_014", "answer": "Mickey Mouse", "ja": "ミッキーマウス", "taboo": ["Disney", "ears", "gloves", "cartoon", "shorts", "round", "black", "white glove", "voice", "park"] },
+    { "id": "card_014", "answer": "Mickey Mouse", "ja": "ミッキーマウス", "taboo": ["Disney", "ears", "gloves", "cartoon", "shorts", "round", "black", "smile", "voice", "park"] },
     { "id": "card_015", "answer": "Cinderella", "ja": "シンデレラ", "taboo": ["glass", "pumpkin", "midnight", "princess", "ball", "shoe", "stepmother", "prince", "carriage", "clean"] },
     { "id": "card_016", "answer": "Santa Claus", "ja": "サンタクロース", "aliases": ["Father Christmas"], "taboo": ["Christmas", "present", "December", "red", "reindeer", "sleigh", "Rudolph", "beard", "gift", "night"] },
     { "id": "card_017", "answer": "Harry Potter", "ja": "ハリー・ポッター", "taboo": ["wizard", "wand", "Hogwarts", "scar", "glasses", "magic", "Voldemort", "Hermione", "muggle", "school"] },
