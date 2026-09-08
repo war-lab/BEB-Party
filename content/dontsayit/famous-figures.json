@@ -45,11 +45,11 @@
     { "id": "card_041", "answer": "Ultraman", "ja": "ウルトラマン", "taboo": ["giant", "hero", "silver", "monster", "light"] },
     { "id": "card_042", "answer": "Goku", "ja": "孫悟空", "aliases": ["Son Goku"], "taboo": ["Vegeta", "Dragon Ball", "Saiyan", "hair", "fight"] },
     { "id": "card_043", "answer": "Sailor Moon", "ja": "セーラームーン", "taboo": ["magical", "girl", "uniform", "transform", "anime"] },
-    { "id": "card_044", "answer": "Gudetama", "ja": "ぐでたま", "taboo": ["egg", "lazy", "Sanrio", "yellow", "tired"] },
+    { "id": "card_044", "answer": "Gudetama", "ja": "ぐでたま", "taboo": ["egg", "lazy", "Sanrio", "yellow", "soy sauce"] },
     { "id": "card_045", "answer": "Rilakkuma", "ja": "リラックマ", "taboo": ["bear", "relax", "brown", "cute", "Japanese"] },
     { "id": "card_046", "answer": "Spider-Man", "ja": "スパイダーマン", "aliases": ["Peter Parker"], "taboo": ["web", "Marvel", "hero", "red", "climb"] },
     { "id": "card_047", "answer": "Batman", "ja": "バットマン", "aliases": ["Bruce Wayne"], "taboo": ["Gotham", "cave", "hero", "black", "Joker"] },
-    { "id": "card_048", "answer": "Iron Man", "ja": "アイアンマン", "taboo": ["Marvel", "suit", "Stark", "rich", "armor"] },
+    { "id": "card_048", "answer": "Iron Man", "ja": "アイアンマン", "taboo": ["Marvel", "suit", "Stark", "rich", "chest"] },
     { "id": "card_049", "answer": "Hulk", "ja": "ハルク", "aliases": ["Bruce Banner"], "taboo": ["green", "angry", "Marvel", "strong", "smash"] },
     { "id": "card_050", "answer": "Shrek", "ja": "シュレック", "taboo": ["ogre", "green", "swamp", "donkey", "movie"] },
     { "id": "card_051", "answer": "Buzz Lightyear", "ja": "バズ・ライトイヤー", "taboo": ["Woody", "toy", "space", "ranger", "Pixar"] },
@@ -216,10 +216,10 @@
     { "en": "It is a character from ...", "ja": "〜に出てくるキャラクターです" },
     { "en": "He/She wears ...", "ja": "〜を着ています" },
     { "en": "He/She has ... hair.", "ja": "髪が〜です" },
-    { "en": "It is something you use to ...", "ja": "〜するために使うものです" },
-    { "en": "It is a place where ...", "ja": "〜する場所です" },
+    { "en": "You see this person in ...", "ja": "〜で見かける人です" },
     { "en": "I can't say that word.", "ja": "その語は言えません" },
     { "en": "Do you mean ...?", "ja": "〜ということですか？" },
-    { "en": "Let's skip this one.", "ja": "これは飛ばします" }
+    { "en": "Let's skip this one.", "ja": "これは飛ばします" },
+    { "en": "That's close!", "ja": "おしい！" }
   ]
 }

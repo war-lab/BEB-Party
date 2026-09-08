@@ -188,11 +188,11 @@
     { "en": "He/She is the one who ...", "ja": "〜した人です" },
     { "en": "This person lived long ago.", "ja": "昔の人です" },
     { "en": "You learn about this person at school.", "ja": "学校で習う人です" },
-    { "en": "This person changed the world.", "ja": "世界を変えた人です" },
     { "en": "He/She discovered ...", "ja": "〜を発見した人です" },
     { "en": "He/She wrote about ...", "ja": "〜について書いた人です" },
     { "en": "I can't say that word.", "ja": "その語は言えません" },
     { "en": "Do you mean ...?", "ja": "〜ということですか？" },
-    { "en": "Let's skip this one.", "ja": "これは飛ばします" }
+    { "en": "Let's skip this one.", "ja": "これは飛ばします" },
+    { "en": "That's close!", "ja": "おしい！" }
   ]
 }
