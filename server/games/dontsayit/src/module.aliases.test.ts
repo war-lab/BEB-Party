@@ -105,9 +105,9 @@ describe("別名の配り方", () => {
   });
 
   it("提示する禁止語の数はレベルで変わる（別名との対比）", () => {
-    // 禁止語は3語→5語と変わるのに対し、別名は変わらないことを同じ卓で示す
+    // 禁止語は3語→15語と変わるのに対し、別名は変わらないことを同じ卓で示す
     expect(secretsAtExplaining(1).speaker.card.taboo).toHaveLength(3);
-    expect(secretsAtExplaining(5).speaker.card.taboo).toHaveLength(5);
+    expect(secretsAtExplaining(5).speaker.card.taboo).toHaveLength(15);
   });
 
   it("監視役にも全件を配る", () => {

@@ -272,10 +272,10 @@ export const ROUND_SECONDS = {
  */
 export const TABOO_COUNT: Record<Level, number> = {
   1: 3,
-  2: 3,
-  3: 4,
-  4: 4,
-  5: 5,
+  2: 5,
+  3: 8,
+  4: 11,
+  5: 15,
 };
 
 /** 制約カードを配る最小レベル。禁止語5語と制約の同時付与はレベル4には重い（09） */

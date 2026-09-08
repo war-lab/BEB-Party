@@ -49,7 +49,7 @@ describe("検証1: 正解の非露出", () => {
       throw new Error("フィクスチャが空である");
     }
     first.answer = "Doraemon";
-    first.taboo = ["time machine", "robot", "cat", "pocket", "future"];
+    first.taboo = ["time machine", "robot", "cat", "pocket", "future", ...first.taboo.slice(5)];
     expect(itemsOf(target)).toEqual([]);
   });
 });
@@ -63,7 +63,7 @@ describe("検証1の比較単位", () => {
       throw new Error("フィクスチャが空である");
     }
     first.answer = "Winnie the Pooh";
-    first.taboo = ["mother", "brother", "honey", "bear", "forest"];
+    first.taboo = ["mother", "brother", "honey", "bear", "forest", ...first.taboo.slice(5)];
     expect(itemsOf(target)).toEqual([]);
   });
 
@@ -74,7 +74,7 @@ describe("検証1の比較単位", () => {
       throw new Error("フィクスチャが空である");
     }
     first.answer = "Winnie the Pooh";
-    first.taboo = ["the", "honey", "bear", "forest", "piglet"];
+    first.taboo = ["the", "honey", "bear", "forest", "piglet", ...first.taboo.slice(5)];
     expect(itemsOf(target)).toEqual([1]);
   });
 });
@@ -111,7 +111,7 @@ describe("検証9: 禁止語の形", () => {
     if (first === undefined) {
       throw new Error("フィクスチャが空である");
     }
-    first.taboo = taboo;
+    first.taboo = [...taboo, ...first.taboo.slice(taboo.length)];
     return target;
   }
 
@@ -263,7 +263,7 @@ describe("検証10: 複合語の構成要素", () => {
       throw new Error("フィクスチャが空である");
     }
     first.answer = answer;
-    first.taboo = taboo;
+    first.taboo = [...taboo, ...first.taboo.slice(taboo.length)];
     return target;
   }
 

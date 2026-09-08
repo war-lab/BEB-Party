@@ -82,7 +82,7 @@ describe("役の巡回", () => {
 });
 
 describe("レベル別の禁止語の提示数", () => {
-  // 09のレベル差の吸収: 提示数だけを変え、収録数は5語固定とする
+  // 09のレベル差の吸収: 提示数だけを変え、収録数は15語固定とする
   it("提示数が収録数を超えない", () => {
     for (const level of LEVELS) {
       expect(tabooCountFor(level)).toBeLessThanOrEqual(TABOO_PER_CARD);
@@ -95,9 +95,13 @@ describe("レベル別の禁止語の提示数", () => {
     }
   });
 
-  it("レベル1〜2は3語、レベル5は5語である", () => {
+  // カーブは 3/5/8/11/15。レベル1は5語時代と同じ3語に据え置き、上を広げた。
+  // レベル1を上げると初心者の負荷が現行のレベル5相当になるため（09のレベル差の吸収）
+  it("レベル1は3語、レベル5は収録数と同じである", () => {
     expect(tabooCountFor(1)).toBe(3);
-    expect(tabooCountFor(2)).toBe(3);
+    expect(tabooCountFor(2)).toBe(5);
+    expect(tabooCountFor(3)).toBe(8);
+    expect(tabooCountFor(4)).toBe(11);
     expect(tabooCountFor(5)).toBe(TABOO_PER_CARD);
   });
 
