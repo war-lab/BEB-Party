@@ -1,4 +1,4 @@
-// 検証12項目それぞれについて、意図的に違反させたセットを用意し、その項目だけが落ちることを確かめる（09）
+// 検証13項目それぞれについて、意図的に違反させたセットを用意し、その項目だけが落ちることを確かめる（09）
 import { describe, expect, it } from "vitest";
 import { MIN_CARDS } from "@beb/shared-dontsayit";
 import { card, validSet } from "./test-support/fixtures";
@@ -49,7 +49,7 @@ describe("検証1: 正解の非露出", () => {
       throw new Error("フィクスチャが空である");
     }
     first.answer = "Doraemon";
-    first.taboo = ["time machine", "robot", "cat", "pocket", "future"];
+    first.taboo = ["time machine", "robot", "cat", "pocket", "future", ...first.taboo.slice(5)];
     expect(itemsOf(target)).toEqual([]);
   });
 });
@@ -63,7 +63,7 @@ describe("検証1の比較単位", () => {
       throw new Error("フィクスチャが空である");
     }
     first.answer = "Winnie the Pooh";
-    first.taboo = ["mother", "brother", "honey", "bear", "forest"];
+    first.taboo = ["mother", "brother", "honey", "bear", "forest", ...first.taboo.slice(5)];
     expect(itemsOf(target)).toEqual([]);
   });
 
@@ -74,7 +74,7 @@ describe("検証1の比較単位", () => {
       throw new Error("フィクスチャが空である");
     }
     first.answer = "Winnie the Pooh";
-    first.taboo = ["the", "honey", "bear", "forest", "piglet"];
+    first.taboo = ["the", "honey", "bear", "forest", "piglet", ...first.taboo.slice(5)];
     expect(itemsOf(target)).toEqual([1]);
   });
 });
@@ -111,7 +111,7 @@ describe("検証9: 禁止語の形", () => {
     if (first === undefined) {
       throw new Error("フィクスチャが空である");
     }
-    first.taboo = taboo;
+    first.taboo = [...taboo, ...first.taboo.slice(taboo.length)];
     return target;
   }
 
@@ -263,7 +263,7 @@ describe("検証10: 複合語の構成要素", () => {
       throw new Error("フィクスチャが空である");
     }
     first.answer = answer;
-    first.taboo = taboo;
+    first.taboo = [...taboo, ...first.taboo.slice(taboo.length)];
     return target;
   }
 
@@ -373,5 +373,63 @@ describe("検証12: 別名", () => {
 
   it("正解と別の語である別名は通る", () => {
     expect(itemsOf(withAliases(["fridge", "icebox"]))).not.toContain(12);
+  });
+});
+
+describe("検証13: 禁止語の枠の重複", () => {
+  function withTaboo(taboo: string[]) {
+    const target = validSet();
+    const first = target.cards[0];
+    if (first === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    first.taboo = [...taboo, ...first.taboo.slice(taboo.length)];
+    return target;
+  }
+
+  it("複合語の構成語が単独で禁止されている枠が落ちる", () => {
+    // cheek が単独で禁止されていれば red cheek は絶対に言えないため、追加効果がない
+    expect(itemsOf(withTaboo(["cheek", "red cheek"]))).toContain(13);
+  });
+
+  it("複合語の両方の語が別々に禁止されている枠も落ちる", () => {
+    expect(itemsOf(withTaboo(["straight", "line", "straight line"]))).toContain(13);
+  });
+
+  it("複数形の違いだけの枠が落ちる", () => {
+    expect(itemsOf(withTaboo(["boy", "boys"]))).toContain(13);
+  });
+
+  it("es の複数形も落ちる", () => {
+    expect(itemsOf(withTaboo(["box", "boxes"]))).toContain(13);
+  });
+
+  // 語句の構成語と単独の禁止語の照合でも単複差を吸収する。
+  // 完全一致だけで見ると `gloves` と `white glove` を見逃した（実測。573枚中7枠）
+  it("複数形で禁止した語の単数形を含む複合語が落ちる", () => {
+    expect(itemsOf(withTaboo(["gloves", "white glove"]))).toContain(13);
+  });
+
+  it("単数形で禁止した語の複数形を含む複合語も落ちる", () => {
+    expect(itemsOf(withTaboo(["glove", "white gloves"]))).toContain(13);
+  });
+
+  it("es の複数形でも語句側を落とす", () => {
+    expect(itemsOf(withTaboo(["boxes", "lunch box"]))).toContain(13);
+  });
+
+  it("構成語が単独で禁止されていない複合語は通る", () => {
+    expect(itemsOf(withTaboo(["red cheek", "yellow"]))).not.toContain(13);
+  });
+
+  it("複合語どうしで語が重なるだけなら落とさない（単独では禁止されていない）", () => {
+    // 単語だけを言う経路は塞がれていないため、どちらの枠にも役割がある
+    expect(itemsOf(withTaboo(["red cheek", "red nose"]))).not.toContain(13);
+  });
+
+  // 不規則変化（children / child）は文字列比較では判定できないため検査対象外とする。
+  // 語形変化を同じ語とみなす規則は卓の裁定に委ねる（09の禁止語の語形変化）
+  it("不規則変化の重複は落とさない（検査の限界として明示）", () => {
+    expect(itemsOf(withTaboo(["child", "children"]))).not.toContain(13);
   });
 });

@@ -292,11 +292,17 @@
     word-break: break-word;
   }
 
+  /*
+    禁止語は折り返して詰める。1語1行で積むと、収録数15語では「正解」ボタンが
+    画面外へ押し出される（390x844で全体1300px、ボタンは1170px付近。実測）。
+    説明者は制限時間中に「正解」を連打するため、ボタンが折り返しの下にあってはならない。
+  */
   .taboo {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
     gap: 0.35rem;
   }
   .taboo li {
@@ -304,13 +310,13 @@
     color: var(--panel);
     border: 2px solid rgba(0, 0, 0, 0.25);
     border-radius: var(--radius-tile);
-    padding: 0.4rem 0.7rem;
-    font-size: 1.05rem;
+    padding: 0.35rem 0.6rem;
+    font-size: 1rem;
     font-weight: 700;
   }
   .taboo.big li {
-    font-size: 1.35rem;
-    padding: 0.55rem 0.8rem;
+    font-size: 1.15rem;
+    padding: 0.45rem 0.7rem;
   }
   /* 別名は禁止語と同じ赤にしつつ、枠線を破線にして「5語の枠外」であることを示す */
   .taboo.alias {

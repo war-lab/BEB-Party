@@ -6,8 +6,8 @@ import type { ValidationResult } from "@beb/shared-core";
 import { ALIASES_MAX, MIN_CARDS, TABOO_PER_CARD, type Card, type TabooSet } from "@beb/shared-dontsayit";
 import { parseSet } from "./set-schema";
 
-/** 検証項目。1〜12は09の検証項目、schemaは前提となる構造検証 */
-export type ValidationItem = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | "schema";
+/** 検証項目。1〜13は09の検証項目、schemaは前提となる構造検証 */
+export type ValidationItem = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | "schema";
 
 export interface Finding {
   setId: string;
@@ -233,6 +233,94 @@ function checkAliases(card: Card, findings: Findings): void {
   }
 }
 
+/**
+ * 検証13: 禁止語の枠が、同じカードの別の枠と禁止範囲で重複しない。
+ *
+ * 検証2は枠まるごとの一致しか見ない。`cheek` と `red cheek` は別の文字列であるため通る。
+ * しかし `cheek` が単独で禁止されていれば `red cheek` は絶対に言えないため、
+ * 後者の枠は追加効果を持たない。読む負担だけが増え、難度は上がらない。
+ *
+ * このゲームは提示する禁止語の数で難度を調整する。
+ * 実効的な制限数がカードごとに変わると、同じレベルでも引いたカードで負荷が変わる。
+ *
+ * 判定するのは次の2つである。
+ *
+ * 1. 複合語の枠の構成語が、同カードの別の枠として単独で禁止されている
+ * 2. 単語の枠どうしで、複数形の `s` / `es` だけが違う
+ *
+ * 不規則変化（`children` と `child`）は文字列比較では判定できないため対象外とする。
+ * 語形変化を同じ語とみなす規則は卓の裁定に委ねる（09の禁止語の語形変化）。
+ */
+function checkNoRedundantTaboo(card: Card, findings: Findings): void {
+  const entries = card.taboo.map((entry) => ({ entry, words: tabooWordsOf(entry) }));
+  const singles = new Map<string, string>();
+  for (const { entry, words } of entries) {
+    if (words.length === 1 && words[0] !== undefined && !singles.has(words[0])) {
+      singles.set(words[0], entry);
+    }
+  }
+
+  for (const [index, { entry, words }] of entries.entries()) {
+    if (words.length >= 2) {
+      // 単複差も吸収して照合する。完全一致だけで見ると `gloves` と `white glove` を見逃す。
+      // 語形変化を同じ語とみなす規則があるため、`gloves` が禁止なら単数形も禁止であり、
+      // `white glove` は絶対に言えない（09の禁止語の語形変化）
+      const covered = words
+        .map((word) => {
+          const hit = [...singles.keys()].find((single) => sameStem(word, single));
+          return hit === undefined ? undefined : { word, single: hit };
+        })
+        .filter((item): item is { word: string; single: string } => item !== undefined);
+      const first = covered[0];
+      if (first !== undefined) {
+        findings.error(13, card.id, "複合語の禁止語の構成語が、別の枠で単独に禁止されている", [
+          `枠: ${entry}`,
+          `単独で禁止済み: ${singles.get(first.single) ?? first.single}`,
+          first.word === first.single ? "" : `単複差で一致: ${first.word} と ${first.single}`,
+          "この枠は絶対に言えないため追加効果がない。別の説明経路を塞ぐ語へ差し替える",
+        ].filter((line) => line.length > 0));
+      }
+      continue;
+    }
+    const word = words[0];
+    if (word === undefined) {
+      continue;
+    }
+    for (const [other, otherEntry] of singles) {
+      if (other === word || entries.findIndex((item) => item.entry === otherEntry) >= index) {
+        continue;
+      }
+      if (sameStem(word, other)) {
+        findings.error(13, card.id, "複数形の違いだけで重複している禁止語がある", [
+          `枠: ${entry}`,
+          `既存の枠: ${otherEntry}`,
+        ]);
+        break;
+      }
+    }
+  }
+}
+
+/** 複数形の `s` / `es` だけを吸収して語幹を比べる。不規則変化は扱わない */
+function sameStem(a: string, b: string): boolean {
+  const stems = (word: string): Set<string> => {
+    const out = new Set([word]);
+    if (word.endsWith("es")) {
+      out.add(word.slice(0, -2));
+    }
+    if (word.endsWith("s")) {
+      out.add(word.slice(0, -1));
+    }
+    return out;
+  };
+  for (const stem of stems(a)) {
+    if (stems(b).has(stem)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /** 検証2: 1枚のカード内で禁止語が重複しない */
 function checkNoDuplicateTaboo(card: Card, findings: Findings): void {
   const seen = new Set<string>();
@@ -309,6 +397,7 @@ export function validateSet(content: unknown): ValidationReport {
     checkAnswerCharacters(card, findings);
     checkTabooShape(card, findings);
     checkTabooNotCompoundPart(card, findings);
+    checkNoRedundantTaboo(card, findings);
     checkJapaneseName(card, findings);
     checkAliases(card, findings);
   }
