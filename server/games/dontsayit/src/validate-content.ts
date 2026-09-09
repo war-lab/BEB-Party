@@ -423,26 +423,30 @@ function checkAliasWordsNotTaboo(card: Card, findings: Findings): void {
 }
 
 /**
- * 検証16: 禁止語と別名の綴りを米式に統一する。
+ * 検証16: 禁止語を米語に統一する。
  *
  * 監視役は禁止語の一覧を目で見て「言ったか」を判定する。
  * 同じ語がカードごとに違う綴りで並ぶと判定の基準がぶれる。
  * 実測では `grey`/`gray` `moustache`/`mustache` `harbour`/`harbor` が同一セット内に混在していた。
  *
- * 米式を正とするのは、日本の学校英語が米式で教えられており卓の多数がそちらを想起するためである。
+ * 綴りの変種だけでなく、別の語になる対（`lift`/`elevator`、`queue`/`line`）も同じ表で扱う。
+ * こちらは基準のぶれに加えて、**卓が実際に言う語を塞げていない**穴でもある
+ * （`football` を禁じても日本の卓は `soccer` と言う。実測で2枚）。
+ *
+ * 米語を正とするのは、日本の学校英語が米語で教えられており卓の多数がそちらを想起するためである。
+ *
+ * **別名は対象にしない。** 別名は正解として受理する語であり、
+ * 英式の呼び方を受理するために置いている（`elevator` の別名 `lift`、`pharmacy` の別名 `chemist`）。
+ * ここで落とすと、その設計を壊す。
  */
 function checkAmericanSpelling(card: Card, findings: Findings): void {
-  const targets = [
-    ...card.taboo.map((entry) => ({ entry, kind: "禁止語" })),
-    ...(card.aliases ?? []).map((entry) => ({ entry, kind: "別名" })),
-  ];
-  for (const { entry, kind } of targets) {
+  for (const entry of card.taboo) {
     for (const word of tabooWordsOf(entry)) {
       const american = americanSpellingOf(word);
       if (american === undefined) {
         continue;
       }
-      findings.error(16, card.id, `${kind}に英式の綴りが混じっている`, [
+      findings.error(16, card.id, "禁止語に英式の語が混じっている", [
         `枠: ${entry}`,
         `${word} → ${american}`,
       ]);

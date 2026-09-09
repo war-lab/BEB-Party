@@ -530,18 +530,25 @@ describe("検証16: 綴りの統一", () => {
     expect(itemsOf(withTaboo(["grey shirt"]))).toContain(16);
   });
 
-  it("別名の英式の綴りも落ちる", () => {
+  it("別の語になる対も落ちる", () => {
+    // 綴りの変種ではないが、卓が実際に言う語（soccer）を塞げていない穴でもある
+    expect(itemsOf(withTaboo(["football"]))).toContain(16);
+  });
+
+  // 別名は英式の呼び方を受理するために置いている（elevator の別名 lift）。
+  // ここで落とすとその設計を壊す
+  it("別名の英式は落とさない", () => {
     const target = validSet();
     const first = target.cards[0];
     if (first === undefined) {
       throw new Error("フィクスチャが空である");
     }
-    first.aliases = ["harbour"];
-    expect(itemsOf(target)).toContain(16);
+    first.aliases = ["lift"];
+    expect(itemsOf(target)).not.toContain(16);
   });
 
-  it("米式の綴りは通る", () => {
-    expect(itemsOf(withTaboo(["gray", "harbor", "color"]))).not.toContain(16);
+  it("米語は通る", () => {
+    expect(itemsOf(withTaboo(["gray", "harbor", "color", "elevator", "soccer"]))).not.toContain(16);
   });
 });
 
@@ -559,13 +566,13 @@ describe("検証17: 同じ概念への枠の重複", () => {
   // 枠が死ぬわけではない（hot を塞げば warm へ逃げる）。
   // 指摘したいのは、レベル1〜2へ提示する3枠のうち2枠が同じ概念だと塞げる経路が減ること
   it("同義語の重複を警告として出す", () => {
-    const report = reportOf(["soccer", "football"]);
+    const report = reportOf(["hot", "warm"]);
     expect(report.findings.map((finding) => finding.item)).toContain(17);
     expect(report.findings.find((finding) => finding.item === 17)?.severity).toBe("warning");
   });
 
   it("警告はエラー件数に数えない。マージを止めないため", () => {
-    const report = reportOf(["soccer", "football"]);
+    const report = reportOf(["hot", "warm"]);
     expect(report.errorCount).toBe(0);
     expect(report.warningCount).toBe(1);
   });

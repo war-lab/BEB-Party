@@ -90,11 +90,14 @@ const IRREGULAR_SAME_WORD: readonly (readonly [string, string])[] = [
 ];
 
 /**
- * 英式綴りと米式綴り。禁止語は米式に統一する。
+ * 英式の語と、それに対応する米式の語。禁止語は米語に統一する。
  *
  * 統一する理由は、監視役が禁止語の一覧を目で見て「言ったか」を判定するためである。
  * 同じ語がカードごとに違う綴りで並ぶと、判定の基準がぶれる。
- * 米式を正とするのは、日本の学校英語が米式で教えられており卓の多数がそちらを想起するためである。
+ * 米語を正とするのは、日本の学校英語が米語で教えられており卓の多数がそちらを想起するためである。
+ *
+ * 前半は綴りの変種、後半は別の語になる対である。後半は基準のぶれに加えて
+ * 「卓が実際に言う語を塞げていない」穴でもあるため、同じ表で扱う。
  */
 const BRITISH_TO_AMERICAN: Readonly<Record<string, string>> = {
   grey: "gray",
@@ -133,6 +136,28 @@ const BRITISH_TO_AMERICAN: Readonly<Record<string, string>> = {
   realise: "realize",
   recognise: "recognize",
   apologise: "apologize",
+  // 綴りの変種ではなく別の語だが、揃える理由は同じである。
+  // 加えて、卓が実際に言う語を塞げていない穴でもある
+  // （`football` を禁じても日本の卓は `soccer` と言う。実測でBarcelonaとRio de Janeiroの2枚）。
+  //
+  // ここに載せるのは「米語の側を禁止語として書ける」対だけにする。
+  // `petrol` は `gas` へ揃えたいが、`gas station` では `gas` が正解の構成語であり
+  // 検証1に触れるため、対応表では扱わず別の説明経路へ差し替えた。
+  lift: "elevator",
+  queue: "line",
+  football: "soccer",
+  lorry: "truck",
+  pavement: "sidewalk",
+  rubbish: "trash",
+  nappy: "diaper",
+  postbox: "mailbox",
+  crisps: "chips",
+  sweets: "candy",
+  maths: "math",
+  aubergine: "eggplant",
+  courgette: "zucchini",
+  pram: "stroller",
+  trolley: "cart",
 };
 
 /**
@@ -144,10 +169,12 @@ const BRITISH_TO_AMERICAN: Readonly<Record<string, string>> = {
  *
  * 卓によっては別の語として使い分ける余地があるため、警告にとどめる。
  * 表は網羅ではない。追加は実データで重複が見つかった都度おこなう。
+ *
+ * 英式と米式の対（`queue` と `line`、`football` と `soccer`）はここに置かない。
+ * どちらを正とするかが決まっており、検証16がエラーとして扱う。
  */
 const SYNONYM_GROUPS: readonly (readonly string[])[] = [
   ["movie", "movies", "film", "films", "cinema"],
-  ["soccer", "football"],
   ["hot", "warm"],
   ["cold", "chilly"],
   ["noisy", "loud"],
@@ -160,8 +187,6 @@ const SYNONYM_GROUPS: readonly (readonly string[])[] = [
   ["small", "little", "tiny"],
   ["rich", "wealthy"],
   ["money", "cash"],
-  ["cart", "trolley"],
-  ["line", "queue"],
   ["package", "parcel"],
   ["bill", "note", "banknote"],
   ["ape", "gorilla"],
