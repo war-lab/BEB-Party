@@ -433,3 +433,150 @@ describe("検証13: 禁止語の枠の重複", () => {
     expect(itemsOf(withTaboo(["child", "children"]))).not.toContain(13);
   });
 });
+
+describe("検証14: 禁止語の語形変化による重複", () => {
+  function withTaboo(taboo: string[]) {
+    const target = validSet();
+    const first = target.cards[0];
+    if (first === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    first.taboo = [...taboo, ...first.taboo.slice(taboo.length)];
+    return target;
+  }
+
+  it("最上級だけが違う枠が落ちる", () => {
+    // small が禁止なら smallest も言えない（実測。places の Vatican）
+    expect(itemsOf(withTaboo(["small", "smallest"]))).toContain(14);
+  });
+
+  it("名詞と形容詞の派生が落ちる", () => {
+    expect(itemsOf(withTaboo(["freedom", "free"]))).toContain(14);
+  });
+
+  it("動名詞の派生が落ちる（語末のeが落ちる形）", () => {
+    expect(itemsOf(withTaboo(["giving", "give away"]))).toContain(14);
+  });
+
+  it("国名と国民形容詞が落ちる", () => {
+    // 09の禁止語の語形変化が France と French を同じ語として扱う
+    expect(itemsOf(withTaboo(["Spain", "Spanish"]))).toContain(14);
+  });
+
+  it("国名と国民形容詞は語句の構成語でも落ちる", () => {
+    expect(itemsOf(withTaboo(["Korea", "Korean food"]))).toContain(14);
+  });
+
+  it("短縮形が落ちる", () => {
+    expect(itemsOf(withTaboo(["photograph", "hand photo"]))).toContain(14);
+  });
+
+  it("単複差だけの重複は検証13が扱うため検証14では落とさない", () => {
+    expect(itemsOf(withTaboo(["boy", "boys"]))).not.toContain(14);
+  });
+
+  it("語幹が3文字以下の対は落とさない（art と artist を別概念として残す）", () => {
+    expect(itemsOf(withTaboo(["art", "artist"]))).not.toContain(14);
+  });
+
+  it("無関係な語の対は落とさない", () => {
+    expect(itemsOf(withTaboo(["water", "mountain"]))).not.toContain(14);
+  });
+});
+
+describe("検証15: 別名を構成する語と禁止語の重複", () => {
+  function withAlias(taboo: string[], aliases: string[]) {
+    const target = validSet();
+    const first = target.cards[0];
+    if (first === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    first.taboo = [...taboo, ...first.taboo.slice(taboo.length)];
+    first.aliases = aliases;
+    return target;
+  }
+
+  it("別名の構成語が禁止語の枠にある場合に落ちる", () => {
+    // 別名 chemist により chemist shop は言えない（実測。places の pharmacy）
+    expect(itemsOf(withAlias(["chemist shop"], ["chemist"]))).toContain(15);
+  });
+
+  it("単複差でも落ちる", () => {
+    // 完全一致だけで見ると movies と別名 movie theater を見逃す（実測）
+    expect(itemsOf(withAlias(["movies"], ["movie theater"]))).toContain(15);
+  });
+
+  it("別名と語が重ならない禁止語は通る", () => {
+    expect(itemsOf(withAlias(["window"], ["chemist"]))).not.toContain(15);
+  });
+});
+
+describe("検証16: 綴りの統一", () => {
+  function withTaboo(taboo: string[]) {
+    const target = validSet();
+    const first = target.cards[0];
+    if (first === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    first.taboo = [...taboo, ...first.taboo.slice(taboo.length)];
+    return target;
+  }
+
+  it("英式の綴りが落ちる", () => {
+    expect(itemsOf(withTaboo(["grey"]))).toContain(16);
+  });
+
+  it("複合語の構成語でも落ちる", () => {
+    expect(itemsOf(withTaboo(["grey shirt"]))).toContain(16);
+  });
+
+  it("別名の英式の綴りも落ちる", () => {
+    const target = validSet();
+    const first = target.cards[0];
+    if (first === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    first.aliases = ["harbour"];
+    expect(itemsOf(target)).toContain(16);
+  });
+
+  it("米式の綴りは通る", () => {
+    expect(itemsOf(withTaboo(["gray", "harbor", "color"]))).not.toContain(16);
+  });
+});
+
+describe("検証17: 同じ説明経路を塞ぐ語の重複", () => {
+  function reportOf(taboo: string[]) {
+    const target = validSet();
+    const first = target.cards[0];
+    if (first === undefined) {
+      throw new Error("フィクスチャが空である");
+    }
+    first.taboo = [...taboo, ...first.taboo.slice(taboo.length)];
+    return validateSet(target);
+  }
+
+  it("同義語の重複を警告として出す", () => {
+    const report = reportOf(["soccer", "football"]);
+    expect(report.findings.map((finding) => finding.item)).toContain(17);
+    expect(report.findings.find((finding) => finding.item === 17)?.severity).toBe("warning");
+  });
+
+  it("警告はエラー件数に数えない。マージを止めないため", () => {
+    const report = reportOf(["soccer", "football"]);
+    expect(report.errorCount).toBe(0);
+    expect(report.warningCount).toBe(1);
+  });
+
+  it("語句の構成語でも警告を出す", () => {
+    expect(reportOf(["movies", "old film"]).findings.map((finding) => finding.item)).toContain(17);
+  });
+
+  it("king と queen は落とさない。片方を禁じてももう片方は別の人物を指して言える", () => {
+    expect(reportOf(["king", "queen"]).findings.map((finding) => finding.item)).not.toContain(17);
+  });
+
+  it("無関係な語の対は警告を出さない", () => {
+    expect(reportOf(["water", "mountain"]).findings.map((finding) => finding.item)).not.toContain(17);
+  });
+});
