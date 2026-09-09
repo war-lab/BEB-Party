@@ -109,8 +109,8 @@ export const SCRIPTS: MovieScript[] = [
     id: "dontsayit",
     icon: "🤐",
     title: ["DON'T", "SAY IT"],
-    tagline: ["禁止語を避けて、", "英語で人物を説明する"],
-    purpose: ["説明者が英語で人物を説明し、", "まわりが言い当てる", "使えない語が配られている"],
+    tagline: ["禁止語を避けて、", "英語でお題を説明する"],
+    purpose: ["説明者が英語でお題を説明し、", "まわりが言い当てる", "使えない語が配られている"],
     beats: [
       {
         shot: "dontsayit-briefing",
@@ -127,7 +127,7 @@ export const SCRIPTS: MovieScript[] = [
       {
         shot: "dontsayit-handoff-card",
         stage: "交代",
-        caption: ["人物名と、使ってはいけない語"],
+        caption: ["お題の名前と、使ってはいけない語"],
         hold: 3.0,
       },
       {
@@ -162,8 +162,8 @@ export const SCRIPTS: MovieScript[] = [
     ],
     promises: [
       ["自分の画面を他人に見せない"],
-      ["禁止語は複数形・過去形にしても", "同じ語とみなす"],
-      ["レベルが上がると", "使えない語が増える", "（3語→4語→5語＋条件）"],
+      ["禁止語は複数形・過去形にしても", "同じ語とみなす", "お題の別名も言えない"],
+      ["レベルで使えない語が増える", "3・3・5・7・10語", "レベル5だけ話し方の条件も付く"],
     ],
   },
   {

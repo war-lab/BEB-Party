@@ -36,3 +36,6 @@ export {
   type Stage,
   type WatcherSecret,
 } from "./game";
+
+// 旧版で保存された payload を現行の形へ補う。再接続では保存済みがそのまま返る
+export { normalizeResult, normalizeSecret } from "./legacy-payload";
