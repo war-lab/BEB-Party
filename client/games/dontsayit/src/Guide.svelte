@@ -29,7 +29,9 @@
 <ol>
   <li><strong>ルール確認</strong>（{STAGE_DEADLINE_SECONDS.briefing}秒）: 役と得点を確認して「準備できた」を押す</li>
   <li><strong>交代</strong>（{STAGE_DEADLINE_SECONDS.handoff}秒）: 次の説明者がお題を読み、「はじめる」を押す</li>
-  <li><strong>説明タイム</strong>（既定{ROUND_SECONDS.default}秒）: 当たるたびに次のお題へ進む。分からないお題も、扱いたくないお題も、1回だけ飛ばせる</li>
+  <!-- 飛ばしたお題も結果で開示される（server/games/dontsayit/src/module.ts の advanceCard）。
+       「扱わずに済む」と読める書き方をしない -->
+  <li><strong>説明タイム</strong>（既定{ROUND_SECONDS.default}秒）: 当たるたびに次のお題へ進む。説明したくないお題は1回だけ飛ばせる（飛ばしたお題も結果で開示される）</li>
   <li>これを人数分くり返し、<strong>結果</strong>で得点と使ったお題を振り返る</li>
 </ol>
 

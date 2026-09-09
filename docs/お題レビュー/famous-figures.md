@@ -2,7 +2,7 @@
 
 ## 結論
 
-200枚・制約カード6枚・重要表現9件を収録した。検証12項目とリントをすべて通過している。
+200枚・制約カード6枚・重要表現9件を収録した。検証17項目とリントをすべて通過している。
 
 **レビューの水準はカードによって違う**。
 `card_001`〜`card_036` は3観点のクロスレビューを2巡経ている。
@@ -14,6 +14,10 @@
 人手レビューはAIによる3観点のクロスレビューを2巡行った。
 1巡目で各観点が独立に評価し、2巡目で互いの判断が衝突した6点を裁定した。
 その結果、カード13枚の禁止語・正解を差し替え、制約カード2枚の英文を直し、重要表現を4件更新した。
+
+**10語の一覧については3観点のクロスレビュー2巡を経ている**（2026-09-09）。
+1巡目は5語時代のデータに対するものであり、10語の一覧そのものは作成者の自己判断しか根拠がなかったため回し直した。
+2巡目は約250件を挙げ、うち機械で判定できるクラスは検証14〜17として実装した。
 
 **実プレイは経ていない**。知名度・所要時間・得点分布は未実測であり、後述の未解決の論点として残す。
 
@@ -31,6 +35,7 @@
 | 2026-09-07 | 100枚を追加して200枚とした。知識寄りの層は [Great Figures](./great-figures.md) へ分離。日本人名の表記規約を適用し `Nobunaga Oda` → `Oda Nobunaga`、`Ryoma Sakamoto` → `Sakamoto Ryoma` へ変更 |
 | 2026-09-07 | 3観点のクロスレビュー1巡。回帰2枚を差し替え、禁止語4枚を修正、7枚へ別名を付与。検証10〜12を通過 |
 | 2026-09-08 | 禁止語を5語から10語へ。検証13を新設し、冗長枠を除いて10語を選び直した。記録済みの穴4枚を塞いだ |
+| 2026-09-09 | 10語の一覧に対して3観点のクロスレビュー2巡。検証14〜17を新設し、74枠 を差し替えた |
 
 ## セットの骨格
 
@@ -134,7 +139,7 @@ Great Figures の成否を分けるのは「学校で習ったか」である。
 
 ## 機械検証の結果
 
-`pnpm validate:content` が検証12項目とリントを通過する（エラー0件・警告0件。200枚での実行は2026-09-07）。
+`pnpm validate:content` が検証17項目とリントを通過する（エラー0件・警告0件。200枚での実行は2026-09-07）。
 
 機械が見ない項目は次の3つであり、本レビューがその確認にあたる。
 
@@ -357,6 +362,98 @@ Bは `Shinichi`（本人の本名。1語で即答）の追加、Cは `bow` の�
 **6位以降の語は上位より弱い。** 観点Bが「下位が死に札の温床になる」と予測したとおりである。
 15語のうち11〜15位は最も弱い帯であり、10語へ下げたことでその帯は落ちた。
 それでも6〜10位が上位5語と同じ強さだとは言えない。確度: **未検証**。
+
+## 10語のクロスレビュー2巡（2026-09-09）
+
+2026-09-08に禁止語を10語へ増やしたが、そのときのクロスレビューは**5語時代のデータに対して行ったもの**だった。
+10語の一覧そのものは作成者の自己判断しか根拠になっていなかったため、改めて3観点を回した。
+
+観点の担当は固定したまま、問いを1巡目と変えた（[README](./README.md) の「レビューの観点を固定する」）。
+
+| 観点 | この巡の問い |
+| --- | --- |
+| A | レベル別の提示数 3/3/5/7/10 は成立するか。実効難度はどうなっているか |
+| B | 10語にしても1語で即答される経路が残っていないか。禁止語は英語として自然か |
+| C | 「機微な語は先頭3語へ」の規則が10語への書き換え後も守られているか |
+
+### この巡でいちばん重い結果
+
+3観点が独立に**約250件**を挙げた。機械検証は当時0エラー・0警告だった。
+
+最大のクラスは「同じ概念に2枠を使っている」（4セット合計55枚）で、
+これは検証13を新設して潰したはずの欠陥と**同じ性質が別の軸から出たもの**である。
+前の巡を「11枠を直した」で終わらせたことが原因であり、
+正しい閉じ方は「そのクラスを検査に落とす」だった。
+
+この巡では検証14〜17を追加し、それが挙げた枠をすべて差し替えた
+（[基本設計/09](../基本設計/09_DONTSAYITゲームモジュール.md) の検証項目）。
+
+| 検査 | 内容 | 4セット合計 |
+| --- | --- | --- |
+| 検証14 | 語形変化だけが違う枠（`small` と `smallest`、`Spain` と `Spanish`） | 11枠 |
+| 検証15 | 別名を構成する語が禁止語の枠にある（別名 `chemist` と枠 `chemist shop`） | 5枠 |
+| 検証16 | 英式の綴りの混在（`grey`/`gray`、`harbour`/`harbor`） | 14枠 |
+| 検証17（警告） | 同じ概念に2枠（`soccer` と `football`） | 66枠 |
+
+機械に落とせなかった指摘は次のとおりで、レビューでしか見つからない。
+
+* 禁止語が英語として自然か（語順が逆の `hair long`、非文の断片 `science too`）
+* その語が説明者の口から実際に出るか（`clink` `nearest` `many names`）
+* 機微な語の判断
+
+### 作成者の側の誤りとして記録すること
+
+検証17の根拠を初版で**逆に書いていた**。
+「片方を禁止すればもう片方を言う理由がない（＝枠が死ぬ）」と書いたが、これは誤りである。
+`hot` を塞げば説明者は `warm` へ逃げるため、両方を塞ぐこと自体には効果がある。
+
+正しい根拠は別で、レベル1〜2には先頭3語しか提示しないため、
+3枠のうち2枠が同じ概念だと**そのレベルで塞げる経路が2つに減る**ことである。
+枠の死ではなく概念の被覆の狭さの問題であり、差し替えという対処は変わらないが理由が違う。
+
+同種の取り違え（説明経路をより広く塞ぐ側を残した／決め手になる語句を残した）を
+2026-09-08にも指摘されており、この成果物で2度目である。
+
+### 指摘されたカードだけ直していない
+
+機微な語の指摘は25件だったが、語彙リストによる573枚の掃引では143件が候補に挙がった。
+大半は色や競走の意味での誤検出（消しゴムの `white`、水泳の `race`、電池の `dead`）だが、
+掃引しなければ `Ferdinand Magellan` の `die`@10 と `Captain Cook` の `die there`@9 は残っていた。
+
+### このセットの変更（74枠）
+
+| 分類 | 変更 |
+| --- | --- |
+| 検証14 | `Nelson Mandela` の `free`→`Nobel`、`Don Quixote` の `Spanish`→`Sancho`、`Rafael Nadal` の `Spanish`→`French Open` |
+| 検証15 | `Santa Claus` の `Christmas`→`chimney`（別名 `Father Christmas`）、`Detective Conan` の `case`→`Ran`（別名 `Case Closed`） |
+| 検証16 | `Mario` と `Walt Disney` の `moustache`→`mustache`、`Totoro` の `grey`→`gray`、`Mark Zuckerberg` の `grey shirt`→`gray shirt` |
+| 検証17 | 26枠。`Messi` の `football`→`Maradona`、`Godzilla` の `film`→`Kong`、`King Kong` の `big ape`→`Godzilla`、`Hermione` の `clever`→`Hogwarts` ほか |
+| 機微な語（先頭3語へ移動） | `Muhammad Ali` の `black`（8位→3位）、`Oprah Winfrey` の `black`（7位→3位）、`Martin Luther King` の `black`（6位→2位）と `shot`（9位→3位）、`John Lennon` の `shot`（9位→3位）、`Sakamoto Ryoma` の `shot`（9位→3位）、`Bruce Lee` の `die young`（9位→3位）、`Cleopatra` の `snake` と `beauty` |
+| 機微な語（語ごと削除） | `Naomi Osaka` の `mixed`→`four`、`草間彌生` の `old woman`→`infinity`、`Freddie Mercury` の `teeth`→`Bohemian`、`Michael Phelps` の `long arms`→`butterfly`、`LeBron James` の `big body`→`Cleveland`、`Brad Pitt` の `handsome`→`Troy`、`Schwarzenegger` の `big body`→`California`、`Forrest Gump` の `slow`→`chocolate`、`Bob Marley` の `smoke`→`Kingston` |
+| 語順が逆 | `Hatsune Miku` の `hair long`→`long hair`、`Terminator` の `eyes red`→`red eyes`、`Tiger Woods` の `shirt red`→`red shirt`、`Vegeta` の `hair up`→`spiky hair`、`Bob Marley` の `hair long`→`One Love` |
+| 非文の断片 | `Sazae-san` の `sea name`→`shell`、`Popeye` の `eat green`→`anchor`、`Indiana Jones` の `old thing`→`treasure`、`Terminator` の `come back`→`Skynet`、`Chaplin` の `black white`→`tramp`、`Mother Teresa` の `white blue`→`sari`、`Federer` の `many titles`→`Wimbledon`、`Keanu Reeves` の `dog film`→`Wick`、`Spielberg` の `space film`→`Jaws` |
+| 情報量ゼロ | `Einstein` `宮本茂` `Picasso` の `famous`→`Nobel` / `Zelda` / `Guernica` |
+| 固有名詞の小文字 | `Garfield` の `monday`→`Monday`、`Tiger Woods` の `sunday`→`Sunday`、`Superman` の `krypton`→`Krypton` |
+| 事実誤り・不適切 | `Meowth` の `boots`→`two legs`（履いていない）、`Ed Sheeran` の `ginger`→`glasses`（赤毛を指す侮蔑的な俗語。かつ `red hair` と重複）、`Road Runner` の `beep`→`meep`（鳴き声は meep meep）、`Pac-Man` の `board`→`cherry`（ボードゲームではない） |
+| 開いていた決め手 | `Naruto` の `Sasuke`、`Mickey Mouse` の `Minnie`、`Hello Kitty` の `cat`、`Luffy` の `Zoro`、`Goku` の `Kamehameha`、`Elsa` の `Olaf`、`Elon Musk` の `Twitter`、`Zeus` の `lightning`、`Poseidon` の `Neptune`、`Totoro` の `Miyazaki`、`Wolverine` の `X Men` |
+
+観点Cの最も重い指摘は**同一セット内で同じ規則が反対に適用されていたこと**である。
+`Nelson Mandela` は `black` を3位に置き、`Martin Luther King` は6位に置いていた。
+2026-09-07の1巡目で新設した規則の適用が、10語への書き換えで崩れていた。
+
+`shot` の扱いは観点Cが判断を保留した点である。
+`John F Kennedy`（3位）と `Malala Yousafzai`（1位）は先頭にあり、
+`Lincoln`（10位）`Gandhi`（10位）`John Lennon`（9位）は後方にあった。
+「歴史上の暗殺は学校教材の範囲であり `black` と同列に扱うべきかは決められない」としている。
+
+作成者の裁定は**先頭3語へ移す**とした。
+09が例外に「死」を挙げていること、および既に正しく置かれている JFK と Malala に揃えることを根拠とする。
+この判断は観点Cが決められないとしたものを作成者が決めたものであり、覆りうる。
+
+観点Aが「レベル1〜2で1語即答になる」と挙げた20枚のうち、
+アニメ・ゲーム由来の8枚（`Kakashi` `Sasuke` `Vegeta` `Zoro` `Chopper` `Link` `Gollum` `Gandalf`）は**未対処**である。
+観点A自身が「私は `One Piece` を見れば正解を特定できるが、卓の6人が作品を知っているかは観点Aの領域外」と偏りを自認しており、
+作品名を前方へ動かすと、その作品を知らない卓では逆に成立しなくなる。実プレイで見る。
 
 ## 未解決の論点
 

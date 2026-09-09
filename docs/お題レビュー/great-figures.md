@@ -2,12 +2,16 @@
 
 ## 結論
 
-173枚・制約カード6枚・重要表現9件を収録した。検証12項目とリントをすべて通過している。
+173枚・制約カード6枚・重要表現9件を収録した。検証17項目とリントをすべて通過している。
 
 初版は200枚だった。3観点のクロスレビュー1巡で**27枚を削除**し、7枚の禁止語を差し替えた。
 削除の内訳は、知名度で25枚（観点Aと観点Cが独立に「卓の過半が名前を言えない」と判定したもの）と、安全性で2枚（説明の安全な経路が存在しないもの）である。
 
 **クロスレビューは1巡である**。[Famous Figures](./famous-figures.md) の最初の36枚は2巡（独立評価＋衝突裁定）を経ているが、このセットは1巡目の報告を裁定者1人が処理した。
+
+**10語の一覧については3観点のクロスレビュー2巡を経ている**（2026-09-09）。
+1巡目は5語時代のデータに対するものであり、10語の一覧そのものは作成者の自己判断しか根拠がなかったため回し直した。
+2巡目は約250件を挙げ、うち機械で判定できるクラスは検証14〜17として実装した。
 
 **実プレイは経ていない**。知名度・所要時間・得点分布はいずれも未実測である。
 
@@ -24,6 +28,7 @@
 | 2026-09-07 | 200枚を収録し、検証9項目を通過。作成AIの自己点検のみ |
 | 2026-09-07 | 3観点のクロスレビュー1巡。27枚を削除して173枚とし、禁止語7枚を差し替え。検証10〜12を新設し通過 |
 | 2026-09-08 | 禁止語を5語から10語へ。検証13を新設し、冗長枠を除いて10語を選び直した。印象派4枚の相互未禁止を解消 |
+| 2026-09-09 | 10語の一覧に対して3観点のクロスレビュー2巡。検証14〜17を新設し、79枠 を差し替えた |
 
 ## セットの骨格
 
@@ -94,7 +99,7 @@ Famous Figures に既に入っている偉人17名（`Albert Einstein` / `Isaac 
 
 ## 機械検証の結果
 
-`pnpm validate:content` が検証12項目とリントを通過する（エラー0件・警告0件。2026-09-07実行）。
+`pnpm validate:content` が検証17項目とリントを通過する（エラー0件・警告0件。2026-09-07実行）。
 
 | # | 検証 | 結果 |
 | --- | --- | --- |
@@ -323,6 +328,93 @@ AIエージェント3体（モデル: Claude Opus 5）が、互いの結論を�
 **6位以降の語は上位より弱い。** 観点Bが「下位が死に札の温床になる」と予測したとおりである。
 15語のうち11〜15位は最も弱い帯であり、10語へ下げたことでその帯は落ちた。
 それでも6〜10位が上位5語と同じ強さだとは言えない。確度: **未検証**。
+
+## 10語のクロスレビュー2巡（2026-09-09）
+
+2026-09-08に禁止語を10語へ増やしたが、そのときのクロスレビューは**5語時代のデータに対して行ったもの**だった。
+10語の一覧そのものは作成者の自己判断しか根拠になっていなかったため、改めて3観点を回した。
+
+観点の担当は固定したまま、問いを1巡目と変えた（[README](./README.md) の「レビューの観点を固定する」）。
+
+| 観点 | この巡の問い |
+| --- | --- |
+| A | レベル別の提示数 3/3/5/7/10 は成立するか。実効難度はどうなっているか |
+| B | 10語にしても1語で即答される経路が残っていないか。禁止語は英語として自然か |
+| C | 「機微な語は先頭3語へ」の規則が10語への書き換え後も守られているか |
+
+### この巡でいちばん重い結果
+
+3観点が独立に**約250件**を挙げた。機械検証は当時0エラー・0警告だった。
+
+最大のクラスは「同じ概念に2枠を使っている」（4セット合計55枚）で、
+これは検証13を新設して潰したはずの欠陥と**同じ性質が別の軸から出たもの**である。
+前の巡を「11枠を直した」で終わらせたことが原因であり、
+正しい閉じ方は「そのクラスを検査に落とす」だった。
+
+この巡では検証14〜17を追加し、それが挙げた枠をすべて差し替えた
+（[基本設計/09](../基本設計/09_DONTSAYITゲームモジュール.md) の検証項目）。
+
+| 検査 | 内容 | 4セット合計 |
+| --- | --- | --- |
+| 検証14 | 語形変化だけが違う枠（`small` と `smallest`、`Spain` と `Spanish`） | 11枠 |
+| 検証15 | 別名を構成する語が禁止語の枠にある（別名 `chemist` と枠 `chemist shop`） | 5枠 |
+| 検証16 | 英式の綴りの混在（`grey`/`gray`、`harbour`/`harbor`） | 14枠 |
+| 検証17（警告） | 同じ概念に2枠（`soccer` と `football`） | 66枠 |
+
+機械に落とせなかった指摘は次のとおりで、レビューでしか見つからない。
+
+* 禁止語が英語として自然か（語順が逆の `hair long`、非文の断片 `science too`）
+* その語が説明者の口から実際に出るか（`clink` `nearest` `many names`）
+* 機微な語の判断
+
+### 作成者の側の誤りとして記録すること
+
+検証17の根拠を初版で**逆に書いていた**。
+「片方を禁止すればもう片方を言う理由がない（＝枠が死ぬ）」と書いたが、これは誤りである。
+`hot` を塞げば説明者は `warm` へ逃げるため、両方を塞ぐこと自体には効果がある。
+
+正しい根拠は別で、レベル1〜2には先頭3語しか提示しないため、
+3枠のうち2枠が同じ概念だと**そのレベルで塞げる経路が2つに減る**ことである。
+枠の死ではなく概念の被覆の狭さの問題であり、差し替えという対処は変わらないが理由が違う。
+
+同種の取り違え（説明経路をより広く塞ぐ側を残した／決め手になる語句を残した）を
+2026-09-08にも指摘されており、この成果物で2度目である。
+
+### 指摘されたカードだけ直していない
+
+機微な語の指摘は25件だったが、語彙リストによる573枚の掃引では143件が候補に挙がった。
+大半は色や競走の意味での誤検出（消しゴムの `white`、水泳の `race`、電池の `dead`）だが、
+掃引しなければ `Ferdinand Magellan` の `die`@10 と `Captain Cook` の `die there`@9 は残っていた。
+
+### このセットの変更（79枠）
+
+| 分類 | 変更 |
+| --- | --- |
+| 検証14 | `Hippocrates` の `Greece`→`patient`、`Wilhelm Rontgen` の `hand photo`→`hospital`、`Malala` の `young woman`→`Pakistan`、`Andrew Carnegie` の `give away`→`America` |
+| 検証16 | `Wagner` の `theatre`→`theater`、`Debussy` の `colour`→`color`、`Dunant` の `organisation`→`organization` |
+| 検証17 | 24枠。作家7枚の `novels` と `book` の二重（`Dickens`→`Scrooge`、`Austen`→`Darcy`、`Tolstoy`→`Anna`、`Dostoevsky`→`student`、`Hugo`→`Miserables`、`Dumas`→`Monte Cristo`、`Cervantes`→`Quixote`）、紙幣の `bill` と `note` の二重5枚（`漱石`→`Botchan`、`聖徳太子`→`China`、`福澤諭吉`→`ten thousand`、`樋口一葉`→`five thousand`、`渋沢栄一`→`ten thousand`）ほか |
+| 機微な語（先頭3語へ移動） | `Julius Caesar` の `knives`（4位→3位）、`Marie Antoinette` の `guillotine`（4位→3位）、`Aesop` の `slave`（7位→3位）、`Abraham Lincoln` の `shot`（10位→3位）、`Gandhi` の `shot`（10位→3位）、`伊藤博文` の `shot`（6位→3位）、`Magellan` の `killed`（5位→3位）、`芥川` `Schubert` `樋口一葉` の `die young`（7〜8位→3位） |
+| 機微な語（語ごと削除） | `Stephen Hawking` の `illness`→`theory` と `black`→`space`、`FDR` の `polio`→`Eleanor`、`野口英世` の `yellow`→`mother` と `die abroad`→`doctor`、`de Gaulle` の `big nose`→`Paris`、`Alan Turing` の `sad end`→`Bletchley`、`Archimedes` の `naked`→`Eureka`、`T・ルーズベルト` の `teeth`→`Teddy`、`Magellan` の `die`→`spice`、`Captain Cook` の `die there`→`Australia` |
+| 非文の断片 | `Schrodinger` の `alive dead`→`experiment`、`Galileo` の `earth moves`→`earth`・`sun center`→`sun`、`Victoria` の `age name`→`Albert`、`Aristotle` の `study all`→`nature`、`Goethe` の `science too`→`Faust`、`Michelangelo` の `paint lying`→`carve`・`stone cut`→`Pieta`、`Hillary` の `bee keeper`→`beekeeper`・`help school`→`Nepal`、`漱石` の `England study`→`London`、`Rowling` の `train idea`→`Harry`、`Gagarin` の `let go`→`Vostok`、`Renoir` の `boat party`→`boating`、`Fermi` の `first pile`→`Manhattan`、`北斎` の `many names`→`views`、`Bell` の `first words`→`Watson`、`Lewis Carroll` の `girl book`→`Alice` |
+| 高頻度語 | `Descartes` の `I am`→`exist`（任意の一人称現在文に含まれる）、`Obama` の `yes`→`change`（回答者の Yes. と衝突）、`Pythagoras` の `right`→`angle`、`Machiavelli` の `means`→`fear`、`Schubert` の `lied`→`unfinished`（lie の過去形と同綴り） |
+| 固有名詞の小文字 | `Charlemagne` の `pope`→`Pope`、`Handel` の `messiah`→`Messiah`、`Brahms` の `hungarian`→`Hungarian`、`Verdi` の `aida`→`Aida`、`Himiko` の `chinese text`→`Chinese text` |
+| 事実誤り | `Julius Caesar` の `emperor`→`dictator`（皇帝ではなく終身独裁官。初代皇帝は Augustus） |
+| 開いていた決め手 | `Cervantes` の `Quixote`、`Goethe` の `Faust`、`Lewis Carroll` の `Alice`、`Rowling` の `Harry`、`Archimedes` の `Eureka`、`Tenzing Norgay` の `Sherpa`、`Socrates` の `Plato`、`T・ルーズベルト` の `Teddy`、`Jung` の `Freud`、`Hugo` の `Miserables`、`Hemingway` の `old man`、`Alexander` の `Aristotle`、`Genghis` の `Kublai`、`Lenin` の `Marx`、`Jenner` の `smallpox`、`Amundsen` の `Antarctica`、`Armstrong` の `Apollo`、`Mark Twain` の `Huck`、`Kafka` の `Metamorphosis`、`Schubert` の `Ave Maria`、`Marx` の `communist`、`Laozi` の `Tao` |
+
+観点Bはこのセットを「4セット中もっとも1語即答が残る」と評価した。
+理由は代表作・代表エピソードの固有名詞が丸ごと開いていたことであり、上表の最終行で塞いだ。
+
+哲学者の師弟カードで**下位者だけが師を塞ぎ、師の側が弟子を塞いでいない**非対称も指摘された。
+`Socrates`／`Plato`／`Aristotle` と `Genghis`／`Kublai` を相互に塞ぐよう直した。
+
+`Laozi` の `way`（2位）は**そのまま残した**。
+観点Bは「in this way / the way he ... に含まれる高頻度語であり、監視役が毎文で判定を迫られる」と指摘したが、
+`way` は Tao の英訳そのもの（the Way）であり、説明者が「the way」と言えばそれは正解を渡している。
+監視役が拾うべき語である。誤検出の負担は残るため、記録に留める。
+
+`Alexander Graham Bell` の `phone` は観点Bが「開いている」としたが、**対処していない**。
+09の禁止語の語形変化は短縮形を同じ語として扱う（検証14の対応表に `telephone`／`phone` を載せた）ため、
+`telephone`（1位）を禁じた時点で `phone` も言えない。観点Bの前提が誤っている。
 
 ## 未解決の論点
 

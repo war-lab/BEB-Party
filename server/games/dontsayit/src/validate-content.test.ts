@@ -545,7 +545,7 @@ describe("検証16: 綴りの統一", () => {
   });
 });
 
-describe("検証17: 同じ説明経路を塞ぐ語の重複", () => {
+describe("検証17: 同じ概念への枠の重複", () => {
   function reportOf(taboo: string[]) {
     const target = validSet();
     const first = target.cards[0];
@@ -556,6 +556,8 @@ describe("検証17: 同じ説明経路を塞ぐ語の重複", () => {
     return validateSet(target);
   }
 
+  // 枠が死ぬわけではない（hot を塞げば warm へ逃げる）。
+  // 指摘したいのは、レベル1〜2へ提示する3枠のうち2枠が同じ概念だと塞げる経路が減ること
   it("同義語の重複を警告として出す", () => {
     const report = reportOf(["soccer", "football"]);
     expect(report.findings.map((finding) => finding.item)).toContain(17);
