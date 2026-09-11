@@ -140,7 +140,8 @@
           <span>{hasApproved ? "承認ずみ" : "承認する"}</span>
         </button>
       </section>
-    {:else}
+    {:else if !isHost}
+      <!-- ホストには上の編集欄が出ている。自分を待たせる文にしないため参加者だけに出す -->
       <p class="empty">ホストが順位を入れるのを待っています。</p>
     {/if}
 

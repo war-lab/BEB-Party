@@ -112,13 +112,8 @@
     font-size: 1.35rem;
   }
   .face {
-    display: block;
-    width: 1.8rem;
-    height: 1.8rem;
-    border-radius: 50%;
+    --face-size: 1.8rem;
     border: 2px solid rgba(0, 0, 0, 0.3);
-    text-align: center;
-    line-height: 1.7rem;
   }
   .badge {
     margin-left: auto;

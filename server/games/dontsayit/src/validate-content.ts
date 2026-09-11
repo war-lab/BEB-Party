@@ -3,11 +3,12 @@
 // 推論エンジンを使わない。判定は文字列比較と枚数の計数だけで足りる。
 // このコードはCI（tools）からのみ呼ぶ。ランタイムのコードパスには置かない（基本設計/05）。
 import type { ValidationResult } from "@beb/shared-core";
-import { MIN_CARDS, TABOO_PER_CARD, type Card, type TabooSet } from "@beb/shared-dontsayit";
+import { ALIASES_MAX, MIN_CARDS, TABOO_PER_CARD, type Card, type TabooSet } from "@beb/shared-dontsayit";
 import { parseSet } from "./set-schema";
+import { americanSpellingOf, isDerivedForm, isIrregularSameWord, isSynonym } from "./word-forms";
 
-/** 検証項目。1〜9は09の検証項目、schemaは前提となる構造検証 */
-export type ValidationItem = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | "schema";
+/** 検証項目。1〜17は09の検証項目、schemaは前提となる構造検証 */
+export type ValidationItem = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | "schema";
 
 export interface Finding {
   setId: string;
@@ -50,6 +51,16 @@ class Findings {
   error(item: ValidationItem, cardId: string | null, message: string, detail: string[] = []): void {
     this.items.push({ setId: this.setId, cardId, item, severity: "error", message, detail });
   }
+
+  /**
+   * 判定が確実でない項目に使う。マージは止めない。
+   *
+   * 意味の同一性（検証17）は表による近似であり、卓によって使い分ける余地が残る。
+   * エラーにすると、正しいデータを書けなくなる場合がある。
+   */
+  warning(item: ValidationItem, cardId: string | null, message: string, detail: string[] = []): void {
+    this.items.push({ setId: this.setId, cardId, item, severity: "warning", message, detail });
+  }
 }
 
 /**
@@ -86,6 +97,17 @@ const TABOO_WORD_MAX_LENGTH = 15;
 const TABOO_MAX_WORDS = 2;
 
 /**
+ * 検証10で複合語の構成要素として扱う最短の長さ。
+ *
+ * 2文字以下を構成要素として扱うと、`Ed Sheeran` の `red` のような無関係な語まで落ちる。
+ * 3文字を下限にすると `rain` / `book` / `shoe` / `top` / `light` はいずれも捕まる。
+ */
+const MIN_COMPOUND_PART_LENGTH = 3;
+
+/** 日本語の文字（ひらがな・カタカナ・漢字・長音符）を1文字でも含むか。検証11 */
+const JAPANESE_PATTERN = /[\u3040-\u309f\u30a0-\u30ff\u3005\u3006\u30fc\u4e00-\u9fff]/;
+
+/**
  * 検証9: 禁止語の形。
  *
  * 文字種を英字に限るのは、非ASCIIの禁止語がフォントサブセットの入力に含まれず豆腐になるためである
@@ -109,6 +131,358 @@ function checkTabooShape(card: Card, findings: Findings): void {
     const tooLong = words.find((word) => word.length > TABOO_WORD_MAX_LENGTH);
     if (tooLong !== undefined) {
       findings.error(9, card.id, `禁止語の1語は${TABOO_WORD_MAX_LENGTH}文字以内とする`, [`実際: ${tooLong}`]);
+    }
+  }
+}
+
+/**
+ * 検証10: 禁止語が正解の複合語の構成要素と一致しない。
+ *
+ * 遊び方は「お題の名前そのものと、その一部」を言えないものとし、複合語の構成要素を含める
+ * （`raincoat` に対する `rain` / `coat`。09の言えない語の範囲）。
+ * 規則で既に禁止されている語を禁止語の5枠に書くと、実効的な禁止語数がレベルごとにずれる。
+ * このゲームは提示する禁止語の数で難度を調整するため、枠の目減りを無視できない。
+ *
+ * 判定は先頭一致と末尾一致に限り、複数形の `s` / `es` だけを吸収する。
+ * 部分文字列一致は採らない。`Katniss Everdeen` の `cat`、`Bart Simpson` の `art` のような
+ * 無関係な語まで拒否し、書ける禁止語がなくなる（09の言えない語の範囲でも部分文字列は除く）。
+ *
+ * 不規則な変化形（`toothbrush` に対する `teeth`）はこの検査では落ちない。
+ * 語幹の同一性は文字列比較では判定できないため、卓の裁定に委ねる（09の禁止語の語形変化）。
+ */
+function checkTabooNotCompoundPart(card: Card, findings: Findings): void {
+  const answerWords = wordsOf(card.answer);
+  for (const taboo of card.taboo) {
+    for (const tabooWord of tabooWordsOf(taboo)) {
+      const stems = [tabooWord, tabooWord.replace(/es$/, ""), tabooWord.replace(/s$/, "")].filter(
+        (stem) => stem.length >= MIN_COMPOUND_PART_LENGTH,
+      );
+      const hit = answerWords.find(
+        (answerWord) =>
+          answerWord.length > tabooWord.length &&
+          stems.some((stem) => answerWord.startsWith(stem) || answerWord.endsWith(stem)),
+      );
+      if (hit !== undefined) {
+        findings.error(10, card.id, "禁止語が正解の複合語の構成要素と一致している", [
+          `正解: ${card.answer}`,
+          `禁止語: ${taboo}`,
+          `一致した構成要素: ${hit}`,
+          "規則で既に禁止されているため、別の連想語へ差し替える",
+        ]);
+      }
+    }
+  }
+}
+
+/**
+ * 検証11: 日本語名が入っている。
+ *
+ * 空文字と欠落は構造検証（`schema`）が落とすため、ここが見るのは
+ * 「英語をそのまま複写していないか」だけである。
+ * 日本語の文字が1文字も含まれない `ja` は、翻訳の書き忘れとして落とす。
+ */
+function checkJapaneseName(card: Card, findings: Findings): void {
+  if (card.ja.length === 0) {
+    return;
+  }
+  if (!JAPANESE_PATTERN.test(card.ja)) {
+    findings.error(11, card.id, "日本語名に日本語の文字が含まれていない", [
+      `正解: ${card.answer}`,
+      `ja: ${card.ja}`,
+    ]);
+  }
+}
+
+/**
+ * 検証12: 別名の形と重複。
+ *
+ * 別名は正解として受理する語であり、説明者も言えない（09の言えない語の範囲）。
+ * 禁止語と同じ制約（文字種・語数・長さ）を課すのは、監視役が口頭で踏んだかを判定するためである。
+ *
+ * 禁止語との重複を落とすのは、同じ語が2箇所に出ると監視役の画面で二重に並ぶためである。
+ * 正解の構成語との一致を落とすのは、別名として意味がないためである。
+ */
+function checkAliases(card: Card, findings: Findings): void {
+  const aliases = card.aliases ?? [];
+  if (aliases.length === 0) {
+    return;
+  }
+  if (aliases.length > ALIASES_MAX) {
+    findings.error(12, card.id, `別名は${ALIASES_MAX}件以内とする`, [`実際: ${aliases.length}件`]);
+  }
+
+  const answerWords = new Set(wordsOf(card.answer));
+  const tabooKeys = new Set(card.taboo.map((entry) => entry.trim().toLowerCase()));
+  const seen = new Set<string>();
+
+  for (const alias of aliases) {
+    if (!TABOO_PATTERN.test(alias)) {
+      findings.error(12, card.id, "別名は英字・空白・ハイフン・アポストロフィのみで構成する", [`実際: ${alias}`]);
+      continue;
+    }
+    const words = tabooWordsOf(alias);
+    if (words.length > TABOO_MAX_WORDS) {
+      findings.error(12, card.id, `別名は${TABOO_MAX_WORDS}語以内とする`, [`実際: ${words.length}語（${alias}）`]);
+    }
+    const tooLong = words.find((word) => word.length > TABOO_WORD_MAX_LENGTH);
+    if (tooLong !== undefined) {
+      findings.error(12, card.id, `別名の1語は${TABOO_WORD_MAX_LENGTH}文字以内とする`, [`実際: ${tooLong}`]);
+    }
+
+    const key = alias.trim().toLowerCase();
+    if (seen.has(key)) {
+      findings.error(12, card.id, "別名が重複している", [`重複: ${alias}`]);
+    }
+    seen.add(key);
+
+    if (tabooKeys.has(key)) {
+      findings.error(12, card.id, "別名が禁止語と重複している", [`重複: ${alias}`]);
+    }
+    if (words.every((word) => answerWords.has(word))) {
+      findings.error(12, card.id, "別名が正解の構成語と一致している", [`正解: ${card.answer}`, `別名: ${alias}`]);
+    }
+  }
+}
+
+/**
+ * 検証13: 禁止語の枠が、同じカードの別の枠と禁止範囲で重複しない。
+ *
+ * 検証2は枠まるごとの一致しか見ない。`cheek` と `red cheek` は別の文字列であるため通る。
+ * しかし `cheek` が単独で禁止されていれば `red cheek` は絶対に言えないため、
+ * 後者の枠は追加効果を持たない。読む負担だけが増え、難度は上がらない。
+ *
+ * このゲームは提示する禁止語の数で難度を調整する。
+ * 実効的な制限数がカードごとに変わると、同じレベルでも引いたカードで負荷が変わる。
+ *
+ * 判定するのは次の2つである。
+ *
+ * 1. 複合語の枠の構成語が、同カードの別の枠として単独で禁止されている
+ * 2. 単語の枠どうしで、複数形の `s` / `es` だけが違う
+ *
+ * 不規則変化（`children` と `child`）は文字列比較では判定できないため対象外とする。
+ * 語形変化を同じ語とみなす規則は卓の裁定に委ねる（09の禁止語の語形変化）。
+ */
+function checkNoRedundantTaboo(card: Card, findings: Findings): void {
+  const entries = card.taboo.map((entry) => ({ entry, words: tabooWordsOf(entry) }));
+  const singles = new Map<string, string>();
+  for (const { entry, words } of entries) {
+    if (words.length === 1 && words[0] !== undefined && !singles.has(words[0])) {
+      singles.set(words[0], entry);
+    }
+  }
+
+  for (const [index, { entry, words }] of entries.entries()) {
+    if (words.length >= 2) {
+      // 単複差も吸収して照合する。完全一致だけで見ると `gloves` と `white glove` を見逃す。
+      // 語形変化を同じ語とみなす規則があるため、`gloves` が禁止なら単数形も禁止であり、
+      // `white glove` は絶対に言えない（09の禁止語の語形変化）
+      const covered = words
+        .map((word) => {
+          const hit = [...singles.keys()].find((single) => sameStem(word, single));
+          return hit === undefined ? undefined : { word, single: hit };
+        })
+        .filter((item): item is { word: string; single: string } => item !== undefined);
+      const first = covered[0];
+      if (first !== undefined) {
+        findings.error(13, card.id, "複合語の禁止語の構成語が、別の枠で単独に禁止されている", [
+          `枠: ${entry}`,
+          `単独で禁止済み: ${singles.get(first.single) ?? first.single}`,
+          first.word === first.single ? "" : `単複差で一致: ${first.word} と ${first.single}`,
+          "この枠は絶対に言えないため追加効果がない。別の説明経路を塞ぐ語へ差し替える",
+        ].filter((line) => line.length > 0));
+      }
+      continue;
+    }
+    const word = words[0];
+    if (word === undefined) {
+      continue;
+    }
+    for (const [other, otherEntry] of singles) {
+      if (other === word || entries.findIndex((item) => item.entry === otherEntry) >= index) {
+        continue;
+      }
+      if (sameStem(word, other)) {
+        findings.error(13, card.id, "複数形の違いだけで重複している禁止語がある", [
+          `枠: ${entry}`,
+          `既存の枠: ${otherEntry}`,
+        ]);
+        break;
+      }
+    }
+  }
+}
+
+/** 複数形の `s` / `es` だけを吸収して語幹を比べる。不規則変化は扱わない */
+function sameStem(a: string, b: string): boolean {
+  const stems = (word: string): Set<string> => {
+    const out = new Set([word]);
+    if (word.endsWith("es")) {
+      out.add(word.slice(0, -2));
+    }
+    if (word.endsWith("s")) {
+      out.add(word.slice(0, -1));
+    }
+    return out;
+  };
+  for (const stem of stems(a)) {
+    if (stems(b).has(stem)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * カードの禁止語を「枠の番号つきの語の一覧」に開く。検証14・16・17の共通の下ごしらえ。
+ *
+ * 複合語の枠は構成語ごとに1件へ開く。`white glove` は `white` と `glove` の2件になる。
+ */
+function tabooWordEntries(card: Card): { word: string; entry: string; index: number }[] {
+  return card.taboo.flatMap((entry, index) =>
+    tabooWordsOf(entry).map((word) => ({ word, entry, index })),
+  );
+}
+
+/**
+ * 検証14: 禁止語の枠が、同じカードの別の枠と語形変化で重複しない。
+ *
+ * 検証13は複数形の `s` / `es` しか吸収しない。
+ * 09の禁止語の語形変化は `France` と `French` を同じ語として扱うと定めているため、
+ * `Korea` を禁じた時点で `Korean food` は言えず、後者の枠は死ぬ。
+ * 実測では573枚に11枠あった（規則変化7・不規則4）。
+ *
+ * 検証13と同じく、実効的な制限数がカードごとに変わることを防ぐのが目的である。
+ * 規則変化は接尾辞の表、国名と国民形容詞・短縮形は対応表で判定する（word-forms.ts）。
+ */
+function checkNoDerivedTaboo(card: Card, findings: Findings): void {
+  const entries = tabooWordEntries(card);
+  for (const [position, left] of entries.entries()) {
+    for (const right of entries.slice(position + 1)) {
+      if (left.index === right.index) {
+        continue;
+      }
+      // 単複差は検証13が落とす。ここで二重に報告しない
+      if (sameStem(left.word, right.word)) {
+        continue;
+      }
+      const derived = isDerivedForm(left.word, right.word);
+      if (!derived && !isIrregularSameWord(left.word, right.word)) {
+        continue;
+      }
+      findings.error(14, card.id, "語形変化だけが違う禁止語が別の枠にある", [
+        `枠: ${right.entry}`,
+        `既存の枠: ${left.entry}`,
+        `一致: ${left.word} と ${right.word}（${derived ? "規則変化" : "不規則な対"}）`,
+        "片方を禁止すればもう片方も言えないため、この枠には追加効果がない",
+      ]);
+    }
+  }
+}
+
+/**
+ * 検証15: 別名を構成する語が、禁止語の枠と重複しない。
+ *
+ * 検証12は別名と禁止語の完全一致しか見ない。
+ * 別名は正解として受理する語であり説明者も言えない（09の言えない語の範囲）。
+ * 正解と同じく語単位で言えないため、別名の構成語を別の枠で禁止しても追加効果がない。
+ *
+ * 実測では `pharmacy` の別名 `chemist` に対する `chemist shop` の枠が死んでいた。
+ * 直し方は2通りある。どちらを採るかはカードごとに決める。
+ *
+ * 1. その枠を別の説明経路を塞ぐ語へ差し替える
+ * 2. 別名のほうを落とす（卓が実際には言わない別名であれば、そちらが妥当）
+ */
+function checkAliasWordsNotTaboo(card: Card, findings: Findings): void {
+  const aliases = card.aliases ?? [];
+  if (aliases.length === 0) {
+    return;
+  }
+  const aliasWords = new Map<string, string>();
+  for (const alias of aliases) {
+    for (const word of tabooWordsOf(alias)) {
+      if (!aliasWords.has(word)) {
+        aliasWords.set(word, alias);
+      }
+    }
+  }
+
+  for (const { word, entry } of tabooWordEntries(card)) {
+    // 単複差を吸収する。完全一致だけで見ると `movies` と別名 `movie theater` を見逃す（実測）
+    const hit = [...aliasWords.keys()].find((aliasWord) => sameStem(word, aliasWord));
+    const alias = hit === undefined ? undefined : aliasWords.get(hit);
+    if (hit === undefined || alias === undefined) {
+      continue;
+    }
+    findings.error(15, card.id, "別名を構成する語が禁止語の枠にある", [
+      `枠: ${entry}`,
+      `別名: ${alias}`,
+      word === hit ? `一致: ${word}` : `単複差で一致: ${word} と ${hit}`,
+      "別名は説明者も言えないため、この枠には追加効果がない。枠を差し替えるか別名を落とす",
+    ]);
+  }
+}
+
+/**
+ * 検証16: 禁止語を米語に統一する。
+ *
+ * 監視役は禁止語の一覧を目で見て「言ったか」を判定する。
+ * 同じ語がカードごとに違う綴りで並ぶと判定の基準がぶれる。
+ * 実測では `grey`/`gray` `moustache`/`mustache` `harbour`/`harbor` が同一セット内に混在していた。
+ *
+ * 綴りの変種だけでなく、別の語になる対（`lift`/`elevator`、`queue`/`line`）も同じ表で扱う。
+ * こちらは基準のぶれに加えて、**卓が実際に言う語を塞げていない**穴でもある
+ * （`football` を禁じても日本の卓は `soccer` と言う。実測で2枚）。
+ *
+ * 米語を正とするのは、日本の学校英語が米語で教えられており卓の多数がそちらを想起するためである。
+ *
+ * **別名は対象にしない。** 別名は正解として受理する語であり、
+ * 英式の呼び方を受理するために置いている（`elevator` の別名 `lift`、`pharmacy` の別名 `chemist`）。
+ * ここで落とすと、その設計を壊す。
+ */
+function checkAmericanSpelling(card: Card, findings: Findings): void {
+  for (const entry of card.taboo) {
+    for (const word of tabooWordsOf(entry)) {
+      const american = americanSpellingOf(word);
+      if (american === undefined) {
+        continue;
+      }
+      findings.error(16, card.id, "禁止語に英式の語が混じっている", [
+        `枠: ${entry}`,
+        `${word} → ${american}`,
+      ]);
+    }
+  }
+}
+
+/**
+ * 検証17: 同じ概念に2つ以上の枠を使っていない（警告）。
+ *
+ * `soccer` と `football`、`movies` と `film` のように、同じ概念を指す語が2枠を占める形。
+ *
+ * 検証13・14と違い、**この枠は死んでいない**。`hot` を塞げば説明者は `warm` へ逃げるため、
+ * 両方を塞ぐこと自体には効果がある。指摘したいのは別のことである。
+ *
+ * このゲームはレベル1〜2へ先頭3語しか提示しない（`TABOO_COUNT`）。
+ * 3枠のうち2枠が同じ概念だと、そのレベルで実際に塞げる説明経路は2つになる。
+ * 同じ枠数で違う概念へ振り分けたほうが、塞げる経路は増える。
+ * つまりこれは枠の死ではなく、**概念の被覆が狭い**という設計上の指摘である。
+ *
+ * 卓によっては使い分ける余地が残る（`press` と `push` は機器によって別の動作を指す）。
+ * また対応表は網羅ではない。したがってエラーにせず警告にとどめ、マージは止めない。
+ */
+function checkSynonymTaboo(card: Card, findings: Findings): void {
+  const entries = tabooWordEntries(card);
+  for (const [position, left] of entries.entries()) {
+    for (const right of entries.slice(position + 1)) {
+      if (left.index === right.index || !isSynonym(left.word, right.word)) {
+        continue;
+      }
+      findings.warning(17, card.id, "同じ概念に2つの枠を使っている", [
+        `枠: ${left.entry} と ${right.entry}`,
+        `一致: ${left.word} と ${right.word}`,
+        "枠は死んでいないが、レベル1〜2は先頭3語しか提示されないため塞げる経路が減る",
+        "片方を別の概念の語へ差し替えると、同じ枠数でより多くの経路を塞げる",
+      ]);
     }
   }
 }
@@ -142,8 +516,8 @@ function checkAnswerCharacters(card: Card, findings: Findings): void {
 /**
  * 検証8: 正解がセット内で一意である。
  *
- * 一意性がidにしか課されていないと、同じ人物を並べたセットが全項目を通る（実測）。
- * 2ラウンド目以降に場が既に当てた人物が再登場し、回答者は説明を聞かずに答えられる。
+ * 一意性がidにしか課されていないと、同じお題を並べたセットが全項目を通る（実測）。
+ * 2ラウンド目以降に場が既に当てたお題が再登場し、回答者は説明を聞かずに答えられる。
  */
 function checkAnswerUnique(target: TabooSet, findings: Findings): void {
   const seen = new Map<string, string>();
@@ -188,6 +562,14 @@ export function validateSet(content: unknown): ValidationReport {
     checkAnswerNotExposed(card, findings);
     checkAnswerCharacters(card, findings);
     checkTabooShape(card, findings);
+    checkTabooNotCompoundPart(card, findings);
+    checkNoRedundantTaboo(card, findings);
+    checkNoDerivedTaboo(card, findings);
+    checkJapaneseName(card, findings);
+    checkAliases(card, findings);
+    checkAliasWordsNotTaboo(card, findings);
+    checkAmericanSpelling(card, findings);
+    checkSynonymTaboo(card, findings);
   }
   checkAnswerUnique(target, findings);
 

@@ -33,7 +33,7 @@
 
   // 役は公開状態と秘密の両方が一致したときだけ認める。
   // 再接続直後は「新しいstate + 1ラウンド前のsecret」を一度持つため、secretだけで判定すると
-  // 回答者の端末に前の役の画面（人物名を含む）が出る（Handoff.svelteと同じ条件にそろえる）
+  // 回答者の端末に前の役の画面（正解を含む）が出る（Handoff.svelteと同じ条件にそろえる）
   const isSpeaker = $derived(ui.myPlayerId !== null && ui.myPlayerId === speakerId && secret?.role === "speaker");
   const isWatcher = $derived(ui.myPlayerId !== null && ui.myPlayerId === watcherId && secret?.role === "watcher");
   const role = $derived(isSpeaker ? "speaker" : isWatcher ? "watcher" : "answerer");
@@ -111,9 +111,19 @@
     {/if}
     <StageGuide step="explaining" {role} />
 
-    <!-- 説明者: 人物名を最大に置き、その下に禁止語を赤地で並べる -->
+    <!-- 説明者: 正解を最大に置き、その下に禁止語を赤地で並べる -->
     {#if role === "speaker" && speakerSecret}
       <p class="answer" data-testid="answer">{speakerSecret.card.answer}</p>
+      <!-- 英語名だけでは何を指すか分からない場合の補助（基本設計/09の日本語のお題補助） -->
+      <p class="answer-ja" data-testid="answer-ja">{speakerSecret.card.ja}</p>
+
+      {#if speakerSecret.card.aliases.length > 0}
+        <ul class="taboo alias" data-testid="speaker-aliases">
+          {#each speakerSecret.card.aliases as alias (alias)}
+            <li>{alias}</li>
+          {/each}
+        </ul>
+      {/if}
 
       <ul class="taboo">
         {#each speakerSecret.card.taboo as word (word)}
@@ -154,7 +164,17 @@
       <p class="watched-answer" data-testid="watched-answer">
         <span class="watched-label">言ったら違反</span>
         <span class="watched-value">{watcherSecret.answer}</span>
+        <span class="watched-ja" data-testid="watched-answer-ja">{watcherSecret.ja}</span>
       </p>
+
+      {#if watcherSecret.aliases.length > 0}
+        <!-- 別名は正解として受理する語であり、説明者が言えば違反になる（基本設計/09の言えない語の範囲） -->
+        <ul class="taboo big alias" data-testid="watcher-aliases">
+          {#each watcherSecret.aliases as alias (alias)}
+            <li>{alias}</li>
+          {/each}
+        </ul>
+      {/if}
 
       <ul class="taboo big">
         {#each watcherSecret.taboo as word (word)}
@@ -258,16 +278,31 @@
     font-family: var(--font-display);
     font-size: 2.4rem;
     line-height: 1.15;
-    margin: 0.2rem 0 0.8rem;
+    margin: 0.2rem 0 0.1rem;
     text-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
     word-break: break-word;
   }
+  /* 日本語名は補助であり、正解より小さく置く。読む順を英語→日本語に固定する */
+  .answer-ja {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 700;
+    opacity: 0.75;
+    margin: 0 0 0.8rem;
+    word-break: break-word;
+  }
 
+  /*
+    禁止語は折り返して詰める。1語1行で積むと、収録数15語では「正解」ボタンが
+    画面外へ押し出される（390x844で全体1300px、ボタンは1170px付近。実測）。
+    説明者は制限時間中に「正解」を連打するため、ボタンが折り返しの下にあってはならない。
+  */
   .taboo {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
     gap: 0.35rem;
   }
   .taboo li {
@@ -275,13 +310,20 @@
     color: var(--panel);
     border: 2px solid rgba(0, 0, 0, 0.25);
     border-radius: var(--radius-tile);
-    padding: 0.4rem 0.7rem;
-    font-size: 1.05rem;
+    padding: 0.35rem 0.6rem;
+    font-size: 1rem;
     font-weight: 700;
   }
   .taboo.big li {
-    font-size: 1.35rem;
-    padding: 0.55rem 0.8rem;
+    font-size: 1.15rem;
+    padding: 0.45rem 0.7rem;
+  }
+  /* 別名は禁止語と同じ赤にしつつ、枠線を破線にして「5語の枠外」であることを示す */
+  .taboo.alias {
+    margin-bottom: 0.35rem;
+  }
+  .taboo.alias li {
+    border-style: dashed;
   }
 
   .watched-answer {
@@ -305,6 +347,12 @@
     font-size: 1.6rem;
     line-height: 1.2;
     word-break: break-word;
+  }
+  .watched-ja {
+    font-family: var(--font-body);
+    font-size: 0.86rem;
+    font-weight: 700;
+    opacity: 0.75;
   }
 
   .actions {
@@ -355,10 +403,7 @@
     padding: 0.5rem 0.7rem;
   }
   .speaker-now .face {
-    display: block;
-    width: 2.2rem;
-    height: 2.2rem;
-    border-radius: 50%;
+    --face-size: 2.2rem;
     border: 2px solid rgba(0, 0, 0, 0.3);
   }
   .speaker-now .name {

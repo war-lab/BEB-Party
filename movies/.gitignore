@@ -1,0 +1,5 @@
+# 生成物。ソース（シーンと撮影スクリプト）だけをコミットする
+assets/shots/
+assets/video/
+output/
+test-results/

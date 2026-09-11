@@ -4,7 +4,7 @@
 -->
 <script lang="ts">
   import type { Room } from "@beb/shared-core";
-  import { STAGES, type DontSayItPublic, type DontSayItResult, type DontSayItSecret } from "@beb/shared-dontsayit";
+  import { STAGES, normalizeResult, normalizeSecret, type DontSayItPublic } from "@beb/shared-dontsayit";
   import { result as resultStore, secret as secretStore } from "@beb/client-core";
   import Briefing from "./Briefing.svelte";
   import Debrief from "./Debrief.svelte";
@@ -19,10 +19,13 @@
 
   // サーバ権威。受信済みスナップショットを描くだけで、クライアントで組み立て直さない
   const publicState = $derived(room.gameState as DontSayItPublic | undefined);
-  const secret = $derived((secretStore.payload as DontSayItSecret | null) ?? null);
+  // 旧版で保存された秘密情報を補う。再接続では保存済みがそのまま返るため、
+  // デプロイをまたいだ部屋では ja と aliases を持たない payload が届く
+  // （server/core の reconnectPlayer。画面は aliases.length を直接読む。Issue #29）
+  const secret = $derived(normalizeSecret(secretStore.payload));
   // 別ゲームの結果をキャストしない。room.gameId と照合してから読む
   const result = $derived(
-    resultStore.gameId === room.gameId ? ((resultStore.payload as DontSayItResult | null) ?? null) : null,
+    resultStore.gameId === room.gameId ? normalizeResult(resultStore.payload) : null,
   );
 </script>
 

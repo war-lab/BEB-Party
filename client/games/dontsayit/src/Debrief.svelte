@@ -60,6 +60,7 @@
         {#each result.usedCards as used (used.answer)}
           <li class="beb-card">
             <p class="answer">{used.answer}</p>
+            <p class="answer-ja">{used.ja}</p>
             <ul class="taboo">
               {#each used.taboo as word (word)}
                 <li>{word}</li>
@@ -189,10 +190,18 @@
     gap: 0.5rem;
   }
   .cards .answer {
-    margin: 0 0 0.4rem;
+    margin: 0 0 0.1rem;
     font-family: var(--font-display);
     font-size: 1.2rem;
     color: var(--ink);
+  }
+  /* 振り返りでは英語と日本語を並べる。次の回で言えるようにするため */
+  .cards .answer-ja {
+    margin: 0 0 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ink);
+    opacity: 0.7;
   }
   .taboo {
     list-style: none;
