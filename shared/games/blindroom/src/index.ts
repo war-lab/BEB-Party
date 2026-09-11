@@ -18,8 +18,19 @@ export {
 } from "./pack";
 
 export {
-  CELL_COUNT,
-  GRID_SIZE,
+  BOARD_SIZES,
+  BOARD_SIZE_IDS,
+  DEFAULT_BOARD_SIZE_ID,
+  boardSizeOf,
+  cellCountOf,
+  columnOrdinalsEn,
+  isBoardSizeId,
+  rowWordsEn,
+  type BoardSize,
+  type BoardSizeId,
+} from "./board-size";
+
+export {
   PLACE_COUNT,
   countMatches,
   emptyBoard,
@@ -34,6 +45,7 @@ export {
 export {
   ACTIONS,
   BUILDING_SECONDS,
+  DEFAULT_SETTINGS_BOARD_SIZE_ID,
   ERROR_CODES,
   STAGES,
   STAGE_DEADLINE_SECONDS,

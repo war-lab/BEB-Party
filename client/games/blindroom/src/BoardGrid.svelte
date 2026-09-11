@@ -6,11 +6,13 @@
   視覚で見えている情報と同じであり、番号を与えるわけではない。
 -->
 <script lang="ts">
-  import { CELL_COUNT, iconUrl, type Board, type PaletteItem } from "@beb/shared-blindroom";
+  import { boardSizeOf, iconUrl, type Board, type BoardSizeId, type PaletteItem } from "@beb/shared-blindroom";
 
   interface Props {
     cells: Board;
     palette: PaletteItem[];
+    /** 盤面の広さ。列数と読み上げの位置語がこれで決まる */
+    boardSizeId: BoardSizeId;
     /** 見本。渡すと一致したマスに印を付ける（開示のみ） */
     sample?: Board | null;
     /** マスを押したときの操作。省略すると表示専用になる */
@@ -18,22 +20,22 @@
     size?: "normal" | "small";
     testId?: string;
   }
-  let { cells, palette, sample = null, onCellTap = undefined, size = "normal", testId }: Props = $props();
+  let { cells, palette, boardSizeId, sample = null, onCellTap = undefined, size = "normal", testId }: Props = $props();
 
-  // 読み上げ用の位置語。画面には出さない
-  const POSITION_JA = [
-    "上段の左",
-    "上段の中央",
-    "上段の右",
-    "中段の左",
-    "中央",
-    "中段の右",
-    "下段の左",
-    "下段の中央",
-    "下段の右",
-  ];
+  const board = $derived(boardSizeOf(boardSizeId));
+  const indexes = $derived(Array.from({ length: board.columns * board.rows }, (_, index) => index));
 
-  const indexes = Array.from({ length: CELL_COUNT }, (_, index) => index);
+  // 読み上げ用の位置語。画面には出さない（座標を画面に出さない。基本設計/12）
+  const rowsJa = $derived(
+    board.rows <= 3
+      ? ["上段", "中段", "下段"].slice(0, board.rows)
+      : ["上段", ...Array.from({ length: board.rows - 2 }, (_, index) => `${index + 2}段目`), "下段"],
+  );
+  const columnsJa = $derived(
+    board.columns <= 3
+      ? ["左", "中央", "右"].slice(0, board.columns)
+      : ["左", ...Array.from({ length: board.columns - 2 }, (_, index) => `左から${index + 2}番目`), "右"],
+  );
 
   function itemOf(id: string | null | undefined): PaletteItem | undefined {
     return id === null || id === undefined ? undefined : palette.find((entry) => entry.id === id);
@@ -41,7 +43,9 @@
 
   function labelOf(index: number): string {
     const item = itemOf(cells[index]);
-    return `${POSITION_JA[index] ?? ""}: ${item?.ja ?? "空き"}`;
+    const row = rowsJa[Math.floor(index / board.columns)] ?? "";
+    const column = columnsJa[index % board.columns] ?? "";
+    return `${row}の${column}: ${item?.ja ?? "空き"}`;
   }
 
   function stateOf(index: number): "none" | "hit" | "miss" {
@@ -56,7 +60,7 @@
   }
 </script>
 
-<div class="grid" class:small={size === "small"} data-testid={testId}>
+<div class="grid" class:small={size === "small"} style={`--cols:${board.columns}`} data-testid={testId}>
   {#each indexes as index (index)}
     {@const item = itemOf(cells[index])}
     {@const state = stateOf(index)}
@@ -83,13 +87,14 @@
 <style>
   .grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(var(--cols), 1fr);
     gap: 0.35rem;
     background: var(--ground-2);
     border-radius: var(--radius-card);
     padding: 0.35rem;
-    /* 1マスの内側が約85pxになる幅。アイコンは64pxのSVGなので拡大しても崩れない */
-    max-width: 18rem;
+    /* 1マスの内側が約85pxになる幅。列が増えれば横へ伸ばし、画面幅で頭打ちにする。
+       アイコンは64pxのSVGなので、縮んでも拡大しても崩れない */
+    max-width: min(calc(6rem * var(--cols)), 100%);
     margin: 0 auto;
   }
   .cell {
@@ -111,7 +116,7 @@
   .grid.small {
     gap: 0.25rem;
     padding: 0.25rem;
-    max-width: 10.5rem;
+    max-width: min(calc(3.5rem * var(--cols)), 100%);
   }
   .grid.small .cell {
     border-width: 2px;

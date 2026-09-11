@@ -12,8 +12,11 @@ vi.mock("@beb/client-core", () => ({ sendAction }));
 const { createPlaceSender } = await import("./place-sender");
 const { createDoneSender } = await import("./done-sender");
 
+/** テストは既定の広さ（標準 4×3）で行う。送信の間引きはマス数に依存しない */
+const CELL_COUNT = 12;
+
 function boardWith(id: string): Board {
-  const board = emptyBoard();
+  const board = emptyBoard(CELL_COUNT);
   board[0] = id;
   return board;
 }

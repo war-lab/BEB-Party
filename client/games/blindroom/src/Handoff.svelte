@@ -15,7 +15,10 @@
     HINT_BLANK,
     PLACE_COUNT,
     STAGES,
+    boardSizeOf,
+    columnOrdinalsEn,
     describerPlayerIdOf,
+    rowWordsEn,
     type BlindRoomPublic,
     type BlindRoomSecret,
     type DescriberSecret,
@@ -38,6 +41,9 @@
     secret?.role === "describer" && secret.roundIndex === publicState.roundIndex ? secret : null,
   );
   const roundLabel = $derived(`${publicState.roundIndex + 1} / ${publicState.totalRounds}`);
+  const boardSize = $derived(boardSizeOf(publicState.boardSizeId));
+  const rowWords = $derived(rowWordsEn(boardSize.rows).join("・"));
+  const columnWords = $derived(columnOrdinalsEn(boardSize.columns).join("・"));
 
   // 説明者は見本を読むあいだ画面に触らない。放置で消えないようにする（基本設計/02）
   $effect(() => acquireWakeLock());
@@ -78,12 +84,17 @@
            childrenをその場に描くだけである（DON'T SAY ITのSpeakerCutInと同じ扱い） -->
       <div class="sample beb-stage-reveal" data-testid="sample-cutin">
         <p class="lead">この並びを英語で伝えてください（{PLACE_COUNT}個）</p>
-        <BoardGrid cells={mine.sample} palette={publicState.palette} testId="sample-board" />
+        <BoardGrid
+          cells={mine.sample}
+          palette={publicState.palette}
+          boardSizeId={publicState.boardSizeId}
+          testId="sample-board"
+        />
 
         {#if mine.hintEn.length > 0}
           <section class="hints" data-testid="my-hints">
             <h3>言い方の例</h3>
-            <p class="note">{HINT_BLANK} はものの名前に置き換えてください。段は top・middle・bottom、横は left・right です。</p>
+            <p class="note">{HINT_BLANK} はものの名前に置き換えてください。段は {rowWords}、横は left・right、細かい位置は {columnWords} from the left です。</p>
             <ul>
               {#each mine.hintEn as hint (hint)}
                 <li>{hint}</li>

@@ -11,10 +11,14 @@
     HINT_BLANK,
     PLACE_COUNT,
     STAGES,
+    boardSizeOf,
+    cellCountOf,
+    columnOrdinalsEn,
     describerPlayerIdOf,
     emptyBoard,
     iconUrl,
     placedCount,
+    rowWordsEn,
     type BlindRoomPublic,
     type BlindRoomSecret,
     type Board,
@@ -48,10 +52,16 @@
     room.players.filter((player) => player.connected && player.id !== describerId).length,
   );
 
+  const cellCount = $derived(cellCountOf(publicState.boardSizeId));
+  const boardSize = $derived(boardSizeOf(publicState.boardSizeId));
+  // 埋める語は広さで変わる。4列に「真ん中」は無く、4段に「middle」は無い
+  const rowWords = $derived(rowWordsEn(boardSize.rows).join("・"));
+  const columnWords = $derived(columnOrdinalsEn(boardSize.columns).join("・"));
+
   const sender = createPlaceSender();
   const doneSender = createDoneSender(sender);
 
-  let cells = $state<Board>(emptyBoard());
+  let cells = $state<Board>([]);
   let selectedId = $state<string | null>(null);
   let blocked = $state(false);
   let initializedRound = -1;
@@ -64,6 +74,14 @@
     if (board !== undefined && initializedRound !== round) {
       initializedRound = round;
       cells = [...board];
+    }
+  });
+
+  // 秘密が届く前でも盤面を描けるようにする
+  $effect(() => {
+    if (cells.length !== cellCount) {
+      cells = emptyBoard(cellCount);
+      initializedRound = -1;
     }
   });
 
@@ -139,12 +157,17 @@
     {#if isDescriber}
       <section class="describer">
         <p class="lead">あなたの見本</p>
-        <BoardGrid cells={describerSecret?.sample ?? emptyBoard()} palette={publicState.palette} testId="sample-board" />
+        <BoardGrid
+          cells={describerSecret?.sample ?? emptyBoard(cellCount)}
+          palette={publicState.palette}
+          boardSizeId={publicState.boardSizeId}
+          testId="sample-board"
+        />
 
         {#if describerSecret && describerSecret.hintEn.length > 0}
           <section class="hints" data-testid="my-hints">
             <h2>言い方の例</h2>
-            <p class="note">{HINT_BLANK} はものの名前に置き換えてください。段は top・middle・bottom、横は left・right です。</p>
+            <p class="note">{HINT_BLANK} はものの名前に置き換えてください。段は {rowWords}、横は left・right、細かい位置は {columnWords} from the left です。</p>
             <ul>
               {#each describerSecret.hintEn as hint (hint)}
                 <li>{hint}</li>
@@ -156,7 +179,13 @@
         <p class="count" data-testid="done-count">できた {publicState.donePlayerIds.length} / {listenerCount}</p>
       </section>
     {:else}
-      <BoardGrid cells={cells} palette={publicState.palette} onCellTap={tapCell} testId="my-board" />
+      <BoardGrid
+        cells={cells}
+        palette={publicState.palette}
+        boardSizeId={publicState.boardSizeId}
+        onCellTap={tapCell}
+        testId="my-board"
+      />
 
       <p class="remaining" data-testid="remaining">
         あと {remaining} 個
@@ -188,7 +217,7 @@
             <li><span class="en">{phrase.en}</span><span class="ja">{phrase.ja}</span></li>
           {/each}
         </ul>
-        <p class="note">{HINT_BLANK} はものの名前に置き換えてください。段は top・middle・bottom、横は left・right です。</p>
+        <p class="note">{HINT_BLANK} はものの名前に置き換えてください。段は {rowWords}、横は left・right、細かい位置は {columnWords} from the left です。</p>
       </details>
 
       <button class="beb-btn yellow" data-testid="done" onclick={toggleDone}>

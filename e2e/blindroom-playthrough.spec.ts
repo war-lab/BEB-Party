@@ -10,6 +10,9 @@ const GAME_TITLE = "BLIND ROOM";
 const PACK_TITLE = "部屋のもの";
 const PLAYER_COUNT = 6;
 const PLACE_COUNT = 5;
+/** 上級（4×4）で通す。既定より広い盤面で、選択がサーバまで届くことを確かめる */
+const BOARD_LABEL = "上級 4×4";
+const BOARD_CELLS = 16;
 
 // 配置の締切は上限にする。テストは完了申告で進めるため締切に依存せず、
 // 6ラウンド分の操作が締切に追い越されないようにする
@@ -17,6 +20,7 @@ const PLACE_COUNT = 5;
 async function startBlindRoom(host: Page, buildingSeconds = 120): Promise<void> {
   await host.click(`.title-card:has-text("${GAME_TITLE}")`);
   await host.click(`.content-chip:has-text("${PACK_TITLE}")`);
+  await host.click(`.content-chip:has-text("${BOARD_LABEL}")`);
   await host.fill("label.seconds input[type='number']", String(buildingSeconds));
   // onchangeで送るため、focusを外して確定させる
   await host.locator("label.seconds input[type='number']").blur();
@@ -47,6 +51,8 @@ async function findDescriber(pages: Page[], round: number): Promise<number> {
  */
 async function buildAndFinish(page: Page, doneCount: number, round = 0): Promise<void> {
   await expect(page.locator("[data-testid='my-board']")).toBeVisible({ timeout: 30_000 });
+  // 選んだ広さがサーバまで届き、盤面のマス数になっている
+  await expect(page.locator("[data-testid='my-board'] [data-testid^='cell-']")).toHaveCount(BOARD_CELLS);
   for (let index = 0; index < PLACE_COUNT; index += 1) {
     await page.locator("[data-testid='palette'] button").nth(index).click();
     await page.locator(`[data-testid='cell-${index}']`).click();

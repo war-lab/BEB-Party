@@ -19,6 +19,7 @@ function publicStateOf(roundIndex: number, totalRounds: number, order: string[])
     totalRounds,
     describerOrder: order,
     itemSetId: "room_easy",
+    boardSizeId: "standard",
     palette: [],
     placeCount: 5,
     readyPlayerIds: [],
@@ -84,6 +85,6 @@ describe("STAGE_LABELS_JA", () => {
 
 describe("emptyBoard との組み合わせ", () => {
   it("初期の盤面は空である（秘密情報の初期値）", () => {
-    expect(emptyBoard().every((cell) => cell === null)).toBe(true);
+    expect(emptyBoard(9).every((cell) => cell === null)).toBe(true);
   });
 });

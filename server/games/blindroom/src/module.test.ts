@@ -1,12 +1,14 @@
 // GameModuleの振る舞い。Durable Objectなしで全項目を確かめる（基本設計/12のテスト観点）
 import {
   ACTIONS,
+  BOARD_SIZES,
   BUILDING_SECONDS,
-  CELL_COUNT,
+  DEFAULT_BOARD_SIZE_ID,
   ERROR_CODES,
   PLACE_COUNT,
   STAGES,
   STAGE_DEADLINE_SECONDS,
+  cellCountOf,
   emptyBoard,
   hasDuplicateItem,
   hintCountFor,
@@ -40,6 +42,8 @@ const { blindRoomModule } = await import("./module");
 
 const PACK_ID = "fixture_pack";
 const SEED = 4242;
+/** 既定の広さ（標準 4×3）のマス数 */
+const CELL_COUNT = cellCountOf(DEFAULT_BOARD_SIZE_ID);
 
 let players: Player[];
 
@@ -173,14 +177,18 @@ function toBuilding(progress: Progress, overrides: { disconnected?: string[]; pl
 }
 
 function sampleOf(progress: Progress): Board {
-  return progress.gameSecret.samples[progress.publicState.roundIndex] ?? emptyBoard();
+  return progress.gameSecret.samples[progress.publicState.roundIndex] ?? emptyBoard(CELL_COUNT);
+}
+
+function cellCountOfProgress(progress: Progress): number {
+  return cellCountOf(progress.publicState.boardSizeId);
 }
 
 /** 見本のうち先頭 count マスだけを正しく置いた盤面 */
 function partialBoard(sample: Board, count: number): Board {
-  const board = emptyBoard();
+  const board = emptyBoard(sample.length);
   let placed = 0;
-  for (let index = 0; index < CELL_COUNT; index += 1) {
+  for (let index = 0; index < sample.length; index += 1) {
     const cell = sample[index];
     if (cell !== null && cell !== undefined && placed < count) {
       board[index] = cell;
@@ -318,7 +326,7 @@ describe("startRound", () => {
 describe("place", () => {
   it("説明者からの送信はdescriber_cannot_placeで拒否される", () => {
     const progress = toBuilding(begin());
-    const rejected = place(progress, describerOf(progress), emptyBoard());
+    const rejected = place(progress, describerOf(progress), emptyBoard(CELL_COUNT));
     expect(rejected.reject?.code).toBe(ERROR_CODES.describerCannotPlace);
   });
 
@@ -337,7 +345,7 @@ describe("place", () => {
   it("パレットに無いidはunknown_itemで拒否される", () => {
     const progress = toBuilding(begin());
     const listener = listenerIds(progress)[0] ?? "";
-    const cells = emptyBoard();
+    const cells = emptyBoard(CELL_COUNT);
     cells[0] = "not_in_palette";
     expect(place(progress, listener, cells).reject?.code).toBe(ERROR_CODES.unknownItem);
   });
@@ -345,7 +353,7 @@ describe("place", () => {
   it("PLACE_COUNTを超える配置はtoo_many_itemsで拒否される", () => {
     const progress = toBuilding(begin());
     const listener = listenerIds(progress)[0] ?? "";
-    const cells = emptyBoard();
+    const cells = emptyBoard(CELL_COUNT);
     for (let index = 0; index <= PLACE_COUNT; index += 1) {
       cells[index] = progress.publicState.palette[index]?.id ?? null;
     }
@@ -356,7 +364,7 @@ describe("place", () => {
     const progress = toBuilding(begin());
     const listener = listenerIds(progress)[0] ?? "";
     const id = progress.publicState.palette[0]?.id ?? "";
-    const cells = emptyBoard();
+    const cells = emptyBoard(CELL_COUNT);
     cells[0] = id;
     cells[4] = id;
     expect(place(progress, listener, cells).reject?.code).toBe(ERROR_CODES.duplicateItem);
@@ -366,7 +374,7 @@ describe("place", () => {
     let progress = toBuilding(begin());
     const listener = listenerIds(progress)[0] ?? "";
     const sample = sampleOf(progress);
-    progress = place(progress, listener, emptyBoard());
+    progress = place(progress, listener, emptyBoard(CELL_COUNT));
     progress = place(progress, listener, partialBoard(sample, PLACE_COUNT));
     expect(progress.gameSecret.boards[listener]).toEqual(partialBoard(sample, PLACE_COUNT));
   });
@@ -457,9 +465,9 @@ describe("得点", () => {
 
     // 見本が空白のマスだけに、見本で使っていないアイテムを置く
     const spare = progress.publicState.palette.map((item) => item.id).filter((id) => !placedItemIds(sample).includes(id));
-    const cells = emptyBoard();
+    const cells = emptyBoard(sample.length);
     let placed = 0;
-    for (let index = 0; index < CELL_COUNT && placed < spare.length; index += 1) {
+    for (let index = 0; index < sample.length && placed < spare.length; index += 1) {
       if (sample[index] === null) {
         cells[index] = spare[placed] ?? null;
         placed += 1;
@@ -570,7 +578,7 @@ describe("ラウンドの進行", () => {
     expect(progress.gameSecret.boards).toEqual({});
     const next = secretOf(progress, listener);
     expect(next?.roundIndex).toBe(1);
-    expect((next as ListenerSecret).board).toEqual(emptyBoard());
+    expect((next as ListenerSecret).board).toEqual(emptyBoard(CELL_COUNT));
 
     const describerId = describerOf(progress);
     const describerSecret = secretOf(progress, describerId) as DescriberSecret;
@@ -623,9 +631,74 @@ describe("設定と記述子", () => {
   });
 
   it("記述子のmin/maxがvalidateSettingsの受理範囲と一致する", () => {
-    const field = blindRoomModule.settingsFields[0];
-    expect(field?.min).toBe(BUILDING_SECONDS.min);
-    expect(field?.max).toBe(BUILDING_SECONDS.max);
-    expect(field?.default).toBe(BUILDING_SECONDS.default);
+    const field = blindRoomModule.settingsFields.find((entry) => entry.key === "buildingSeconds");
+    expect(field?.type).toBe("number");
+    if (field?.type !== "number") {
+      throw new Error("buildingSecondsは数値の記述子である");
+    }
+    expect(field.min).toBe(BUILDING_SECONDS.min);
+    expect(field.max).toBe(BUILDING_SECONDS.max);
+    expect(field.default).toBe(BUILDING_SECONDS.default);
+  });
+
+  it("盤面の広さの記述子が、選べる広さと既定を載せる", () => {
+    const field = blindRoomModule.settingsFields.find((entry) => entry.key === "boardSizeId");
+    expect(field?.type).toBe("select");
+    if (field?.type !== "select") {
+      throw new Error("boardSizeIdは選択の記述子である");
+    }
+    expect(field.options.map((option) => option.value)).toEqual(Object.keys(BOARD_SIZES));
+    expect(field.default).toBe(DEFAULT_BOARD_SIZE_ID);
+  });
+
+  it("未知の広さを拒否し、既知の広さを受理する", () => {
+    for (const id of Object.keys(BOARD_SIZES)) {
+      expect(blindRoomModule.validateSettings({ boardSizeId: id }).valid).toBe(true);
+    }
+    expect(blindRoomModule.validateSettings({ boardSizeId: "huge" }).valid).toBe(false);
+    expect(blindRoomModule.validateSettings({ boardSizeId: 3 }).valid).toBe(false);
+  });
+});
+
+describe("盤面の広さ", () => {
+  it("選んだ広さのマス数で見本を作り、公開状態に載せる", () => {
+    for (const [id, size] of Object.entries(BOARD_SIZES)) {
+      const started = startGame({ settings: { boardSizeId: id } });
+      const cells = size.columns * size.rows;
+      expect(started.publicState.boardSizeId).toBe(id);
+      for (const sample of (started.gameSecret as BlindRoomGameSecret).samples) {
+        expect(sample).toHaveLength(cells);
+        // 広さが変わっても置く数は変わらない（満点を揃える）
+        expect(placedCount(sample)).toBe(PLACE_COUNT);
+      }
+    }
+  });
+
+  it("未知の広さを渡されても既定で開始する", () => {
+    const started = startGame({ settings: { boardSizeId: "huge" } });
+    expect(started.publicState.boardSizeId).toBe(DEFAULT_BOARD_SIZE_ID);
+  });
+
+  it("広さの違う盤面は invalid_board で拒否される", () => {
+    const progress = toBuilding(begin({ settings: { boardSizeId: "advanced" } }));
+    const listener = listenerIds(progress)[0] ?? "";
+    expect(cellCountOfProgress(progress)).toBe(16);
+    // 3×3の盤面を送る
+    expect(place(progress, listener, emptyBoard(9)).reject?.code).toBe(ERROR_CODES.invalidBoard);
+    expect(place(progress, listener, emptyBoard(16)).reject).toBeUndefined();
+  });
+
+  it("上級（4×4）でも満点はPLACE_COUNTのままになる", () => {
+    let progress = toBuilding(begin({ settings: { boardSizeId: "advanced" } }));
+    const listener = listenerIds(progress)[0] ?? "";
+    progress = place(progress, listener, partialBoard(sampleOf(progress), PLACE_COUNT));
+    progress = deadline(progress);
+    expect(pointsOf(progress.publicState.scores, listener)).toBe(PLACE_COUNT);
+  });
+
+  it("満杯のplaceペイロードが、いちばん広い盤面でも共通コアの上限に収まる", () => {
+    const progress = toBuilding(begin({ settings: { boardSizeId: "advanced" } }));
+    const cells = sampleOf(progress);
+    expect(JSON.stringify({ cells }).length).toBeLessThan(ACTION_MAX_CHARS);
   });
 });

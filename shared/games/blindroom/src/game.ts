@@ -4,6 +4,7 @@
 // 見本と聞き手の盤面は、開示までは秘密情報とゲーム秘密状態の側にだけ現れる。
 import type { ContentSummary, Level } from "@beb/shared-core";
 import type { Board } from "./board";
+import { DEFAULT_BOARD_SIZE_ID, type BoardSizeId } from "./board-size";
 import type { ItemDefinition, KeyExpression } from "./pack";
 
 /** ステージid。共通コアはこの文字列を解釈しない（ADR-0009） */
@@ -110,6 +111,8 @@ export interface BlindRoomPublic {
   /** 全ラウンド分の説明者。卓の進行を読めるように公開する（12の公開状態） */
   describerOrder: string[];
   itemSetId: string;
+  /** 盤面の広さ。ロビーで選ぶ（board-size.ts） */
+  boardSizeId: BoardSizeId;
   /** 現ラウンドのアイテム一覧。他のセットは載せない */
   palette: PaletteItem[];
   placeCount: number;
@@ -223,7 +226,11 @@ export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
 
 export interface BlindRoomSettings {
   buildingSeconds: number;
+  boardSizeId: BoardSizeId;
 }
+
+/** 盤面の広さの既定値。ロビーの記述子と validateSettings が参照する */
+export const DEFAULT_SETTINGS_BOARD_SIZE_ID = DEFAULT_BOARD_SIZE_ID;
 
 /**
  * 配置の秒数の既定値と許容範囲。

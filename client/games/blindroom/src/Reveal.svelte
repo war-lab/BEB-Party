@@ -61,7 +61,12 @@
     {#if latest}
       <section class="round" data-testid="round-record">
         <h2>見本（説明者 {nameOf(latest.describerId)} ／ {latest.describerPoints}点）</h2>
-        <BoardGrid cells={latest.sample} palette={palette} testId="sample-board" />
+        <BoardGrid
+          cells={latest.sample}
+          palette={palette}
+          boardSizeId={publicState.boardSizeId}
+          testId="sample-board"
+        />
 
         <ul class="boards">
           {#each latest.boards as board, index (board.playerId)}
@@ -73,7 +78,13 @@
                 <span class="name">{nameOf(board.playerId)}</span>
                 <span class="matched">{board.matched} / {PLACE_COUNT}</span>
               </div>
-              <BoardGrid cells={board.cells} palette={palette} sample={latest.sample} size="small" />
+              <BoardGrid
+                cells={board.cells}
+                palette={palette}
+                boardSizeId={publicState.boardSizeId}
+                sample={latest.sample}
+                size="small"
+              />
             </li>
           {/each}
         </ul>

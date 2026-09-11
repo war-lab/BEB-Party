@@ -4,11 +4,15 @@
 // 乱数は共通コアが注入する seed からのみ作る（基本設計/05の呼び出し規約）。
 import {
   ACTIONS,
+  BOARD_SIZES,
+  BOARD_SIZE_IDS,
   BUILDING_SECONDS,
+  DEFAULT_BOARD_SIZE_ID,
   ERROR_CODES,
   PLACE_COUNT,
   STAGES,
   STAGE_DEADLINE_SECONDS,
+  cellCountOf,
   countMatches,
   describerPlayerIdOf,
   describerPointsOf,
@@ -17,6 +21,7 @@ import {
   hasDuplicateItem,
   hintCountFor,
   isBoard,
+  isBoardSizeId,
   isFinalRound,
   placedCount,
   placedItemIds,
@@ -68,13 +73,13 @@ type Transition = GameTransition<BlindRoomPublic, BlindRoomResult, BlindRoomGame
 // --- 設定 ---
 
 function readSettings(settings: unknown): BlindRoomSettings {
-  if (typeof settings === "object" && settings !== null && "buildingSeconds" in settings) {
-    const value = (settings as { buildingSeconds: unknown }).buildingSeconds;
-    if (typeof value === "number") {
-      return { buildingSeconds: value };
-    }
-  }
-  return { buildingSeconds: BUILDING_SECONDS.default };
+  const source = typeof settings === "object" && settings !== null ? (settings as Record<string, unknown>) : {};
+  const seconds = source.buildingSeconds;
+  const sizeId = source.boardSizeId;
+  return {
+    buildingSeconds: typeof seconds === "number" ? seconds : BUILDING_SECONDS.default,
+    boardSizeId: isBoardSizeId(sizeId) ? sizeId : DEFAULT_BOARD_SIZE_ID,
+  };
 }
 
 function validateSettings(settings: unknown): ValidationResult {
@@ -84,10 +89,16 @@ function validateSettings(settings: unknown): ValidationResult {
   if (typeof settings !== "object") {
     return { valid: false, reason: "settingsはオブジェクトである必要がある" };
   }
-  if (!("buildingSeconds" in settings)) {
+  const source = settings as Record<string, unknown>;
+
+  if ("boardSizeId" in source && !isBoardSizeId(source.boardSizeId)) {
+    return { valid: false, reason: `boardSizeIdは${BOARD_SIZE_IDS.join(" / ")}のいずれかである必要がある` };
+  }
+
+  if (!("buildingSeconds" in source)) {
     return { valid: true };
   }
-  const value = (settings as { buildingSeconds: unknown }).buildingSeconds;
+  const value = source.buildingSeconds;
   if (typeof value !== "number" || !Number.isInteger(value)) {
     return { valid: false, reason: "buildingSecondsは整数である必要がある" };
   }
@@ -154,6 +165,7 @@ function buildSecrets(
   describerId: string | undefined,
   roundIndex: number,
   boards: Record<string, Board>,
+  cellCount: number,
 ): Map<string, BlindRoomSecret> {
   const secrets = new Map<string, BlindRoomSecret>();
   const hints = set?.describerHints ?? [];
@@ -167,7 +179,7 @@ function buildSecrets(
       });
       continue;
     }
-    secrets.set(player.id, listenerSecretOf(roundIndex, boards[player.id] ?? emptyBoard()));
+    secrets.set(player.id, listenerSecretOf(roundIndex, boards[player.id] ?? emptyBoard(cellCount)));
   }
   return secrets;
 }
@@ -244,7 +256,8 @@ function toHandoff(
   const pack = resolvePack(publicState.packId);
   const itemSetId = gameSecret.itemSetIds[roundIndex] ?? "";
   const set = itemSetOf(pack, itemSetId);
-  const sample = gameSecret.samples[roundIndex] ?? emptyBoard();
+  const cellCount = cellCountOf(publicState.boardSizeId);
+  const sample = gameSecret.samples[roundIndex] ?? emptyBoard(cellCount);
   const describerId = publicState.describerOrder[roundIndex];
 
   const nextPublic: BlindRoomPublic = {
@@ -260,7 +273,7 @@ function toHandoff(
     publicState: nextPublic,
     stage: STAGES.handoff,
     deadlineSeconds: STAGE_DEADLINE_SECONDS.handoff,
-    secrets: buildSecrets(room.players, set, sample, describerId, roundIndex, {}),
+    secrets: buildSecrets(room.players, set, sample, describerId, roundIndex, {}, cellCount),
     gameSecret: { ...gameSecret, boards: {} },
   };
 }
@@ -286,12 +299,13 @@ function skipRound(room: Room, publicState: BlindRoomPublic, gameSecret: BlindRo
  */
 function toReveal(room: Room, publicState: BlindRoomPublic, gameSecret: BlindRoomGameSecret): Transition {
   const describerId = describerPlayerIdOf(publicState);
-  const sample = gameSecret.samples[publicState.roundIndex] ?? emptyBoard();
+  const cellCount = cellCountOf(publicState.boardSizeId);
+  const sample = gameSecret.samples[publicState.roundIndex] ?? emptyBoard(cellCount);
 
   const boards: BoardResult[] = room.players
     .filter((player) => player.id !== describerId)
     .map((player) => {
-      const cells = gameSecret.boards[player.id] ?? emptyBoard();
+      const cells = gameSecret.boards[player.id] ?? emptyBoard(cellCount);
       return { playerId: player.id, cells: [...cells], matched: countMatches(sample, cells) };
     });
 
@@ -398,7 +412,7 @@ function handlePlace(
   }
 
   const cells = readCells(payload);
-  if (!isBoard(cells)) {
+  if (!isBoard(cells, cellCountOf(publicState.boardSizeId))) {
     return { reject: { code: ERROR_CODES.invalidBoard } };
   }
   const known = new Set(publicState.palette.map((item) => item.id));
@@ -475,6 +489,13 @@ export const blindRoomModule: GameModule<
   contentLabelJa: "部屋を選ぶ",
   settingsFields: [
     {
+      type: "select",
+      key: "boardSizeId",
+      labelJa: "盤面の広さ",
+      options: BOARD_SIZE_IDS.map((id) => ({ value: id, labelJa: BOARD_SIZES[id].labelJa })),
+      default: DEFAULT_BOARD_SIZE_ID,
+    },
+    {
       type: "number",
       key: "buildingSeconds",
       labelJa: "配置の秒数",
@@ -500,11 +521,14 @@ export const blindRoomModule: GameModule<
     );
 
     // アイテムセットと見本を全ラウンド分ここで固定する。handleActionにシードが渡らない（基本設計/05）
+    const { buildingSeconds, boardSizeId } = readSettings(settings);
+    const cellCount = cellCountOf(boardSizeId);
     const itemSetIds = describerOrder.map((playerId) => pickItemSetId(pack, levelOf(players, playerId)));
     const samples = itemSetIds.map((setId) =>
       generateSample(
         (itemSetOf(pack, setId)?.items ?? []).map((item) => item.id),
         random,
+        cellCount,
       ),
     );
 
@@ -515,6 +539,7 @@ export const blindRoomModule: GameModule<
       totalRounds: describerOrder.length,
       describerOrder,
       itemSetId: itemSetIds[0] ?? "",
+      boardSizeId,
       palette: paletteOf(firstSet),
       placeCount: PLACE_COUNT,
       readyPlayerIds: [],
@@ -522,14 +547,14 @@ export const blindRoomModule: GameModule<
       keyExpressions: pack.keyExpressions.map((entry) => ({ ...entry })),
       rounds: [],
       scores: players.map((player: Player) => ({ playerId: player.id, points: 0 })),
-      buildingSeconds: readSettings(settings).buildingSeconds,
+      buildingSeconds,
     };
 
     return {
       stage: STAGES.briefing,
       deadlineSeconds: STAGE_DEADLINE_SECONDS.briefing,
       publicState,
-      secrets: buildSecrets(players, firstSet, samples[0] ?? emptyBoard(), describerOrder[0], 0, {}),
+      secrets: buildSecrets(players, firstSet, samples[0] ?? emptyBoard(cellCount), describerOrder[0], 0, {}, cellCount),
       gameSecret: { itemSetIds, samples, boards: {} },
     };
   },
