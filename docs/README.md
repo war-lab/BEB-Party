@@ -39,11 +39,12 @@
 | DON'T SAY ITのルール実装（3役・ステージ・action・得点・コンテンツ形式と検証） | [基本設計/09_DONTSAYITゲームモジュール.md](./基本設計/09_DONTSAYITゲームモジュール.md) | 原案は収録候補ゲームのルール案.md。実装順は実装計画/が正本 |
 | ENGLISH RANKINGのルール実装（ステージ・目標カード・action・得点・コンテンツ形式と検証） | [基本設計/10_ENGLISHRANKINGゲームモジュール.md](./基本設計/10_ENGLISHRANKINGゲームモジュール.md) | 原案は収録候補ゲームのルール案.mdの案12。gameIdは `ranking`。お題データの正本は `content/ranking/*.json` |
 | WHO WROTE THIS?のルール実装（ステージ・提出と指名・action・得点・コンテンツ形式と検証） | [基本設計/11_WHOWROTETHISゲームモジュール.md](./基本設計/11_WHOWROTETHISゲームモジュール.md) | 原案は収録候補ゲームのルール案.mdの案11。gameIdは `whowrotethis`。お題データの正本は `content/whowrotethis/*.json` |
+| BLIND ROOMのルール実装（ステージ・見本と配置・action・得点・コンテンツ形式と検証） | [基本設計/12_BLINDROOMゲームモジュール.md](./基本設計/12_BLINDROOMゲームモジュール.md) | 原案は収録候補ゲームのルール案.mdの案23。gameIdは `blindroom`。5本目として収録済み。見本の盤面はコンテンツに持たない（[ADR-0024](./adr/0024-BLINDROOMの見本盤面は生成する.md)）。盤面アイコンは `client/public/items/blindroom/*.svg`（[ADR-0025](./adr/0025-盤面アイコンはSVGで持つ.md)）。お題データの正本は `content/blindroom/*.json` |
 | 収録候補ゲームの着想 | [ゲーム構想.md](./ゲーム構想.md) | 着想の記録。ルールとしては未確定であり、仕様の根拠にしない |
 | 収録候補ゲームのルール案 | [収録候補ゲームのルール案.md](./収録候補ゲームのルール案.md) | 構想を5〜6人で成立する形へ具体化した案。実装するゲームのルールの正本は `基本設計/09` 以降 |
 | 遊び方ムービーの作り方・素材の撮り方・台本の扱い | [ムービー.md](./ムービー.md) | ソースは `movies/`。MP4はコミットしない |
 | マイルストーンの作業分解・PR単位の受入条件 | [実装計画/](./実装計画/) | 実装エージェントへ渡す指示。設計の正本ではない |
-| 収録したお題セットの人手レビューの記録（DON'T SAY IT・WHO WROTE THIS?） | [お題レビュー/](./お題レビュー/) | 索引は [お題レビュー/README.md](./お題レビュー/README.md)。お題データの正本は `content/<gameId>/*.json` |
+| 収録したお題セットの人手レビューの記録（DON'T SAY IT・WHO WROTE THIS?・BLIND ROOM） | [お題レビュー/](./お題レビュー/) | 索引は [お題レビュー/README.md](./お題レビュー/README.md)。お題データの正本は `content/<gameId>/*.json` |
 | 収録した事件の人手レビューと机上プレイの記録 | [事件レビュー/](./事件レビュー/) | 索引は [事件レビュー/README.md](./事件レビュー/README.md)。事件データの正本は `content/detectives/*.json` |
 | 未解決の課題・実装が仕様に追いついていない箇所 | [既知の課題.md](./既知の課題.md) | 状態の記録。仕様や判断の理由は各正本にある |
 | 決定済みの設計判断とその理由 | [adr/](./adr/) | 変更するには新しいADRで上書きする |

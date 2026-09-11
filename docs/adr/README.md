@@ -54,3 +54,5 @@
 | [0021](./0021-E2Eのwrangler-devは監督プロセスで再起動する.md) | E2Eのwrangler devは監督プロセスで再起動する | accepted |
 | [0022](./0022-プレイヤーアイコンはIDで持ち絵文字は表示層に置く.md) | プレイヤーアイコンはIDで持ち、絵文字は表示層に置く | accepted |
 | [0023](./0023-actionペイロードに長さ上限を課す.md) | actionペイロードに長さ上限を課す | accepted |
+| [0024](./0024-BLINDROOMの見本盤面は生成する.md) | BLIND ROOMの見本盤面はコンテンツに持たず生成する | accepted |
+| [0025](./0025-盤面アイコンはSVGで持つ.md) | BLIND ROOMの盤面アイコンはSVGで持つ | accepted |
