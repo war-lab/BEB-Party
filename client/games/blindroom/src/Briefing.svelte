@@ -8,7 +8,7 @@
 <script lang="ts">
   import { ScoreBoard, sendAction, StageTimer, ui } from "@beb/client-core";
   import type { Room } from "@beb/shared-core";
-  import { ACTIONS, PLACE_COUNT, STAGES, iconUrl, type BlindRoomPublic } from "@beb/shared-blindroom";
+  import { ACTIONS, PLACE_COUNT, STAGES, boardSizeOf, iconUrl, type BlindRoomPublic } from "@beb/shared-blindroom";
   import StageGuide from "./StageGuide.svelte";
   import { stageLabels } from "./stage-labels";
 
@@ -19,6 +19,8 @@
   let { room, publicState }: Props = $props();
 
   const isReady = $derived(ui.myPlayerId !== null && publicState.readyPlayerIds.includes(ui.myPlayerId));
+  // 盤面の広さはホストが選ぶ。固定で「3×3」と書くと、既定（4×3）で遊ぶ卓に誤った説明が出る
+  const board = $derived(boardSizeOf(publicState.boardSizeId));
   const connectedCount = $derived(room.players.filter((player) => player.connected).length);
 </script>
 
@@ -30,7 +32,7 @@
 
     <section class="rule">
       <p>
-        3×3のマスに{PLACE_COUNT}個ならべます。
+        {board.columns}×{board.rows}のマスに{PLACE_COUNT}個ならべます。
         説明者だけが見本を見て、英語だけで伝えます。
       </p>
       <p class="note">説明者は{publicState.totalRounds}人が1回ずつ交代します。</p>

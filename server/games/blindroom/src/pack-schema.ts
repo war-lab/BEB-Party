@@ -5,6 +5,10 @@
 // 反例が読めないためである。
 import type { BlindRoomPack, ItemDefinition, ItemSet, KeyExpression, Tier } from "@beb/shared-blindroom";
 
+// 重複の記録（ADR-0020）: SchemaIssue / isObject / readString / parseArray は
+// detectives・dontsayit・ranking・whowrotethis と同じ形の5コピー目である。
+// ゲーム固有の語彙を持たず3つ目を超えているため共通コアへ移す対象だが、
+// 5本すべてを触る変更になるため、このPRでは移さず記録に留める（docs/既知の課題.md）。
 export interface SchemaIssue {
   path: string;
   message: string;

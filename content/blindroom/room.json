@@ -3,7 +3,7 @@
   "title": "部屋のもの",
   "keyExpressions": [
     { "en": "Where is the ...?", "ja": "〜はどこ？" },
-    { "en": "Which row? Top, middle, or bottom?", "ja": "どの段？　上・真ん中・下？" },
+    { "en": "Which row is it in?", "ja": "どの段にある？" },
     { "en": "Is it next to the ...?", "ja": "〜のとなり？" },
     { "en": "Slowly, please.", "ja": "ゆっくりお願い" },
     { "en": "Say that again, please.", "ja": "もう一度お願い" }

@@ -5,7 +5,7 @@
 
 ## 決定
 
-BLIND ROOMの見本盤面（3×3のどのマスにどのアイテムを置くか）を `content/blindroom/*.json` に持たない。
+BLIND ROOMの見本盤面（どのマスにどのアイテムを置くか）を `content/blindroom/*.json` に持たない。
 `GameModule.start` が、共通コアから注入された `seed` とアイテムセットから全ラウンド分を生成する。
 
 コンテンツが持つのはアイテムセット（アイテムの一覧と難度の段）と言い回しであり、`validate:content` はそちらだけを検査する。

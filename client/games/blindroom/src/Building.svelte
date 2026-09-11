@@ -27,7 +27,7 @@
   } from "@beb/shared-blindroom";
   import BoardGrid from "./BoardGrid.svelte";
   import StageGuide from "./StageGuide.svelte";
-  import { createDoneSender } from "./done-sender";
+  import { createBoardSender } from "./board-sender";
   import { createPlaceSender } from "./place-sender";
   import { stageLabels } from "./stage-labels";
 
@@ -51,6 +51,11 @@
   const listenerCount = $derived(
     room.players.filter((player) => player.connected && player.id !== describerId).length,
   );
+  // 分母が接続中の聞き手なので、分子も接続中に絞る。切断者の申告が残ると「5 / 4」になる
+  const doneCount = $derived(
+    publicState.donePlayerIds.filter((id) => room.players.some((player) => player.id === id && player.connected))
+      .length,
+  );
 
   const cellCount = $derived(cellCountOf(publicState.boardSizeId));
   const boardSize = $derived(boardSizeOf(publicState.boardSizeId));
@@ -58,8 +63,8 @@
   const rowWords = $derived(rowWordsEn(boardSize.rows).join("・"));
   const columnWords = $derived(columnOrdinalsEn(boardSize.columns).join("・"));
 
-  const sender = createPlaceSender();
-  const doneSender = createDoneSender(sender);
+  // 盤面と申告は同じオブジェクトから送る。順序と意思の破棄をここが保証する（board-sender.ts）
+  const sender = createBoardSender(createPlaceSender());
 
   let cells = $state<Board>([]);
   let selectedId = $state<string | null>(null);
@@ -93,28 +98,28 @@
   function apply(next: Board): void {
     cells = next;
     selectedId = null;
-    sender.send(next);
+    sender.place(publicState.roundIndex, next);
   }
 
   /** 完了申告。盤面と申告の順序は done-sender.ts が持つ */
   function toggleDone(): void {
-    doneSender.declare(publicState.roundIndex, !isDone);
+    sender.declare(publicState.roundIndex, !isDone);
   }
 
   /**
    * 再接続したら、届かなかった申告を送り直す。
    *
-   * `sendAction` は未接続のとき送らずに戻る（[基本設計/02](../../../docs/基本設計/02_クライアント.md)）。
+   * `sendAction` は未接続のとき送らずに戻る（[基本設計/02](../../../../docs/基本設計/02_クライアント.md)）。
    * 押した瞬間に接続が切れていると申告が消え、締切まで場が止まる（E2Eで実際に踏んだ）。
    * 送るのは「接続が戻った瞬間」に限る。状態が届くたびに送ると、サーバが拒否し続ける場合に
-   * 流量制限（[ADR-0017](../../../docs/adr/0017-メッセージ流量の制限はインメモリで持つ.md)）へ触れる。
+   * 流量制限（[ADR-0017](../../../../docs/adr/0017-メッセージ流量の制限はインメモリで持つ.md)）へ触れる。
    */
   $effect(() => {
     const connected = ui.connectionStatus === "connected";
     const recovered = connected && !wasConnected;
     wasConnected = connected;
     if (recovered) {
-      doneSender.resend(publicState.roundIndex, isDone);
+      sender.resend(publicState.roundIndex, isDone);
     }
   });
 
@@ -176,7 +181,7 @@
           </section>
         {/if}
 
-        <p class="count" data-testid="done-count">できた {publicState.donePlayerIds.length} / {listenerCount}</p>
+        <p class="count" data-testid="done-count">できた {doneCount} / {listenerCount}</p>
       </section>
     {:else}
       <BoardGrid
@@ -224,7 +229,7 @@
         <span>{isDone ? "まだ直す" : "できた"}</span>
       </button>
 
-      <p class="count" data-testid="done-count">できた {publicState.donePlayerIds.length} / {listenerCount}</p>
+      <p class="count" data-testid="done-count">できた {doneCount} / {listenerCount}</p>
     {/if}
   </div>
 </main>

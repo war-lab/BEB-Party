@@ -199,7 +199,7 @@ function partialBoard(sample: Board, count: number): Board {
 }
 
 function place(progress: Progress, playerId: string, cells: Board, overrides: { disconnected?: string[] } = {}) {
-  return act(progress, playerId, ACTIONS.place, { cells }, overrides);
+  return act(progress, playerId, ACTIONS.place, { roundIndex: progress.publicState.roundIndex, cells }, overrides);
 }
 
 function secretOf(progress: Progress, playerId: string): BlindRoomSecret | undefined {
@@ -330,16 +330,16 @@ describe("place", () => {
     expect(rejected.reject?.code).toBe(ERROR_CODES.describerCannotPlace);
   });
 
-  it("9要素でない配列と型違いの要素はinvalid_boardで拒否される", () => {
+  it("マス数と違う配列と型違いの要素はinvalid_boardで拒否される", () => {
     const progress = toBuilding(begin());
     const listener = listenerIds(progress)[0] ?? "";
-    expect(act(progress, listener, ACTIONS.place, { cells: [null, null] }).reject?.code).toBe(
+    expect(act(progress, listener, ACTIONS.place, { roundIndex: 0, cells: [null, null] }).reject?.code).toBe(
       ERROR_CODES.invalidBoard,
     );
-    expect(act(progress, listener, ACTIONS.place, { cells: [1, 2, 3, 4, 5, 6, 7, 8, 9] }).reject?.code).toBe(
-      ERROR_CODES.invalidBoard,
-    );
-    expect(act(progress, listener, ACTIONS.place, {}).reject?.code).toBe(ERROR_CODES.invalidBoard);
+    expect(
+      act(progress, listener, ACTIONS.place, { roundIndex: 0, cells: [1, 2, 3, 4, 5, 6, 7, 8, 9] }).reject?.code,
+    ).toBe(ERROR_CODES.invalidBoard);
+    expect(act(progress, listener, ACTIONS.place, { roundIndex: 0 }).reject?.code).toBe(ERROR_CODES.invalidBoard);
   });
 
   it("パレットに無いidはunknown_itemで拒否される", () => {
@@ -402,7 +402,18 @@ describe("place", () => {
   it("満杯のペイロードが共通コアの上限に収まる", () => {
     const progress = toBuilding(begin());
     const cells = sampleOf(progress);
-    expect(JSON.stringify({ cells }).length).toBeLessThan(ACTION_MAX_CHARS);
+    expect(JSON.stringify({ roundIndex: 0, cells }).length).toBeLessThan(ACTION_MAX_CHARS);
+  });
+
+  it("ラウンドが進んだ後に届いた盤面はstale_placeで拒否される", () => {
+    const progress = toBuilding(begin());
+    const listener = listenerIds(progress)[0] ?? "";
+    const cells = partialBoard(sampleOf(progress), 1);
+    // 間引きで保留された前ラウンドの盤面が、ラウンドが変わってから届く経路
+    expect(act(progress, listener, ACTIONS.place, { roundIndex: 5, cells }).reject?.code).toBe(
+      ERROR_CODES.stalePlace,
+    );
+    expect(act(progress, listener, ACTIONS.place, { cells }).reject?.code).toBe(ERROR_CODES.stalePlace);
   });
 });
 
@@ -699,6 +710,76 @@ describe("盤面の広さ", () => {
   it("満杯のplaceペイロードが、いちばん広い盤面でも共通コアの上限に収まる", () => {
     const progress = toBuilding(begin({ settings: { boardSizeId: "advanced" } }));
     const cells = sampleOf(progress);
-    expect(JSON.stringify({ cells }).length).toBeLessThan(ACTION_MAX_CHARS);
+    expect(JSON.stringify({ roundIndex: 0, cells }).length).toBeLessThan(ACTION_MAX_CHARS);
+  });
+});
+
+describe("2ラウンド目以降", () => {
+  /** 1ラウンドを答え合わせまで進め、次のラウンドの配置まで送る */
+  function toNextRoundBuilding(progress: Progress): Progress {
+    const revealed = deadline(progress);
+    const handoff = deadline(revealed);
+    return act(handoff, describerOf(handoff), ACTIONS.startRound, {});
+  }
+
+  it("そのラウンドの見本で採点する（前のラウンドの見本を使わない）", () => {
+    let progress = toBuilding(begin());
+    progress = toNextRoundBuilding(progress);
+    expect(progress.publicState.roundIndex).toBe(1);
+
+    const listener = listenerIds(progress)[0] ?? "";
+    const sample = sampleOf(progress);
+    expect(sample).toEqual(progress.gameSecret.samples[1]);
+
+    progress = place(progress, listener, partialBoard(sample, PLACE_COUNT));
+    progress = deadline(progress);
+
+    // 満点。1ラウンド目の見本で採点していると一致しない
+    expect(pointsOf(progress.publicState.scores, listener)).toBe(PLACE_COUNT);
+    expect(progress.publicState.rounds[1]?.sample).toEqual(progress.gameSecret.samples[1]);
+  });
+
+  it("そのラウンドのアイテムセットをパレットに出す", () => {
+    let progress = begin();
+    for (let round = 0; round < players.length; round += 1) {
+      progress = round === 0 ? toBuilding(progress) : toNextRoundBuilding(progress);
+      const setId = progress.gameSecret.itemSetIds[round];
+      expect(progress.publicState.itemSetId).toBe(setId);
+      // 見本のアイテムがパレットに無いと、聞き手は原理的に置けない
+      const known = new Set(progress.publicState.palette.map((item) => item.id));
+      expect(placedItemIds(sampleOf(progress)).every((id) => known.has(id))).toBe(true);
+    }
+  });
+
+  it("revealのreadyで進んだhandoffで収集状況が空に戻る", () => {
+    // 締切で進む経路では toReveal が空へ戻すため、readyで進む経路で確かめる。
+    // ここが残ると、次のrevealが最初の1人のreadyで終わる
+    const revealed = deadline(toBuilding(begin()));
+    const collected = readyAll(revealed);
+
+    expect(collected.stage).toBe(STAGES.handoff);
+    expect(collected.publicState.readyPlayerIds).toEqual([]);
+    expect(collected.publicState.donePlayerIds).toEqual([]);
+  });
+});
+
+describe("ready", () => {
+  it("revealで全員が送ると次のラウンドのhandoffへ進む", () => {
+    const revealed = deadline(toBuilding(begin()));
+    expect(revealed.stage).toBe(STAGES.reveal);
+
+    const next = readyAll(revealed);
+    expect(next.stage).toBe(STAGES.handoff);
+    // 1ラウンド目へ戻らない
+    expect(next.publicState.roundIndex).toBe(1);
+  });
+
+  it("handoffとbuildingでは拒否される", () => {
+    const handoff = readyAll(begin());
+    expect(handoff.stage).toBe(STAGES.handoff);
+    expect(act(handoff, players[0]!.id, ACTIONS.ready, {}).reject?.code).toBe(ERROR_CODES.invalidStage);
+
+    const building = act(handoff, describerOf(handoff), ACTIONS.startRound, {});
+    expect(act(building, players[0]!.id, ACTIONS.ready, {}).reject?.code).toBe(ERROR_CODES.invalidStage);
   });
 });

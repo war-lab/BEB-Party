@@ -188,8 +188,15 @@ export const ACTIONS = {
 
 export type ActionName = (typeof ACTIONS)[keyof typeof ACTIONS];
 
-/** place のペイロード。差分ではなく9マスの現在値を送る（12のplace） */
+/**
+ * place のペイロード。差分ではなく盤面の現在値を送る（12のplace）。
+ *
+ * `roundIndex` を要求するのは、間引きで保留された盤面がラウンドをまたいで届く経路を
+ * 塞ぐためである。切断中に置いた盤面は再送を待つが、その間にラウンドが変わると、
+ * 同じ段のアイテムセットではパレットも一致するため中身では弾けない。
+ */
 export interface PlacePayload {
+  roundIndex: number;
   cells: Board;
 }
 
@@ -208,8 +215,10 @@ export const ERROR_CODES = {
   notDescriber: "not_describer",
   /** 説明者が place / done を送った。見本を持つ側は盤面を作らない */
   describerCannotPlace: "describer_cannot_place",
-  /** cells が9要素の配列でない、要素が文字列でもnullでもない */
+  /** cells が盤面のマス数と違う、要素が文字列でもnullでもない */
   invalidBoard: "invalid_board",
+  /** ラウンドが進んだ後に届いた盤面（間引きの保留分の遅着） */
+  stalePlace: "stale_place",
   /** 現ラウンドのパレットに無いidが含まれる */
   unknownItem: "unknown_item",
   /** 置いたアイテムが PLACE_COUNT を超える */
@@ -250,10 +259,10 @@ export const BUILDING_SECONDS = {
 // --- 表示文言とレベル差の吸収 ---
 
 /**
- * レベル別に渡す hintEn の件数。
+ * 説明者へ渡す hintEn の件数。
  *
  * 収録は4件以上とし、渡す件数だけを変える（12のレベル差の吸収の第2層）。
- * 説明者にも聞き手にも同じ規則を使う。
+ * 聞き手には配らない。質問の言い回しは公開状態の keyExpressions に載る。
  */
 export function hintCountFor(level: Level): number {
   return level <= 2 ? 4 : 2;

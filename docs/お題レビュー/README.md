@@ -24,7 +24,7 @@ BLIND ROOMは、アイコンの絵と英語名が同じものを指して見え�
 | DON'T SAY IT | Everyday Things | 身の回りのもの100枚 | [everyday-things.md](./everyday-things.md) |
 | DON'T SAY IT | Places and Landmarks | 世界の名所と身近な場所100枚 | [places.md](./places.md) |
 | WHO WROTE THIS? | 日常 | 答えが一意に決まらない質問12件 | [daily.md](./daily.md) |
-| BLIND ROOM | 部屋のもの | 盤面に置くアイテム20件と言い回し16件 | [room.md](./room.md) |
+| BLIND ROOM | 部屋のもの | 盤面に置くアイテム20件と言い回し17件 | [room.md](./room.md) |
 
 ## 記録の書き方
 

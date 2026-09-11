@@ -390,11 +390,12 @@ function handleStartRound(room: Room, publicState: BlindRoomPublic, playerId: st
   return { stage: STAGES.building, deadlineSeconds: publicState.buildingSeconds };
 }
 
-function readCells(payload: unknown): unknown {
+function readPlace(payload: unknown): { cells: unknown; roundIndex: unknown } {
   if (typeof payload !== "object" || payload === null) {
-    return undefined;
+    return { cells: undefined, roundIndex: undefined };
   }
-  return (payload as { cells?: unknown }).cells;
+  const source = payload as { cells?: unknown; roundIndex?: unknown };
+  return { cells: source.cells, roundIndex: source.roundIndex };
 }
 
 function handlePlace(
@@ -411,7 +412,11 @@ function handlePlace(
     return { reject: { code: ERROR_CODES.describerCannotPlace } };
   }
 
-  const cells = readCells(payload);
+  const { cells, roundIndex } = readPlace(payload);
+  // 間引きで保留された盤面がラウンドをまたいで届く経路を弾く（12のplace）
+  if (typeof roundIndex !== "number" || roundIndex !== publicState.roundIndex) {
+    return { reject: { code: ERROR_CODES.stalePlace } };
+  }
   if (!isBoard(cells, cellCountOf(publicState.boardSizeId))) {
     return { reject: { code: ERROR_CODES.invalidBoard } };
   }

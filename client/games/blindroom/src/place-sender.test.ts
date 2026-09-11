@@ -44,24 +44,24 @@ function advance(ms: number): void {
 describe("送信の間引き", () => {
   it("連続した操作を1通にまとめる", () => {
     const sender = createPlaceSender(now);
-    sender.send(boardWith("cat"));
-    sender.send(boardWith("dog"));
-    sender.send(boardWith("book"));
+    sender.send(0, boardWith("cat"));
+    sender.send(0, boardWith("dog"));
+    sender.send(0, boardWith("book"));
     expect(sendAction).not.toHaveBeenCalled();
 
     advance(500);
     expect(sendAction).toHaveBeenCalledTimes(1);
     // 送るのは常に最後の盤面
-    expect(sendAction.mock.calls[0]?.[1]).toEqual({ cells: boardWith("book") });
+    expect(sendAction.mock.calls[0]?.[1]).toEqual({ roundIndex: 0, cells: boardWith("book") });
   });
 
   it("最短の送信間隔を空ける", () => {
     const sender = createPlaceSender(now);
-    sender.send(boardWith("cat"));
+    sender.send(0, boardWith("cat"));
     advance(500);
     expect(sendAction).toHaveBeenCalledTimes(1);
 
-    sender.send(boardWith("dog"));
+    sender.send(0, boardWith("dog"));
     advance(600);
     // 直前の送信から1秒たっていないため、まだ送らない
     expect(sendAction).toHaveBeenCalledTimes(1);
@@ -74,7 +74,7 @@ describe("未接続のときの再送", () => {
   it("送れなかった盤面を捨てず、次の機会に送り直す", () => {
     sendAction.mockReturnValue(false);
     const sender = createPlaceSender(now);
-    sender.send(boardWith("cat"));
+    sender.send(0, boardWith("cat"));
 
     advance(500);
     expect(sendAction).toHaveBeenCalledTimes(1);
@@ -83,7 +83,7 @@ describe("未接続のときの再送", () => {
     sendAction.mockReturnValue(true);
     advance(1000);
     expect(sendAction).toHaveBeenCalledTimes(2);
-    expect(sendAction.mock.calls[1]?.[1]).toEqual({ cells: boardWith("cat") });
+    expect(sendAction.mock.calls[1]?.[1]).toEqual({ roundIndex: 0, cells: boardWith("cat") });
 
     // 送れたあとは再送しない
     advance(5000);
@@ -93,7 +93,7 @@ describe("未接続のときの再送", () => {
   it("flushで送れなくても保留が残る", () => {
     sendAction.mockReturnValue(false);
     const sender = createPlaceSender(now);
-    sender.send(boardWith("cat"));
+    sender.send(0, boardWith("cat"));
     sender.flush();
     expect(sendAction).toHaveBeenCalledTimes(1);
 
@@ -105,7 +105,7 @@ describe("未接続のときの再送", () => {
   it("disposeは再送を予約しない", () => {
     sendAction.mockReturnValue(false);
     const sender = createPlaceSender(now);
-    sender.send(boardWith("cat"));
+    sender.send(0, boardWith("cat"));
     sender.dispose();
     expect(sendAction).toHaveBeenCalledTimes(1);
 
@@ -118,7 +118,7 @@ describe("未接続のときの再送", () => {
 describe("flush", () => {
   it("保留を待たずに送る（完了申告の追い越しを防ぐ）", () => {
     const sender = createPlaceSender(now);
-    sender.send(boardWith("cat"));
+    sender.send(0, boardWith("cat"));
     sender.flush();
     expect(sendAction).toHaveBeenCalledTimes(1);
 

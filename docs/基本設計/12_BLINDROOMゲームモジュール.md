@@ -4,7 +4,7 @@
 
 BLIND ROOMは4ステージ（`briefing` / `handoff` / `building` / `reveal`）を持つゲームモジュールであり、`GameModule` インターフェースの実装として完結する。
 
-説明者1人だけが3×3の見本を見る。
+説明者1人だけが見本（3×3 / 4×3 / 4×4 のいずれか）を見る。
 他の全員は英語の説明を聞き、同じ配置を自分の盤面に作る。
 締切後に見本と全員の盤面を並べ、マス単位の一致数で採点する。
 
@@ -18,7 +18,7 @@ gameIdは `blindroom` とする。
 `dontsayit` `whowrotethis` と同じく、空白と句読点を落として連結する規則を適用する。
 
 共通コアへの追加要求はない。
-提出は9要素のアイテムID配列であり、`action` のペイロード上限（[ADR-0023](../adr/0023-actionペイロードに長さ上限を課す.md)）の範囲に収まる。
+提出は盤面のマス数ぶんのアイテムID配列であり、`action` のペイロード上限（[ADR-0023](../adr/0023-actionペイロードに長さ上限を課す.md)）の範囲に収まる。
 手番制も要らない。全員同時の配置と、聞き手全員から1件を収集する既存の形で足りる。
 
 見本の配置はコンテンツとして持たず、`start` で `seed` から生成する（[ADR-0024](../adr/0024-BLINDROOMの見本盤面は生成する.md)）。
@@ -99,9 +99,14 @@ gameIdは `blindroom` とする。
 `A1` や `3番` が画面にあると、説明が座標の読み上げに退化し、英語の位置表現を使う理由が消える。
 ルールとして禁じるより、指し示す手段を画面から消す方が確実に働く。
 
-一方で、番号による指定をルールとして禁じることはしない。
-`second row, middle` のような順序を含む位置表現は英語として正当であり、これと「マス番号の読み上げ」の線引きが機械でも人間の合意でもできない。
-判定できない禁止を置くと、違反の申告そのものが場を荒らす（[09](./09_DONTSAYITゲームモジュール.md) の違反ボタンは、正解語という機械にも人にも一意に決まる対象を持つため成立している）。
+そのうえで、**盤面に無い座標系を作って指すことをルールとして禁じる**。
+`x1y3`「3番」のように自分で番号を振って呼ぶのが禁止の対象である。
+
+`top row` / `second from the left` / `next to the cat` は位置表現であり、禁止しない。
+線引きは「盤面に描かれていない記号体系を持ち込んだか」であり、同室の人間が聞けば一意に判定できる。
+
+機械では検出しない。口頭の発話であり、[09](./09_DONTSAYITゲームモジュール.md) の違反ボタンのような申告の仕組みも置かない。
+同室で遊ぶ前提の性善説に委ねる。違反の申告を入れると、申告そのものが場を荒らす。
 
 盤面の向きは全員で共通とし、説明者の見本と聞き手の盤面を同じ向きで描く。
 向きが共通であれば、向きを英語で伝える工程そのものが要らない。
@@ -142,7 +147,7 @@ interface PaletteItem {
 
 interface BoardResult {
   playerId: string;
-  cells: (string | null)[];           // 9要素
+  cells: (string | null)[];           // 盤面のマス数ぶん
   matched: number;                    // 0〜5
 }
 
@@ -151,7 +156,7 @@ interface RoundRecord {
   roundIndex: number;
   describerId: string;
   itemSetId: string;
-  sample: (string | null)[];          // 9要素。reveal で初めて公開する
+  sample: (string | null)[];          // 盤面のマス数ぶん。reveal で初めて公開する
   boards: BoardResult[];              // 聞き手の盤面
   describerPoints: number;
 }
@@ -194,7 +199,7 @@ type BlindRoomSecret = DescriberSecret | ListenerSecret;
 interface DescriberSecret {
   roundIndex: number;
   role: "describer";
-  sample: (string | null)[];   // 9要素
+  sample: (string | null)[];   // 盤面のマス数ぶん
   hintEn: string[];            // 位置表現の枠
 }
 
@@ -253,7 +258,7 @@ interface BlindRoomGameSecret {
 ステージ違いはすべて `invalid_stage` で拒否する。
 
 拒否のコードはすべてゲームモジュール側で定義し、共通コアのエラーコード表には載せない（[01](./01_サーバ.md)、[10](./10_ENGLISHRANKINGゲームモジュール.md)、[11](./11_WHOWROTETHISゲームモジュール.md) と同じ）。
-`not_describer` / `describer_cannot_place` / `invalid_board` / `unknown_item` / `too_many_items` / `duplicate_item` / `invalid_stage` の7つを持つ。
+`not_describer` / `describer_cannot_place` / `invalid_board` / `stale_place` / `unknown_item` / `too_many_items` / `duplicate_item` / `invalid_stage` の8つを持つ。
 
 ### ready
 
@@ -267,21 +272,22 @@ interface BlindRoomGameSecret {
 
 payloadは `{ cells: (string | null)[] }` とする。
 
-拒否する条件は5つある。
+拒否する条件は6つある。
 
 | 条件 | code |
 | --- | --- |
 | 送信者がそのラウンドの説明者 | `describer_cannot_place` |
+| `roundIndex` が現ラウンドと一致しない（間引きの保留分の遅着） | `stale_place` |
 | `cells` が配列でない、要素数が盤面のマス数と違う、要素が文字列でも `null` でもない | `invalid_board` |
 | 現ラウンドの `palette` に無いidが含まれる | `unknown_item` |
 | `null` でない要素が5個を超える | `too_many_items` |
 | 同じidが2マス以上にある | `duplicate_item` |
 
 盤面は差分ではなく全体を送る。
-配置・移動・撤去のどれも「9マスの現在値」で表せるため、操作の種類ごとにactionを増やす理由がない。
+配置・移動・撤去のどれも「盤面の現在値」で表せるため、操作の種類ごとにactionを増やす理由がない。
 同じ盤面を2回送っても結果が変わらないため、再送で状態が壊れない。
 
-ペイロードはマス数ぶんの短い文字列であり、いちばん広い16マスでも `JSON.stringify` した長さは300文字前後になる。
+ペイロードはマス数ぶんの短い文字列であり、いちばん広い16マスでも `JSON.stringify` した長さは200文字未満になる（実測161文字）。
 `ACTION_MAX_CHARS`（512）に収まるため、共通コアの変更は要らない（[ADR-0023](../adr/0023-actionペイロードに長さ上限を課す.md)）。
 この見積りを保つため、itemIdの長さを検証6で16文字以内に縛る。
 
@@ -335,7 +341,7 @@ payloadは `{ done: boolean }` とする。
 | `building` | その時点の盤面で採点し、`reveal` へ進む |
 | `reveal` | 次のラウンドの `handoff` へ進む。最終ラウンドなら `result` を返す |
 
-盤面を1度も送っていない聞き手は、9マスすべてが空白の盤面として採点する。
+盤面を1度も送っていない聞き手は、すべて空白の盤面として採点する。
 一致は0になる。
 
 説明者が未接続のまま `handoff` の締切に到達したラウンドは、そのラウンドを飛ばして次のラウンドの `handoff` へ進む。
@@ -423,7 +429,7 @@ payloadは `{ done: boolean }` とする。
 | key | labelJa | 型 | 範囲 | 既定 |
 | --- | --- | --- | --- | --- |
 | `boardSizeId` | 盤面の広さ | select | `intro` / `standard` / `advanced` | `standard` |
-| `buildingSeconds` | 配置の時間（秒） | number | 60〜120、step 15 | 75 |
+| `buildingSeconds` | 配置の秒数 | number | 60〜120、step 15 | 75 |
 
 `boardSizeId` は選択肢の記述子（`SelectSettingField`）で配る。
 共通コアに select 型を足した最初の利用者である（[ADR-0018](../adr/0018-ロビーの表示と設定はゲームモジュールが記述子で配る.md) が「要るゲームが出た時点で足す」としていた）。
@@ -463,8 +469,8 @@ payloadは `{ done: boolean }` とする。
 見本はコンテンツとして持たず、`start` で生成する（[ADR-0024](../adr/0024-BLINDROOMの見本盤面は生成する.md)）。
 
 1. そのラウンドのアイテムセットの items を `shuffle` し、先頭5件を取る
-2. マスの添字 `[0..8]` を `shuffle` し、先頭5件へ手順1のアイテムを順に置く
-3. 残る4マスを `null` にする
+2. マスの添字を `shuffle` し、先頭5件へ手順1のアイテムを順に置く
+3. 残るマスを `null` にする
 
 生成が満たす不変条件は3つである。
 アイテムがちょうど5個であること、同じアイテムが2マスに無いこと、すべてのidがそのラウンドの `palette` に含まれることである。
@@ -680,7 +686,7 @@ SVGを直接編集すると色違いの形が揃わなくなるため、`pnpm --
 | 変更 | 理由 |
 | --- | --- |
 | 採点を「見本でアイテムが置かれているマスの一致数」にした | 原案は採点単位（マス単位か完全一致か）を未定としていた。空白マスを含めると、何も置かずに待つだけで一致するマスが生まれる |
-| 配置数を5に固定し、聞き手の配置上限も5にした | 上限がないと、9マスを埋めるだけで期待一致数が上がる |
+| 配置数を5に固定し、聞き手の配置上限も5にした | 上限がないと、盤面を埋めるだけで期待一致数が上がる |
 | 難度を配置数ではなくアイテムセットで調整した | 配置数をレベルで変えると、説明者が誰かでラウンドの満点が動く |
 | 盤面の向きを全員共通とし、マスに座標を描かないことで解決した | 原案は「盤面の向きの伝え方」を未定としていた。向きが共通なら伝える工程が要らない |
 | マス番号の読み上げ禁止をルールから外した | 判定できない禁止であり、`second row, middle` のような正当な位置表現と線引きできない。画面から座標を消す方が確実に働く |
@@ -702,7 +708,8 @@ SVGを直接編集すると色違いの形が揃わなくなるため、`pnpm --
 * 秘密の非混入: `listContents()` の戻り値にアイテムが含まれないこと
 * 秘密の配布: 見本が説明者の秘密にだけ入り、聞き手の秘密に入らないこと
 * `place`: 説明者からの送信が `describer_cannot_place` で拒否されること
-* `place`: 9要素でない配列と型違いの要素が `invalid_board` で拒否されること
+* `place`: マス数と違う配列と型違いの要素が `invalid_board` で拒否されること
+* `place`: ラウンドが進んだ後に届いた盤面が `stale_place` で拒否されること
 * `place`: パレット外のidが `unknown_item`、6個目の配置が `too_many_items`、同一idの重複が `duplicate_item` で拒否されること
 * `place`: 上書きが受理され、最後の盤面で採点されること
 * `place`: 受理のたびに本人へ `board` を含む秘密が返り、その秘密に見本が入らないこと

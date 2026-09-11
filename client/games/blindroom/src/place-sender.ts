@@ -3,7 +3,8 @@
 // タップのたびに送ると、ソケットあたりの流量制限（10秒で20通。ADR-0017）に触れる。
 // 超えた時点で以降の place が落ち、盤面がサーバ側で古いまま締切を迎える。
 //
-// 送るのは常に9マスの現在値であり、間引いて捨てた中間状態は結果に影響しない。
+// 送るのは常に盤面の現在値であり、間引いて捨てた中間状態は結果に影響しない。
+// 保留にはラウンドを添える。ラウンドが変わった後に届いた保留分はサーバが stale_place で弾く。
 import { sendAction } from "@beb/client-core";
 import { ACTIONS, type Board } from "@beb/shared-blindroom";
 
@@ -14,7 +15,7 @@ const TRAILING_MS = 400;
 
 export interface PlaceSender {
   /** 盤面の現在値を送る（間引かれる） */
-  send: (cells: Board) => void;
+  send: (roundIndex: number, cells: Board) => void;
   /**
    * 保留中の1件をすぐ送る。
    *
@@ -27,38 +28,23 @@ export interface PlaceSender {
 }
 
 export function createPlaceSender(now: () => number = () => Date.now()): PlaceSender {
-  let pending: Board | null = null;
+  let pending: { roundIndex: number; cells: Board } | null = null;
   let lastSentAt = 0;
   let timer: ReturnType<typeof setTimeout> | null = null;
-
-  function flush(): void {
-    timer = null;
-    if (pending === null) {
-      return;
-    }
-    const cells = pending;
-    // 未接続なら送らずに保留を残す。復帰後の操作かdisposeで送り直す（sendActionはfalseを返す）
-    if (sendAction(ACTIONS.place, { cells })) {
-      pending = null;
-      lastSentAt = now();
-      return;
-    }
-    schedule();
-  }
 
   function schedule(): void {
     if (timer !== null) {
       return;
     }
     const wait = Math.max(TRAILING_MS, MIN_INTERVAL_MS - (now() - lastSentAt));
-    timer = setTimeout(flush, wait);
+    timer = setTimeout(() => sendNow(true), wait);
   }
 
   /**
    * 保留を今すぐ送る。
    *
    * 送れなかったときに保留を捨てない。`sendAction` は未接続なら送らずに false を返すため
-   * （[基本設計/02](../../../docs/基本設計/02_クライアント.md)）、捨てると再接続後に
+   * （[基本設計/02](../../../../docs/基本設計/02_クライアント.md)）、捨てると再接続後に
    * 盤面が1手前のままサーバに残る。retry が true なら再送を予約する。
    */
   function sendNow(retry: boolean): void {
@@ -69,7 +55,7 @@ export function createPlaceSender(now: () => number = () => Date.now()): PlaceSe
     if (pending === null) {
       return;
     }
-    if (sendAction(ACTIONS.place, { cells: pending })) {
+    if (sendAction(ACTIONS.place, { roundIndex: pending.roundIndex, cells: pending.cells })) {
       pending = null;
       lastSentAt = now();
       return;
@@ -80,8 +66,8 @@ export function createPlaceSender(now: () => number = () => Date.now()): PlaceSe
   }
 
   return {
-    send(cells: Board): void {
-      pending = [...cells];
+    send(roundIndex: number, cells: Board): void {
+      pending = { roundIndex, cells: [...cells] };
       schedule();
     },
     flush: () => sendNow(true),
