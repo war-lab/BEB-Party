@@ -144,7 +144,7 @@
         {#if describerSecret && describerSecret.hintEn.length > 0}
           <section class="hints" data-testid="my-hints">
             <h2>言い方の例</h2>
-            <p class="note">{HINT_BLANK} はものの名前や、段は top・middle・bottom、横は left・middle・right に置き換えてください。</p>
+            <p class="note">{HINT_BLANK} はものの名前に置き換えてください。段は top・middle・bottom、横は left・right です。</p>
             <ul>
               {#each describerSecret.hintEn as hint (hint)}
                 <li>{hint}</li>
@@ -188,7 +188,7 @@
             <li><span class="en">{phrase.en}</span><span class="ja">{phrase.ja}</span></li>
           {/each}
         </ul>
-        <p class="note">{HINT_BLANK} はものの名前や、段は top・middle・bottom、横は left・middle・right に置き換えてください。</p>
+        <p class="note">{HINT_BLANK} はものの名前に置き換えてください。段は top・middle・bottom、横は left・right です。</p>
       </details>
 
       <button class="beb-btn yellow" data-testid="done" onclick={toggleDone}>

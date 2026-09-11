@@ -83,7 +83,7 @@
         {#if mine.hintEn.length > 0}
           <section class="hints" data-testid="my-hints">
             <h3>言い方の例</h3>
-            <p class="note">{HINT_BLANK} はものの名前や、段は top・middle・bottom、横は left・middle・right に置き換えてください。</p>
+            <p class="note">{HINT_BLANK} はものの名前に置き換えてください。段は top・middle・bottom、横は left・right です。</p>
             <ul>
               {#each mine.hintEn as hint (hint)}
                 <li>{hint}</li>

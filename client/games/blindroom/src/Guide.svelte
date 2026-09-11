@@ -35,7 +35,7 @@
   <li>先に「どこに何個あるか」を言うと、聞き手が枠を作れる</li>
   <li>
     マスに番号は付いていない。段は <em>top</em> / <em>middle</em> / <em>bottom</em>、
-    横は <em>left</em> / <em>middle</em> / <em>right</em> で伝える
+    横は <em>left</em> / <em>right</em> で伝える。中央の列は <em>in the middle of the ... row</em> と言う
   </li>
   <li>ものの名前だけでなく、<em>next to</em> や <em>under</em> のような位置の言い方を使う</li>
   <li>聞き手は分からないまま置かない。<em>Which row?</em> と聞けばよい</li>

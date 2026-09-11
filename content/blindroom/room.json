@@ -14,9 +14,10 @@
       "tier": "easy",
       "describerHints": [
         "Put the ... in the ... row, on the ... side.",
+        "Put the ... in the middle of the ... row.",
         "The ... is next to the ...",
-        "The ... is under the ...",
         "Yes, it is next to the ...",
+        "The ... is under the ...",
         "There is nothing in the ... row.",
         "Put the ... in the top-left corner."
       ],
@@ -38,8 +39,8 @@
       "tier": "standard",
       "describerHints": [
         "Put the ... in the ... row, on the ... side.",
+        "Put the ... in the middle of the ... row.",
         "The ... is next to the ...",
-        "The ... is in the middle of the ... row.",
         "Yes, the red one is under the ...",
         "The ... is between the ... and the ..."
       ],
