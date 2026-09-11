@@ -584,8 +584,9 @@ describe("カタログ", () => {
     const fields = dontSayItModule.settingsFields;
     expect(fields).toHaveLength(1);
     const field = fields[0];
-    if (field === undefined) {
-      throw new Error("設定の記述子がない");
+    // 記述子はnumberとselectの共用体になった（shared/core）。数値の設定だけを見る
+    if (field?.type !== "number") {
+      throw new Error("数値の記述子がない");
     }
     expect(field.key).toBe("roundSeconds");
     expect(dontSayItModule.validateSettings({ [field.key]: field.default }).valid).toBe(true);

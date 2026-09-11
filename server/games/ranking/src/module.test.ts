@@ -589,7 +589,11 @@ describe("3ラウンドの通し", () => {
 
 describe("validateSettings", () => {
   it("記述子のminとmaxが受理範囲と一致する", () => {
-    const field = rankingModule.settingsFields[0]!;
+    const field = rankingModule.settingsFields[0];
+    // 記述子はnumberとselectの共用体になった（shared/core）。数値の設定だけを見る
+    if (field?.type !== "number") {
+      throw new Error("数値の記述子がない");
+    }
     expect(field.key).toBe("discussionSeconds");
     expect(rankingModule.validateSettings({ discussionSeconds: field.min }).valid).toBe(true);
     expect(rankingModule.validateSettings({ discussionSeconds: field.max }).valid).toBe(true);

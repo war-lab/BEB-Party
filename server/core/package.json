@@ -13,6 +13,7 @@
     "dev:e2e": "wrangler dev --log-level warn"
   },
   "dependencies": {
+    "@beb/server-blindroom": "workspace:*",
     "@beb/server-detectives": "workspace:*",
     "@beb/server-dontsayit": "workspace:*",
     "@beb/server-ranking": "workspace:*",

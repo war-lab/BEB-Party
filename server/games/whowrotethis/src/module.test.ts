@@ -734,7 +734,11 @@ describe("ラウンドの進行", () => {
 
 describe("validateSettings", () => {
   it("記述子のmin/maxと受理範囲が一致する", () => {
-    const field = whoWroteThisModule.settingsFields[0]!;
+    const field = whoWroteThisModule.settingsFields[0];
+    // 記述子はnumberとselectの共用体になった（shared/core）。数値の設定だけを見る
+    if (field?.type !== "number") {
+      throw new Error("数値の記述子がない");
+    }
     expect(field.key).toBe("writingSeconds");
     expect(field.min).toBe(WRITING_SECONDS.min);
     expect(field.max).toBe(WRITING_SECONDS.max);
