@@ -38,6 +38,8 @@ export const GAME_ACCENT = {
   dontsayit: COLOR.red,
   ranking: COLOR.yellow,
   whowrotethis: COLOR.blue,
+  // 4色が埋まっているため濃い空色を当てる。sky（DETECTIVES）とは明度で分かれる
+  blindroom: COLOR.skyDeep,
 } as const;
 
 export type GameId = keyof typeof GAME_ACCENT;

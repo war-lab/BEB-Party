@@ -1,4 +1,4 @@
-// 4ゲームの全ステージの素材を撮る。
+// 5ゲームの全ステージの素材を撮る。
 //
 // 実アプリを実際にプレイして撮る（モックを描かない）。素材は movies/assets/shots/ へ出す。
 // 各ゲームを1テストにするのは、途中で失敗しても他のゲームの素材が残るようにするためである。
@@ -228,6 +228,56 @@ test("WHO WROTE THIS?", async ({ browser, baseURL }) => {
     // judging: 作者と指名の内訳
     await expect(host.locator("[data-testid='author']")).toBeVisible({ timeout: 30_000 });
     await shoot(host, "whowrotethis-judging");
+  } finally {
+    await table.close();
+  }
+});
+
+test("BLIND ROOM", async ({ browser, baseURL }) => {
+  const table = await openTable(browser, baseURL!, LEVELS, { testTitle: "blindroom" });
+  try {
+    const host = table.pages[0]!;
+    // 盤面の広さは既定（標準 4×3）のまま撮る。配置の秒数は撮影が締切に追い越されない長さにする
+    await startWith(host, "BLIND ROOM", "部屋のもの", 120);
+
+    // briefing: 使うアイテムの一覧と、質問に使う言い回し
+    await expect(host.locator("[data-testid='palette']")).toBeVisible({ timeout: 20_000 });
+    await shoot(host, "blindroom-briefing");
+    for (const page of table.pages) {
+      await page.click("[data-testid='ready']");
+    }
+
+    // handoff: 伏せ面を撮ってから開く。開く前に撮ると全画面の伏せ面しか写らない（docs/ムービー.md）
+    const describer = await findPageBy(table.pages, "[data-testid='sample-cover']");
+    await shoot(describer, "blindroom-handoff-cover");
+    await describer.click("[data-testid='sample-cover']");
+    await expect(describer.locator("[data-testid='sample-board']")).toBeVisible({ timeout: 15_000 });
+    await shoot(describer, "blindroom-handoff-sample");
+    await describer.click("[data-testid='start-round']");
+
+    // building: 聞き手が置いた状態と、説明者の手元
+    const listeners = table.pages.filter((page) => page !== describer);
+    const first = listeners[0]!;
+    await expect(first.locator("[data-testid='my-board']")).toBeVisible({ timeout: 20_000 });
+    for (let index = 0; index < 5; index += 1) {
+      await first.locator("[data-testid='palette'] button").nth(index).click();
+      await first.locator(`[data-testid='cell-${index * 2}']`).click();
+    }
+    await shoot(first, "blindroom-building-listener");
+    await shoot(describer, "blindroom-building-describer");
+
+    // reveal: 見本と全員の盤面。他の聞き手も少し置いてから申告する
+    for (const page of listeners) {
+      if (page !== first) {
+        for (let index = 0; index < 3; index += 1) {
+          await page.locator("[data-testid='palette'] button").nth(index + 2).click();
+          await page.locator(`[data-testid='cell-${index * 3}']`).click();
+        }
+      }
+      await page.click("[data-testid='done']");
+    }
+    await expect(host.locator("[data-testid='round-record']")).toBeVisible({ timeout: 30_000 });
+    await shoot(host, "blindroom-reveal");
   } finally {
     await table.close();
   }
