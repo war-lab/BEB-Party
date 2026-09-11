@@ -5,6 +5,7 @@ export type {
   NumberSettingField,
   Player,
   Room,
+  SelectSettingField,
   SettingField,
 } from "./types";
 export * from "./errors";
