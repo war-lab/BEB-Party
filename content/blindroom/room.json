@@ -13,12 +13,12 @@
       "id": "room_easy",
       "tier": "easy",
       "describerHints": [
-        "Put the ... in the top-left corner.",
+        "Put the ... in the ... row, on the ... side.",
         "The ... is next to the ...",
         "The ... is under the ...",
         "Yes, it is next to the ...",
         "There is nothing in the ... row.",
-        "Put the ... in the middle."
+        "Put the ... in the top-left corner."
       ],
       "items": [
         { "id": "cat", "en": "cat", "ja": "猫", "icon": "cat" },
@@ -37,10 +37,10 @@
       "id": "room_standard",
       "tier": "standard",
       "describerHints": [
+        "Put the ... in the ... row, on the ... side.",
         "The ... is next to the ...",
         "The ... is in the middle of the ... row.",
         "Yes, the red one is under the ...",
-        "Put the blue ... on the left side.",
         "The ... is between the ... and the ..."
       ],
       "items": [

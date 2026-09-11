@@ -5,10 +5,9 @@
   盤面はサーバが持ち、クライアントは操作を送るだけとする。送信は間引く（place-sender.ts）。
 -->
 <script lang="ts">
-  import { acquireWakeLock, sendAction, StageTimer, ui } from "@beb/client-core";
+  import { acquireWakeLock, StageTimer, ui } from "@beb/client-core";
   import type { Room } from "@beb/shared-core";
   import {
-    ACTIONS,
     HINT_BLANK,
     PLACE_COUNT,
     STAGES,
@@ -24,6 +23,7 @@
   } from "@beb/shared-blindroom";
   import BoardGrid from "./BoardGrid.svelte";
   import StageGuide from "./StageGuide.svelte";
+  import { createDoneSender } from "./done-sender";
   import { createPlaceSender } from "./place-sender";
   import { stageLabels } from "./stage-labels";
 
@@ -49,13 +49,12 @@
   );
 
   const sender = createPlaceSender();
+  const doneSender = createDoneSender(sender);
 
   let cells = $state<Board>(emptyBoard());
   let selectedId = $state<string | null>(null);
   let blocked = $state(false);
   let initializedRound = -1;
-  // 完了申告の意思。未接続で押した申告が消えるため、接続が戻ったら送り直す
-  let intent = $state<{ round: number; done: boolean } | null>(null);
   let wasConnected = true;
 
   // サーバが持つ自分の盤面で初期化する。再接続でも同じ経路で復元される（12の秘密情報）
@@ -79,12 +78,9 @@
     sender.send(next);
   }
 
-  /** 完了申告。保留中の盤面を先に送る。doneは間引かれないため追い越しが起きる */
+  /** 完了申告。盤面と申告の順序は done-sender.ts が持つ */
   function toggleDone(): void {
-    sender.flush();
-    const done = !isDone;
-    intent = { round: publicState.roundIndex, done };
-    sendAction(ACTIONS.done, { done });
+    doneSender.declare(publicState.roundIndex, !isDone);
   }
 
   /**
@@ -99,11 +95,8 @@
     const connected = ui.connectionStatus === "connected";
     const recovered = connected && !wasConnected;
     wasConnected = connected;
-    if (!recovered || intent === null) {
-      return;
-    }
-    if (intent.round === publicState.roundIndex && intent.done !== isDone) {
-      sendAction(ACTIONS.done, { done: intent.done });
+    if (recovered) {
+      doneSender.resend(publicState.roundIndex, isDone);
     }
   });
 
@@ -151,7 +144,7 @@
         {#if describerSecret && describerSecret.hintEn.length > 0}
           <section class="hints" data-testid="my-hints">
             <h2>言い方の例</h2>
-            <p class="note">{HINT_BLANK} は、ものの名前や top・red のような語に置き換えてください。</p>
+            <p class="note">{HINT_BLANK} はものの名前や、段は top・middle・bottom、横は left・middle・right に置き換えてください。</p>
             <ul>
               {#each describerSecret.hintEn as hint (hint)}
                 <li>{hint}</li>
@@ -195,7 +188,7 @@
             <li><span class="en">{phrase.en}</span><span class="ja">{phrase.ja}</span></li>
           {/each}
         </ul>
-        <p class="note">{HINT_BLANK} は、ものの名前や top・red のような語に置き換えてください。</p>
+        <p class="note">{HINT_BLANK} はものの名前や、段は top・middle・bottom、横は left・middle・right に置き換えてください。</p>
       </details>
 
       <button class="beb-btn yellow" data-testid="done" onclick={toggleDone}>
