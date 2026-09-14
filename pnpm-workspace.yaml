@@ -1,16 +1,19 @@
 packages:
   - shared/core
   - shared/engine
+  - shared/games/blindroom
   - shared/games/detectives
   - shared/games/dontsayit
   - shared/games/ranking
   - shared/games/whowrotethis
   - server/core
+  - server/games/blindroom
   - server/games/detectives
   - server/games/dontsayit
   - server/games/ranking
   - server/games/whowrotethis
   - client/core
+  - client/games/blindroom
   - client/games/detectives
   - client/games/dontsayit
   - client/games/ranking

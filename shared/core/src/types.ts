@@ -47,8 +47,25 @@ export interface NumberSettingField {
   default: number;
 }
 
-/** 現在は数値のみ。selectやtoggleが要るゲームが出た時点で足す（先回りしない。基本設計/05） */
-export type SettingField = NumberSettingField;
+/**
+ * 選択肢から1つ選ぶ設定1件の記述子。
+ *
+ * 数値で表せない設定のために置く。BLIND ROOMの盤面の広さ（入門3×3 / 標準4×3 / 上級4×4）が
+ * 最初の利用者である。共通コアは `value` の意味を解釈せず、選ばれた文字列をそのまま
+ * `settings` へ入れる（不変条件4、ADR-0018）。
+ */
+export interface SelectSettingField {
+  type: "select";
+  /** settingsオブジェクトのキー。共通コアは中身を解釈しない */
+  key: string;
+  labelJa: string;
+  /** 選択肢。valueはゲームモジュールが決める文字列 */
+  options: { value: string; labelJa: string }[];
+  default: string;
+}
+
+/** toggleが要るゲームが出た時点で足す（先回りしない。基本設計/05） */
+export type SettingField = NumberSettingField | SelectSettingField;
 
 // GET /api/catalog で配るカタログの1エントリ
 export interface GameSummary {

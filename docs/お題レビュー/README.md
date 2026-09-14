@@ -7,6 +7,7 @@
 お題データそのものの正本は `content/<gameId>/*.json` であり、ここは「なぜその形にしたか」と「機械検証が担保しない部分をどう確認したか」の記録である。
 
 DON'T SAY ITの検証項目は、人物の知名度・禁止語の並び順・説明の成立性を機械で見ない（[基本設計/09](../基本設計/09_DONTSAYITゲームモジュール.md)の「機械で検査しないもの」）。
+BLIND ROOMは、アイコンの絵と英語名が同じものを指して見えるか、小さい表示で取り違えないかを機械で見ない（[基本設計/12](../基本設計/12_BLINDROOMゲームモジュール.md)）。
 この記録がないと、それらを誰が何を根拠に確認したかが残らない。
 
 確認をAIが行った場合は、そのことと限界を記録に明記する。
@@ -23,6 +24,7 @@ DON'T SAY ITの検証項目は、人物の知名度・禁止語の並び順・�
 | DON'T SAY IT | Everyday Things | 身の回りのもの100枚 | [everyday-things.md](./everyday-things.md) |
 | DON'T SAY IT | Places and Landmarks | 世界の名所と身近な場所100枚 | [places.md](./places.md) |
 | WHO WROTE THIS? | 日常 | 答えが一意に決まらない質問12件 | [daily.md](./daily.md) |
+| BLIND ROOM | 部屋のもの | 盤面に置くアイテム20件と言い回し17件 | [room.md](./room.md) |
 
 ## 記録の書き方
 

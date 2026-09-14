@@ -11,6 +11,7 @@
     "fonts:generate": "node scripts/generate-font-subsets.mjs"
   },
   "dependencies": {
+    "@beb/client-blindroom": "workspace:*",
     "@beb/client-core": "workspace:*",
     "@beb/client-detectives": "workspace:*",
     "@beb/client-dontsayit": "workspace:*",

@@ -18,7 +18,8 @@
   let catalog = $state<GameSummary[]>([]);
   let qrSvg = $state<string | null>(null);
   // ゲーム固有の設定名を共通コアが持たない。カタログが配る記述子から組み立てる（不変条件4）
-  let settings = $state<Record<string, number>>({});
+  // 値の型は記述子ごとに違う（numberは秒数、selectはゲームモジュールが決めた文字列）
+  let settings = $state<Record<string, number | string>>({});
   let showQr = $state(false);
 
   $effect(() => {
@@ -79,6 +80,12 @@
    *
    * 数値にならない入力は無視する。空欄は0として送られ、サーバのvalidateSettingsが拒否する
    */
+  /** 選択肢の設定を控えて送り直す。値の意味は解釈せず、ゲームモジュールが決めた文字列を渡す */
+  function selectSetting(key: string, value: string): void {
+    settings = { ...settings, [key]: value };
+    reconfigure();
+  }
+
   function updateSetting(key: string, raw: string): void {
     const value = Number(raw);
     if (!Number.isFinite(value)) {
@@ -180,17 +187,35 @@
         </ul>
 
         {#each selectedGame?.settingsFields ?? [] as field (field.key)}
-          <label class="seconds">
-            <span class="seconds-label">{field.labelJa}</span>
-            <input
-              type="number"
-              value={settings[field.key] ?? field.default}
-              min={field.min}
-              max={field.max}
-              step={field.step}
-              onchange={(event) => updateSetting(field.key, event.currentTarget.value)}
-            />
-          </label>
+          {#if field.type === "select"}
+            <!-- コンテンツ選択と同じ見出し・チップにする（ビジュアルデザイン.mdのゲーム選択カード） -->
+            <h2>{field.labelJa}</h2>
+            <ul class="content-chips">
+              {#each field.options as option (option.value)}
+                <li>
+                  <button
+                    class="content-chip"
+                    class:selected={(settings[field.key] ?? field.default) === option.value}
+                    onclick={() => selectSetting(field.key, option.value)}
+                  >
+                    {option.labelJa}
+                  </button>
+                </li>
+              {/each}
+            </ul>
+          {:else}
+            <label class="seconds">
+              <span class="seconds-label">{field.labelJa}</span>
+              <input
+                type="number"
+                value={settings[field.key] ?? field.default}
+                min={field.min}
+                max={field.max}
+                step={field.step}
+                onchange={(event) => updateSetting(field.key, event.currentTarget.value)}
+              />
+            </label>
+          {/if}
         {/each}
 
         <button class="beb-btn yellow" onclick={start} disabled={!room?.contentId}><span>ゲームスタート</span></button>

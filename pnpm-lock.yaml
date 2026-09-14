@@ -41,6 +41,9 @@ importers:
 
   client/app:
     dependencies:
+      '@beb/client-blindroom':
+        specifier: workspace:*
+        version: link:../games/blindroom
       '@beb/client-core':
         specifier: workspace:*
         version: link:../core
@@ -97,6 +100,25 @@ importers:
       vite:
         specifier: 8.2.1
         version: 8.2.1(@types/node@24.13.3)(esbuild@0.28.2)(tsx@4.23.12)
+
+  client/games/blindroom:
+    dependencies:
+      '@beb/client-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@beb/shared-blindroom':
+        specifier: workspace:*
+        version: link:../../../shared/games/blindroom
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../../shared/core
+      svelte:
+        specifier: 5.56.9
+        version: 5.56.9(@typescript-eslint/types@8.67.0)
+    devDependencies:
+      svelte-check:
+        specifier: 4.7.5
+        version: 4.7.5(picomatch@4.0.5)(svelte@5.56.9(@typescript-eslint/types@8.67.0))(typescript@6.0.3)
 
   client/games/detectives:
     dependencies:
@@ -201,6 +223,9 @@ importers:
 
   server/core:
     dependencies:
+      '@beb/server-blindroom':
+        specifier: workspace:*
+        version: link:../games/blindroom
       '@beb/server-detectives':
         specifier: workspace:*
         version: link:../games/detectives
@@ -223,6 +248,15 @@ importers:
       wrangler:
         specifier: 4.122.0
         version: 4.122.0(@cloudflare/workers-types@5.20260813.1)
+
+  server/games/blindroom:
+    dependencies:
+      '@beb/shared-blindroom':
+        specifier: workspace:*
+        version: link:../../../shared/games/blindroom
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../../shared/core
 
   server/games/detectives:
     dependencies:
@@ -267,6 +301,12 @@ importers:
 
   shared/engine: {}
 
+  shared/games/blindroom:
+    dependencies:
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../core
+
   shared/games/detectives:
     dependencies:
       '@beb/shared-core':
@@ -296,6 +336,9 @@ importers:
       '@beb/engine':
         specifier: workspace:*
         version: link:../shared/engine
+      '@beb/server-blindroom':
+        specifier: workspace:*
+        version: link:../server/games/blindroom
       '@beb/server-detectives':
         specifier: workspace:*
         version: link:../server/games/detectives
@@ -308,6 +351,9 @@ importers:
       '@beb/server-whowrotethis':
         specifier: workspace:*
         version: link:../server/games/whowrotethis
+      '@beb/shared-blindroom':
+        specifier: workspace:*
+        version: link:../shared/games/blindroom
       '@beb/shared-core':
         specifier: workspace:*
         version: link:../shared/core

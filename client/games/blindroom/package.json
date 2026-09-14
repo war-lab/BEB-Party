@@ -1,0 +1,25 @@
+{
+  "name": "@beb/client-blindroom",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./guide": "./src/guide.ts",
+    "./stage-labels": "./src/stage-labels.ts"
+  },
+  "scripts": {
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest run --passWithNoTests",
+    "icons:generate": "node scripts/generate-icons.mjs"
+  },
+  "dependencies": {
+    "@beb/client-core": "workspace:*",
+    "@beb/shared-blindroom": "workspace:*",
+    "@beb/shared-core": "workspace:*",
+    "svelte": "5.56.9"
+  },
+  "devDependencies": {
+    "svelte-check": "4.7.5"
+  }
+}

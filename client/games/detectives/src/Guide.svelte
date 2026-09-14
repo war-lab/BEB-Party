@@ -180,8 +180,9 @@
   .phrases li {
     display: flex;
     flex-direction: column;
-    border-left: 3px solid var(--blue);
-    padding: 0.15rem 0 0.15rem 0.6rem;
+    background: rgba(22, 27, 51, 0.06);
+    border-radius: var(--radius-tile);
+    padding: 0.3rem 0.6rem;
     line-height: 1.5;
   }
   .phrases b {
@@ -190,8 +191,5 @@
   .phrases span {
     font-size: 0.78rem;
     color: var(--ink-soft);
-  }
-  .phrases.example li {
-    border-left-color: var(--red);
   }
 </style>

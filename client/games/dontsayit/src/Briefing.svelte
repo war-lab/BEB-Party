@@ -55,7 +55,12 @@
           <span class="face" style={`background:${faceColor(playerId)}`}>
             <span aria-hidden="true">{playerIconOf(playerId)}</span>
           </span>
-          <span class="player">{nameOf(playerId)}</span>
+          <span class="player">
+            {nameOf(playerId)}
+            {#if playerId === ui.myPlayerId}
+              <span class="beb-pill self">あなた</span>
+            {/if}
+          </span>
         </li>
       {/each}
     </ol>
@@ -118,17 +123,19 @@
     gap: 0.15rem;
     border-radius: var(--radius-tile);
     padding: 0.5rem 0.7rem;
-    border-left: 6px solid var(--yellow);
+    /* 役は面の色で示す。輪郭は中立色にする。黄の輪郭は同じ画面の
+       「いまやること」と自分の行が既に使っており、役に回すと3つが同じ見た目になる */
+    border: 2px solid var(--outline-neutral);
     background: var(--ground-2);
   }
   .roles li.speaker {
-    border-left-color: var(--red);
+    background: var(--red-veil);
   }
   .roles li.watcher {
-    border-left-color: var(--yellow);
+    background: var(--yellow-veil);
   }
   .roles li.answerer {
-    border-left-color: var(--blue);
+    background: var(--blue-veil);
   }
   .role-name {
     font-family: var(--font-heading);
@@ -154,13 +161,25 @@
     align-items: center;
     gap: 0.5rem;
     background: var(--ground-2);
-    border: 2px solid rgba(255, 255, 255, 0.14);
+    border: 2px solid var(--outline-neutral);
     border-radius: var(--radius-tile);
     padding: 0.3rem 0.6rem;
     font-size: 0.82rem;
   }
+  /* 得点表と同じく、自分の行は輪郭とラベルの両方で示す */
   .order li.me {
     border-color: var(--yellow);
+  }
+  .player {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .player .self {
+    flex: none;
+    font-size: 0.63rem;
   }
   .no {
     font-family: var(--font-heading);

@@ -6,6 +6,10 @@
 import { existsSync } from "node:fs";
 import { isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  formatFinding as formatRoomFinding,
+  validatePack as validateRoomPack,
+} from "@beb/server-blindroom";
 import { formatFinding as formatCaseFinding, validateCase } from "@beb/server-detectives";
 import { formatFinding as formatSetFinding, validateSet } from "@beb/server-dontsayit";
 import { formatFinding as formatPackFinding, validatePack } from "@beb/server-ranking";
@@ -19,6 +23,10 @@ const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 
 // 反例の欄はゲームごとに違うため、整形関数もゲーム側から渡す（run.tsはFinding型を知らない）
 const validators: GameValidator[] = [
+  {
+    contentPath: "content/blindroom",
+    validate: (content) => toGameReport(validateRoomPack(content), formatRoomFinding),
+  },
   {
     contentPath: "content/detectives",
     validate: (content) => toGameReport(validateCase(content), formatCaseFinding),
