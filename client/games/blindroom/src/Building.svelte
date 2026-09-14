@@ -98,10 +98,10 @@
   function apply(next: Board): void {
     cells = next;
     selectedId = null;
-    sender.place(publicState.roundIndex, next);
+    sender.place(publicState.roundIndex, next, isDone);
   }
 
-  /** 完了申告。盤面と申告の順序は done-sender.ts が持つ */
+  /** 完了申告。盤面と申告の順序は board-sender.ts が持つ */
   function toggleDone(): void {
     sender.declare(publicState.roundIndex, !isDone);
   }

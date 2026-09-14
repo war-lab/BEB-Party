@@ -1,6 +1,7 @@
 // 完了申告と盤面の送信順（基本設計/12の done）。
 //
-// PR #31のレビュー指摘と、その修正で作った穴（置き直した後の自動申告）の両方を固定する。
+// PR #31のレビュー指摘、その修正で作った穴（置き直した後の自動申告）、
+// PR #33のレビュー指摘（完了済みのまま直した1手が間引かれる）の3つを固定する。
 // 元の指摘: 再接続で送り直すとき、盤面を送らずに done だけを送っていた。
 // 切断中に置いて申告すると、古い盤面で完了扱いになる（最後の聞き手ならそのまま採点が確定する）。
 import { emptyBoard, type Board } from "@beb/shared-blindroom";
@@ -46,7 +47,7 @@ describe("押したとき", () => {
     const place = createPlaceSender(now);
     const done = createBoardSender(place);
 
-    done.place(0, boardWith("cat"));
+    done.place(0, boardWith("cat"), false);
     done.declare(0, true);
 
     expect(actions()).toEqual(["place", "done"]);
@@ -71,7 +72,7 @@ describe("再接続で送り直すとき", () => {
     const place = createPlaceSender(now);
     const done = createBoardSender(place);
 
-    done.place(0, boardWith("cat"));
+    done.place(0, boardWith("cat"), false);
     done.declare(0, true);
     expect(actions()).toEqual(["place", "done"]);
 
@@ -109,7 +110,7 @@ describe("再接続で送り直すとき", () => {
     const done = createBoardSender(place);
     done.declare(0, true);
     // 置き直す。サーバは place の受理時に done を取り消す
-    done.place(0, boardWith("dog"));
+    done.place(0, boardWith("dog"), true);
     sendAction.mockReset();
 
     // 再接続。サーバは未申告（false）だが、本人は押し直していない
@@ -134,5 +135,88 @@ describe("再接続で送り直すとき", () => {
     done.resend(0, true);
     expect(actions()).toEqual(["done"]);
     expect(sendAction.mock.calls[0]?.[1]).toEqual({ done: false });
+  });
+});
+
+describe("完了済みのまま盤面を直すとき", () => {
+  /**
+   * サーバが done を取り消すのは place を受理した時点である。
+   * 間引いたままだと、保留の最大1.4秒（MIN_INTERVAL_MS + TRAILING_MS）のあいだ
+   * サーバは本人を完了済みとして数える。その間に最後の聞き手が申告すると、
+   * 修正前の盤面で採点が確定する（PR #33のレビュー指摘）。
+   */
+  it("最初の1手は間引かずに送る", () => {
+    const place = createPlaceSender(now);
+    const done = createBoardSender(place);
+    done.declare(0, true);
+    sendAction.mockReset();
+
+    // サーバから見ればまだ完了済み（donePlayerIds に居る）
+    done.place(0, boardWith("dog"), true);
+
+    // タイマーを進めずに送られている
+    expect(actions()).toEqual(["place"]);
+    expect(sendAction.mock.calls[0]?.[1]).toEqual({ roundIndex: 0, cells: boardWith("dog") });
+  });
+
+  it("未申告なら今までどおり間引く", () => {
+    const place = createPlaceSender(now);
+    const done = createBoardSender(place);
+
+    done.place(0, boardWith("dog"), false);
+
+    expect(actions()).toEqual([]);
+    vi.advanceTimersByTime(1_000);
+    expect(actions()).toEqual(["place"]);
+  });
+
+  /** 取り消しが届くまでの連打で流量制限（ADR-0017）を使い切らないようにする */
+  it("間引きを外すのは再開の1手だけとする", () => {
+    const place = createPlaceSender(now);
+    const done = createBoardSender(place);
+    done.declare(0, true);
+    sendAction.mockReset();
+
+    done.place(0, boardWith("dog"), true);
+    done.place(0, boardWith("cat"), true);
+    done.place(0, boardWith("car"), true);
+
+    expect(actions()).toEqual(["place"]);
+  });
+
+  it("申告し直したら、次の再開でもまた間引かない", () => {
+    const place = createPlaceSender(now);
+    const done = createBoardSender(place);
+    done.declare(0, true);
+    done.place(0, boardWith("dog"), true);
+    // 押し直して、また直す
+    done.declare(0, true);
+    sendAction.mockReset();
+
+    done.place(0, boardWith("cat"), true);
+
+    expect(actions()).toEqual(["place"]);
+    expect(sendAction.mock.calls[0]?.[1]).toEqual({ roundIndex: 0, cells: boardWith("cat") });
+  });
+
+  it("取り消しが届いたら、次の再開でまた間引かない", () => {
+    const place = createPlaceSender(now);
+    const done = createBoardSender(place);
+    done.declare(0, true);
+    done.place(0, boardWith("dog"), true);
+    // サーバの取り消しが届いた後の1手
+    done.place(0, boardWith("car"), false);
+    // もう一度申告して、また直す
+    done.declare(0, true);
+    done.place(0, boardWith("cat"), true);
+    sendAction.mockReset();
+
+    // 3回目の再開でも外れる
+    done.place(0, boardWith("bus"), false);
+    done.declare(0, true);
+    sendAction.mockReset();
+    done.place(0, boardWith("cup"), true);
+
+    expect(actions()).toEqual(["place"]);
   });
 });
