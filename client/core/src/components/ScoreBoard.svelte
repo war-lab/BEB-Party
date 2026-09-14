@@ -33,7 +33,12 @@
       <span class="face" style={`background:${faceColor(entry.playerId)}`}>
         <span aria-hidden="true">{playerIconOf(entry.playerId)}</span>
       </span>
-      <span class="name">{nameOf(entry.playerId)}</span>
+      <span class="name">
+        {nameOf(entry.playerId)}
+        {#if entry.playerId === ui.myPlayerId}
+          <span class="beb-pill self">あなた</span>
+        {/if}
+      </span>
       <span class="points">{entry.points}</span>
     </li>
   {/each}
@@ -53,13 +58,27 @@
     align-items: center;
     gap: 0.5rem;
     background: var(--ground-2);
-    border: 2px solid rgba(255, 255, 255, 0.14);
+    border: 2px solid var(--outline-neutral);
     border-radius: var(--radius-tile);
     padding: 0.3rem 0.6rem;
     font-size: 0.82rem;
   }
+  /* 自分の行は輪郭とラベルの両方で示す。輪郭の色だけだと、同じ黄の輪郭を持つ
+     他の意味（いまやること等）と同じ画面に並んだときに見分けられない */
   .scores li.me {
     border-color: var(--yellow);
+  }
+  .name {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .name .self {
+    flex: none;
+    font-family: var(--font-body);
+    font-size: 0.63rem;
   }
   .scores li.top {
     padding: 0.6rem;

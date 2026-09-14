@@ -51,7 +51,12 @@
           <span class="face" style={`background:${faceColor(entry.playerId)}`}>
             <span aria-hidden="true">{playerIconOf(entry.playerId)}</span>
           </span>
-          <span class="player">{nameOf(entry.playerId)}</span>
+          <span class="player">
+            {nameOf(entry.playerId)}
+            {#if entry.playerId === ui.myPlayerId}
+              <span class="beb-pill self">あなた</span>
+            {/if}
+          </span>
           <span class="character">{entry.characterName}</span>
         </li>
       {/each}
@@ -132,13 +137,25 @@
     align-items: center;
     gap: 0.5rem;
     background: var(--ground-2);
-    border: 2px solid rgba(255, 255, 255, 0.14);
+    border: 2px solid var(--outline-neutral);
     border-radius: var(--radius-tile);
     padding: 0.3rem 0.6rem;
     font-size: 0.82rem;
   }
+  /* 得点表と同じく、自分の行は輪郭とラベルの両方で示す */
   .cast li.me {
     border-color: var(--yellow);
+  }
+  .player {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .player .self {
+    flex: none;
+    font-size: 0.63rem;
   }
   .face {
     --face-size: 1.4rem;

@@ -40,7 +40,7 @@
   .guide {
     margin: 0 0 0.7rem;
     background: var(--ground-2);
-    border-left: 4px solid var(--yellow);
+    border: var(--outline-width) solid var(--yellow);
     border-radius: var(--radius-tile);
     padding: 0.5rem 0.7rem;
     font-family: var(--font-body);
