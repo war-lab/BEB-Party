@@ -111,8 +111,56 @@
     }
   });
 
+  /**
+   * 開始できない理由。押せない・押しても始まらない場合に何を直せばよいかを1行で出す。
+   *
+   * 3つの経路がいずれも黙って失敗していた。ボタンの無効化条件がコンテンツ選択だけだったため、
+   * 人数が範囲外でも押せてサーバが拒否するだけになり、未接続では送信そのものが捨てられていた。
+   * 判定に使う人数の範囲とコンテンツの有無は、サーバの handleStart と同じカタログ由来の値である。
+   */
+  const startBlocker = $derived.by(() => {
+    if (ui.connectionStatus !== "connected") {
+      return "接続が戻るまで待ってください";
+    }
+    if (!room?.gameId) {
+      return "遊ぶゲームを選んでください";
+    }
+    if (contents.length > 0 && room?.contentId === undefined) {
+      return "選択がサーバに届いていません。上の一覧からもう一度選んでください";
+    }
+    const range = selectedGame?.playerCount;
+    const count = room?.players.length ?? 0;
+    if (range && count < range[0]) {
+      return `あと${range[0] - count}人必要です（いま${count}人、${range[0]}〜${range[1]}人で遊べます）`;
+    }
+    if (range && count > range[1]) {
+      return `${range[1]}人までで遊べます（いま${count}人）`;
+    }
+    return null;
+  });
+
+  /** サーバが開始を断ったときの理由。押した時点で消し、返ってきたものだけを出す */
+  const START_ERRORS: Record<string, string> = {
+    player_count_mismatch: "人数が範囲外のため、サーバが開始を断りました",
+    invalid_payload: "選択が確定していないため、サーバが開始を断りました",
+    unknown_game: "ゲームが選ばれていないため、サーバが開始を断りました",
+    not_host: "ホストではないため開始できません",
+    invalid_lifecycle: "すでに始まっています",
+    rate_limited: "操作が多すぎます。少し待ってからもう一度押してください",
+  };
+  const serverError = $derived(ui.lastErrorCode ? (START_ERRORS[ui.lastErrorCode] ?? null) : null);
+  let sendError = $state<string | null>(null);
+
+  // 出す順は「いま直せること」が先。サーバの拒否と送信の失敗はその後に残る
+  const startNote = $derived(startBlocker ?? sendError ?? serverError);
+
   function start(): void {
-    sendCommon({ type: "start" });
+    // 前回の拒否を残さない。押し直したことが分かるようにする
+    ui.lastErrorCode = null;
+    sendError = null;
+    if (!sendCommon({ type: "start" })) {
+      sendError = "接続が戻っていないため送れませんでした。戻ったらもう一度押してください";
+    }
   }
 </script>
 
@@ -218,7 +266,18 @@
           {/if}
         {/each}
 
-        <button class="beb-btn yellow" onclick={start} disabled={!room?.contentId}><span>ゲームスタート</span></button>
+        <button
+          class="beb-btn yellow"
+          data-testid="start"
+          onclick={start}
+          disabled={startBlocker !== null}
+          aria-describedby={startNote ? "start-note" : undefined}
+        >
+          <span>ゲームスタート</span>
+        </button>
+        {#if startNote}
+          <p class="start-note" id="start-note" data-testid="start-note" role="status">{startNote}</p>
+        {/if}
       {/if}
     </section>
   {:else}
@@ -510,6 +569,17 @@
     border-radius: var(--radius-tile);
     padding: 0.3rem 0.5rem;
     font-variant-numeric: tabular-nums;
+  }
+
+  /* 開始できない理由。ボタンの真下に置き、押す前に目に入るようにする */
+  .start-note {
+    margin: 0.5rem 0 0;
+    background: rgba(0, 0, 0, 0.28);
+    border-radius: var(--radius-tile);
+    padding: 0.45rem 0.7rem;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    text-align: center;
   }
 
   .waiting-note {

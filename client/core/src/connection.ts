@@ -137,14 +137,20 @@ export function sendAction(action: string, payload: Record<string, unknown> = {}
   return send({ v: PROTOCOL_VERSION, type: "action", action, ...payload });
 }
 
+/**
+ * 部屋の操作を送る。送信できたかを返す。
+ *
+ * 未接続なら送らずに false を返す。呼び出し側が戻り値を捨てると、押したのに何も起きない
+ * 状態になる（ロビーの開始ボタンで実際に起きた）。
+ */
 export function sendCommon(
   message:
     | { type: "selectGame"; gameId: string }
     | { type: "configure"; contentId?: string; settings?: unknown }
     | { type: "start" }
     | { type: "nextGame" },
-): void {
-  send({ v: PROTOCOL_VERSION, ...message });
+): boolean {
+  return send({ v: PROTOCOL_VERSION, ...message });
 }
 
 /** 送信できたかを返す。未接続のときは送らずfalseを返す */
