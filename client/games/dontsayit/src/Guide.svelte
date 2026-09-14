@@ -169,8 +169,7 @@
     display: grid;
     gap: 0.1rem;
     background: rgba(255, 255, 255, 0.08);
-    border-left: 4px solid var(--blue);
-    border-radius: 0 var(--radius-tile) var(--radius-tile) 0;
+    border-radius: var(--radius-tile);
     padding: 0.35rem 0.6rem;
   }
   .phrases b {

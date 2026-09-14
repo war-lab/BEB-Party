@@ -53,8 +53,8 @@
     flex-direction: column;
     gap: 0.25rem;
     background: rgba(255, 255, 255, 0.1);
-    border-left: 4px solid var(--yellow);
-    border-radius: 0 var(--radius-tile) var(--radius-tile) 0;
+    border: var(--outline-width) solid var(--yellow);
+    border-radius: var(--radius-tile);
     margin: 0 0 0.8rem;
     padding: 0.5rem 0.7rem;
   }

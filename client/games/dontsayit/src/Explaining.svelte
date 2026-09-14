@@ -231,7 +231,7 @@
     background: var(--red-deep);
   }
   .explaining.watcher::before {
-    background: #4a3a06;
+    background: var(--yellow-deep);
   }
 
   .body {
@@ -421,8 +421,7 @@
   }
   .prompts li {
     background: rgba(255, 255, 255, 0.1);
-    border-left: 4px solid var(--blue);
-    border-radius: 0 var(--radius-tile) var(--radius-tile) 0;
+    border-radius: var(--radius-tile);
     padding: 0.4rem 0.7rem;
     font-size: 0.95rem;
     font-weight: 700;

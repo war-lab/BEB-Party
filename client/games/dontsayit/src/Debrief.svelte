@@ -231,8 +231,7 @@
     display: grid;
     gap: 0.15rem;
     background: rgba(255, 255, 255, 0.1);
-    border-left: 4px solid var(--blue);
-    border-radius: 0 var(--radius-tile) var(--radius-tile) 0;
+    border-radius: var(--radius-tile);
     padding: 0.4rem 0.7rem;
   }
   .expressions .en {

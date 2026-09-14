@@ -57,8 +57,8 @@
     flex-direction: column;
     gap: 0.25rem;
     background: rgba(255, 255, 255, 0.1);
-    border-left: 4px solid var(--yellow);
-    border-radius: var(--radius-button);
+    border: var(--outline-width) solid var(--yellow);
+    border-radius: var(--radius-tile);
     padding: 0.5rem 0.7rem;
     margin: 0 0 0.6rem;
     font-size: 0.82rem;
