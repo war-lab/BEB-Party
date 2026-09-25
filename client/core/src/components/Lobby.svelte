@@ -4,6 +4,7 @@
   import { serverState } from "../stores/server-state.svelte";
   import { ui } from "../stores/ui.svelte";
   import { sendCommon } from "../connection";
+  import { formatPlayerCount, orderGamesByPlayerCount } from "../game-order";
   import ParticipantTile from "./ParticipantTile.svelte";
 
   interface Props {
@@ -45,6 +46,7 @@
   const selectedGame = $derived(catalog.find((game) => game.id === room?.gameId));
   const contents = $derived(selectedGame?.contents ?? []);
   const emptySlots = $derived(Math.max(0, MAX_TILES - (room?.players.length ?? 0)));
+  const orderedGames = $derived(orderGamesByPlayerCount(catalog, room?.players.length ?? 0));
 
   function selectGame(gameId: string): void {
     sendCommon({ type: "selectGame", gameId });
@@ -131,7 +133,7 @@
     const range = selectedGame?.playerCount;
     const count = room?.players.length ?? 0;
     if (range && count < range[0]) {
-      return `あと${range[0] - count}人必要です（いま${count}人、${range[0]}〜${range[1]}人で遊べます）`;
+      return `あと${range[0] - count}人必要です（いま${count}人、${formatPlayerCount(range)}で遊べます）`;
     }
     if (range && count > range[1]) {
       return `${range[1]}人までで遊べます（いま${count}人）`;
@@ -193,15 +195,27 @@
     <section class="host-controls">
       <h2>ゲームを選ぶ</h2>
       <ul class="title-cards">
-        {#each catalog as game (game.id)}
+        {#each orderedGames as { game, playable } (game.id)}
           <li>
             <div class="title-card-row">
-            <button class="title-card" class:selected={room?.gameId === game.id} onclick={() => selectGame(game.id)}>
-              <span class="title-card-icon" aria-hidden="true">{game.icon}</span>
+            <!-- 人数外でも選択はできる。人が揃う前にゲームを決めて呼び込めるようにし、開始だけをstartBlockerで止める（ADR-0026） -->
+            <button
+              class="title-card"
+              class:selected={room?.gameId === game.id}
+              class:unplayable={!playable}
+              data-playable={playable}
+              onclick={() => selectGame(game.id)}
+            >
+              <span class="title-card-emblem">
+                <span class="title-card-icon" aria-hidden="true">{game.icon}</span>
+                <span class="title-card-meta" data-testid="player-count">{formatPlayerCount(game.playerCount)}</span>
+              </span>
               <span class="title-card-body">
                 <span class="title-card-name">{game.title}</span>
                 <span class="title-card-tagline">{game.tagline}</span>
-                <span class="title-card-meta">{game.playerCount[0]}〜{game.playerCount[1]}人</span>
+                {#if !playable}
+                  <span class="visually-hidden">いまの人数では遊べません</span>
+                {/if}
               </span>
               <span class="title-card-check" aria-hidden="true">✓</span>
             </button>
@@ -472,9 +486,17 @@
     line-height: 1.45;
     color: var(--ink-soft);
   }
+  /* 対応人数はアイコンの下端に重ねる。少人数の場では人数がゲームを選ぶ第一の基準になるため（ADR-0026） */
+  .title-card-emblem {
+    position: relative;
+    display: grid;
+    padding-bottom: 0.45rem;
+  }
   .title-card-meta {
-    justify-self: start;
-    margin-top: 0.15rem;
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
     font-family: var(--font-heading);
     font-weight: var(--font-heading-weight);
     font-size: 0.66rem;
@@ -520,6 +542,28 @@
   }
   .title-card.selected .title-card-check {
     display: block;
+  }
+
+  /* いまの人数で遊べないゲーム。淡色にし、理由である人数バッジだけは濃い赤で残す */
+  .title-card.unplayable .title-card-icon,
+  .title-card.unplayable .title-card-body {
+    opacity: 0.45;
+  }
+  .title-card.unplayable .title-card-icon {
+    filter: grayscale(1);
+  }
+  .title-card.unplayable .title-card-meta {
+    background: var(--red-deep);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .content-chip {
