@@ -72,6 +72,13 @@ jobs:
           pnpm --filter @beb/server-blindroom run generate:packs
           git diff --exit-code -- server/games/blindroom/src/packs.generated.ts
 
+      - name: 舞台インデックス（ESCAPE CALL）の再生成と差分チェック
+        # content/escapecall/ の走査結果(server/games/escapecall/src/packs.generated.ts)はコミットする。
+        # 舞台パック追加PRで再生成を忘れると、そのパックがWorkerのバンドルに入らない（13、01のコンテンツの読み込み）
+        run: |
+          pnpm --filter @beb/server-escapecall run generate:packs
+          git diff --exit-code -- server/games/escapecall/src/packs.generated.ts
+
       - name: 盤面アイコンの再生成と差分チェック
         # 生成物(client/public/items/blindroom/*.svg)はコミットする。形状の正本は
         # generate-icons.mjs にあり、SVGを直接編集すると色違いの形が揃わなくなる（ADR-0025）

@@ -1,0 +1,50 @@
+{
+  "id": "lab",
+  "title": "深夜の研究所",
+  "scene": {
+    "titleEn": "The Midnight Lab",
+    "titleJa": "深夜の研究所",
+    "introEn": "The power went out and every door locked. Open three locks before the guard comes back.",
+    "introJa": "停電で扉がすべて閉まった。警備員が戻る前に3つの錠を開けよう。"
+  },
+  "lockLabels": [
+    { "en": "The storage box", "ja": "保管箱" },
+    { "en": "The lab door", "ja": "研究室の扉" },
+    { "en": "The back gate", "ja": "裏門" }
+  ],
+  "keyExpressions": [
+    { "en": "What is the first symbol?", "ja": "最初の記号は？" },
+    { "en": "What comes next?", "ja": "その次は？" },
+    { "en": "What number is the red star?", "ja": "赤い星は何番？" },
+    { "en": "I don't have that one.", "ja": "それは持っていない" },
+    { "en": "Say that again, please.", "ja": "もう一度お願い" },
+    { "en": "Let me check. Is it four, seven, one, two?", "ja": "確認させて。4, 7, 1, 2？" }
+  ],
+  "rulePhrases": {
+    "skip_color": {
+      "easy": "Skip the {color} ones.",
+      "standard": "Ignore every {color} symbol when you read the row.",
+      "ja": "{color}の記号は飛ばす"
+    },
+    "skip_shape": {
+      "easy": "Skip the {shape}s.",
+      "standard": "Leave out every {shape} when you read the row.",
+      "ja": "{shape}は飛ばす"
+    },
+    "reverse": {
+      "easy": "Read it from right to left.",
+      "standard": "Read the row backwards, starting from the right end.",
+      "ja": "右から左へ読む"
+    },
+    "swap_ends": {
+      "easy": "Swap the first and last numbers.",
+      "standard": "Switch the first number with the last one.",
+      "ja": "最初と最後の数字を入れ替える"
+    },
+    "add_one": {
+      "easy": "Add one to each number. Nine becomes zero.",
+      "standard": "Make every number one bigger, and turn nine into zero.",
+      "ja": "すべての数字に1を足す（9は0にする）"
+    }
+  }
+}

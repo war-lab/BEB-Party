@@ -57,3 +57,4 @@
 | [0024](./0024-BLINDROOMの見本盤面は生成する.md) | BLIND ROOMの見本盤面はコンテンツに持たず生成する | accepted |
 | [0025](./0025-盤面アイコンはSVGで持つ.md) | BLIND ROOMの盤面アイコンはSVGで持つ | accepted |
 | [0026](./0026-対象人数を2人から6人に広げる.md) | 製品の対象人数を2人から6人に広げる | accepted |
+| [0027](./0027-ESCAPECALLの謎はテンプレートとseedから生成する.md) | ESCAPE CALLの謎はテンプレートとseedから生成する | accepted |

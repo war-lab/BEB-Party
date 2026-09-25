@@ -40,6 +40,7 @@
 | ENGLISH RANKINGのルール実装（ステージ・目標カード・action・得点・コンテンツ形式と検証） | [基本設計/10_ENGLISHRANKINGゲームモジュール.md](./基本設計/10_ENGLISHRANKINGゲームモジュール.md) | 原案は収録候補ゲームのルール案.mdの案12。gameIdは `ranking`。お題データの正本は `content/ranking/*.json` |
 | WHO WROTE THIS?のルール実装（ステージ・提出と指名・action・得点・コンテンツ形式と検証） | [基本設計/11_WHOWROTETHISゲームモジュール.md](./基本設計/11_WHOWROTETHISゲームモジュール.md) | 原案は収録候補ゲームのルール案.mdの案11。gameIdは `whowrotethis`。お題データの正本は `content/whowrotethis/*.json` |
 | BLIND ROOMのルール実装（ステージ・見本と配置・action・得点・コンテンツ形式と検証） | [基本設計/12_BLINDROOMゲームモジュール.md](./基本設計/12_BLINDROOMゲームモジュール.md) | 原案は収録候補ゲームのルール案.mdの案23。gameIdは `blindroom`。5本目として収録済み。見本の盤面はコンテンツに持たない（[ADR-0024](./adr/0024-BLINDROOMの見本盤面は生成する.md)）。盤面アイコンは `client/public/items/blindroom/*.svg`（[ADR-0025](./adr/0025-盤面アイコンはSVGで持つ.md)）。お題データの正本は `content/blindroom/*.json` |
+| ESCAPE CALLのルール実装（錠の生成・断片の割り当て・action・結果・コンテンツ形式と検証） | [基本設計/13_ESCAPECALLゲームモジュール.md](./基本設計/13_ESCAPECALLゲームモジュール.md) | 2〜4人用の協力型。gameIdは `escapecall`。錠はコンテンツに持たずseedから生成する（[ADR-0027](./adr/0027-ESCAPECALLの謎はテンプレートとseedから生成する.md)）。規則の言い回しの正本は `content/escapecall/*.json` |
 | 収録候補ゲームの着想 | [ゲーム構想.md](./ゲーム構想.md) | 着想の記録。ルールとしては未確定であり、仕様の根拠にしない |
 | 収録候補ゲームのルール案 | [収録候補ゲームのルール案.md](./収録候補ゲームのルール案.md) | 構想を、同室でアプリが英語を理解しない条件で成立する形へ具体化した案。対応人数はゲームごとに判断する。実装するゲームのルールの正本は `基本設計/09` 以降 |
 | 遊び方ムービーの作り方・素材の撮り方・台本の扱い | [ムービー.md](./ムービー.md) | ソースは `movies/`。MP4はコミットしない |
