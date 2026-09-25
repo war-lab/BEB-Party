@@ -4,7 +4,7 @@
   import { serverState } from "../stores/server-state.svelte";
   import { ui } from "../stores/ui.svelte";
   import { sendCommon } from "../connection";
-  import { orderGamesByPlayerCount } from "../game-order";
+  import { formatPlayerCount, orderGamesByPlayerCount } from "../game-order";
   import ParticipantTile from "./ParticipantTile.svelte";
 
   interface Props {
@@ -133,7 +133,7 @@
     const range = selectedGame?.playerCount;
     const count = room?.players.length ?? 0;
     if (range && count < range[0]) {
-      return `あと${range[0] - count}人必要です（いま${count}人、${range[0]}〜${range[1]}人で遊べます）`;
+      return `あと${range[0] - count}人必要です（いま${count}人、${formatPlayerCount(range)}で遊べます）`;
     }
     if (range && count > range[1]) {
       return `${range[1]}人までで遊べます（いま${count}人）`;
@@ -208,7 +208,7 @@
             >
               <span class="title-card-emblem">
                 <span class="title-card-icon" aria-hidden="true">{game.icon}</span>
-                <span class="title-card-meta" data-testid="player-count">{game.playerCount[0]}〜{game.playerCount[1]}人</span>
+                <span class="title-card-meta" data-testid="player-count">{formatPlayerCount(game.playerCount)}</span>
               </span>
               <span class="title-card-body">
                 <span class="title-card-name">{game.title}</span>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { orderGamesByPlayerCount } from "./game-order";
+import { formatPlayerCount, orderGamesByPlayerCount } from "./game-order";
 
 const game = (id: string, min: number, max: number) => ({ id, playerCount: [min, max] as [number, number] });
 
@@ -23,5 +23,16 @@ describe("orderGamesByPlayerCount", () => {
   // ホスト1人の部屋では全部が遊べない側になるが、一覧からは消えないことを固定する（絞り込みにしない）
   it("遊べるゲームが無くても全ゲームをカタログ順で返す", () => {
     expect(ids(1)).toEqual(["five:x", "duo:x", "small:x", "four:x", "wide:x"]);
+  });
+});
+
+describe("formatPlayerCount", () => {
+  // 1つの人数だけに対応するゲームが「2〜2人」と出ないことを固定する（ADR-0026で人数専用ゲームを認めた）
+  it("最小と最大が同じなら人数を1つだけ出す", () => {
+    expect(formatPlayerCount([2, 2])).toBe("2人");
+  });
+
+  it("範囲があるなら最小〜最大で出す", () => {
+    expect(formatPlayerCount([5, 6])).toBe("5〜6人");
   });
 });

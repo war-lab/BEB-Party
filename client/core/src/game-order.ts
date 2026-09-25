@@ -6,6 +6,11 @@ export interface OrderedGame<T> {
   playable: boolean;
 }
 
+/** 対応人数の表示。最小と最大が同じゲーム（2人専用など）は「2〜2人」ではなく「2人」とする */
+export function formatPlayerCount([min, max]: [number, number]): string {
+  return min === max ? `${min}人` : `${min}〜${max}人`;
+}
+
 export function orderGamesByPlayerCount<T extends { playerCount: [number, number] }>(
   games: readonly T[],
   count: number,
