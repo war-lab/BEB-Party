@@ -11,7 +11,13 @@ test("人数が足りないあいだは開始できず、あと何人かが出�
 
   try {
     const host = table.pages[0]!;
-    await host.click(".title-card:has-text('ENGLISH DETECTIVES')");
+    const detectives = host.locator(".title-card:has-text('ENGLISH DETECTIVES')");
+
+    // 人数外のゲームは淡色になるが、選択はできる（ADR-0026）。対応人数はアイコン上に出る
+    await expect(detectives).toHaveAttribute("data-playable", "false");
+    await expect(detectives.locator("[data-testid='player-count']")).toHaveText("5〜6人");
+    await detectives.click();
+    await expect(detectives).toHaveClass(/selected/);
 
     const start = host.locator("[data-testid='start']");
     await expect(start).toBeDisabled();
@@ -29,6 +35,8 @@ test("人数が足りないあいだは開始できず、あと何人かが出�
 
     await expect(host.locator("[data-testid='start-note']")).toHaveCount(0, { timeout: 10_000 });
     await expect(start).toBeEnabled();
+    // 5人で範囲内に入ると淡色が外れる
+    await expect(detectives).toHaveAttribute("data-playable", "true");
 
     await context.close();
     await fifth.context().close();
