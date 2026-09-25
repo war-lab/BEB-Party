@@ -53,6 +53,9 @@ importers:
       '@beb/client-dontsayit':
         specifier: workspace:*
         version: link:../games/dontsayit
+      '@beb/client-escapecall':
+        specifier: workspace:*
+        version: link:../games/escapecall
       '@beb/client-ranking':
         specifier: workspace:*
         version: link:../games/ranking
@@ -158,6 +161,25 @@ importers:
         specifier: 4.7.5
         version: 4.7.5(picomatch@4.0.5)(svelte@5.56.9(@typescript-eslint/types@8.67.0))(typescript@6.0.3)
 
+  client/games/escapecall:
+    dependencies:
+      '@beb/client-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../../shared/core
+      '@beb/shared-escapecall':
+        specifier: workspace:*
+        version: link:../../../shared/games/escapecall
+      svelte:
+        specifier: 5.56.9
+        version: 5.56.9(@typescript-eslint/types@8.67.0)
+    devDependencies:
+      svelte-check:
+        specifier: 4.7.5
+        version: 4.7.5(picomatch@4.0.5)(svelte@5.56.9(@typescript-eslint/types@8.67.0))(typescript@6.0.3)
+
   client/games/ranking:
     dependencies:
       '@beb/client-core':
@@ -232,6 +254,9 @@ importers:
       '@beb/server-dontsayit':
         specifier: workspace:*
         version: link:../games/dontsayit
+      '@beb/server-escapecall':
+        specifier: workspace:*
+        version: link:../games/escapecall
       '@beb/server-ranking':
         specifier: workspace:*
         version: link:../games/ranking
@@ -279,6 +304,15 @@ importers:
         specifier: workspace:*
         version: link:../../../shared/games/dontsayit
 
+  server/games/escapecall:
+    dependencies:
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../../shared/core
+      '@beb/shared-escapecall':
+        specifier: workspace:*
+        version: link:../../../shared/games/escapecall
+
   server/games/ranking:
     dependencies:
       '@beb/shared-core':
@@ -319,6 +353,12 @@ importers:
         specifier: workspace:*
         version: link:../../core
 
+  shared/games/escapecall:
+    dependencies:
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../core
+
   shared/games/ranking:
     dependencies:
       '@beb/shared-core':
@@ -345,6 +385,9 @@ importers:
       '@beb/server-dontsayit':
         specifier: workspace:*
         version: link:../server/games/dontsayit
+      '@beb/server-escapecall':
+        specifier: workspace:*
+        version: link:../server/games/escapecall
       '@beb/server-ranking':
         specifier: workspace:*
         version: link:../server/games/ranking

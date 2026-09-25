@@ -79,6 +79,9 @@ gameIdは `escapecall` とする。
 
 記号はクライアントがインラインSVGで描く。
 画像ファイルを持たない。
+
+記号は明るい下地の上に濃い輪郭で描く。
+暗い画面の地にじかに置くと、黒の記号が輪郭だけの白い図形に見え、`white triangle` と読まれる（390px幅の実画面で確認した）。
 16種は4つの図形と4つの塗りの組み合わせであり、図形の定義をコードに持てば足りる。
 
 画面の記号に英語名を添えない。
@@ -319,7 +322,14 @@ interface MapPiece {
 
 interface RulePiece {
   kind: 'rule';
-  rules: { ruleId: RuleId; textEn: string; textJa?: string }[];   // 適用する順
+  rules: RuleEntry[];                 // 適用する順
+}
+
+interface RuleEntry {
+  ruleId: RuleId;
+  param?: ColorId | ShapeId;          // skip_color は色、skip_shape は形
+  textEn: string;
+  textJa?: string;
 }
 ```
 
@@ -331,6 +341,10 @@ interface RulePiece {
 次の錠の断片を先に配ると、錠が開く前に次の錠の相談が始まる。
 
 `textJa` は規則を持つ人のレベルが1〜2のときだけ入れる（「レベル差の吸収」の第2層）。
+
+`param` は英文に含まれる色または形と同じ値であり、規則を持つ人にだけ届く。
+英文と同じ情報であるため、秘密の範囲は広がらない。
+英文に依存せずに答えを組み立てられる形を持たせるのは、E2Eが画面から答えを計算するためである。
 
 `briefing` 中は断片を配らない。
 開始時点の秘密は `pieces: []` とする。
