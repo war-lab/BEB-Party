@@ -157,11 +157,17 @@
       {:else}
         <p class="empty">手がかりを受け取っています…</p>
       {/each}
+      <!-- 作戦会議は90秒で終わる。詰まったときに言い回しを見返せるよう、解錠中も開けるようにする -->
       <button class="glossary-toggle" onclick={() => (showGlossary = !showGlossary)} data-testid="glossary-toggle">
-        {showGlossary ? "色と形の言い方をとじる" : "色と形の言い方"}
+        {showGlossary ? "言い方の早見表をとじる" : "言い方の早見表"}
       </button>
       {#if showGlossary}
         <Glossary />
+        <ul class="phrases" data-testid="phrases">
+          {#each publicState.keyExpressions as phrase (phrase.en)}
+            <li><span class="en">{phrase.en}</span><span class="ja">{phrase.ja}</span></li>
+          {/each}
+        </ul>
       {/if}
     </section>
 
@@ -327,6 +333,26 @@
     font-size: 0.74rem;
     padding: 0.2rem 0.7rem;
     cursor: pointer;
+  }
+  .phrases {
+    list-style: none;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.2rem;
+  }
+  .phrases li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    padding-bottom: 0.15rem;
+    font-size: 0.82rem;
+  }
+  .phrases .ja {
+    font-size: 0.68rem;
+    color: var(--mist);
+    text-align: right;
   }
   .holders ul,
   .attempts ul {
