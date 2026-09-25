@@ -1,4 +1,4 @@
-// 5本の台本。数値はすべて各ゲームのshared定数を出典とし、ここでは写しを持つ。
+// 6本の台本。数値はすべて各ゲームのshared定数を出典とし、ここでは写しを持つ。
 //
 // 写しを持つ理由は、動画が「収録時点の仕様」を映すものであり、定数を変えたときに
 // 動画が自動で追従してはまずいからである（古い動画と新しいアプリの食い違いに気づけない）。
@@ -335,6 +335,63 @@ export const SCRIPTS: MovieScript[] = [
       ["説明者の画面を他の人が見ない"],
       ["当てっこではない", "全員で同じ形を作る"],
       ["説明も質問も英語で行う"],
+    ],
+  },
+  {
+    // 数値の出典: shared/games/escapecall/src/game.ts（STAGE_DEADLINE_SECONDS・ESCAPE_SECONDS・rankOf）
+    // と lock.ts（LOCK_SPECS）。2〜4人のゲームであり、素材は3人の卓で撮る
+    id: "escapecall",
+    icon: "🔐",
+    title: ["ESCAPE", "CALL"],
+    tagline: ["手がかりを英語で伝え合い、", "3つの錠を開けて脱出する"],
+    purpose: ["2〜4人で協力して脱出する", "手がかりはばらばらに配られ、", "自分の画面にだけ出る"],
+    beats: [
+      {
+        shot: "escapecall-briefing",
+        stage: "作戦会議（90秒）",
+        caption: ["色と形の英語名を", "全員で確かめる"],
+        hold: 3.2,
+      },
+      {
+        shot: "escapecall-solving-order",
+        stage: "解錠（既定10分）",
+        caption: ["錠の記号を持つ人は", "左から順に英語で伝える"],
+        hold: 3.4,
+      },
+      {
+        shot: "escapecall-solving-map",
+        stage: "解錠",
+        caption: ["数字の表を持つ人は", "聞いた記号の数字を答える"],
+        hold: 3.4,
+      },
+      {
+        shot: "escapecall-solving-rule",
+        stage: "解錠 2つ目の錠から",
+        caption: ["規則を持つ人は", "読み方の指示を英語で伝える"],
+        hold: 3.6,
+      },
+      {
+        shot: "escapecall-solving-attempts",
+        stage: "解錠",
+        caption: ["答えはだれが入力してもよい", "まちがえても時間は減らない"],
+        hold: 3.4,
+      },
+      {
+        shot: "escapecall-debrief",
+        stage: "ふりかえり",
+        caption: ["3つの錠の答えと", "全員の手がかりが出る"],
+        hold: 3.4,
+      },
+    ],
+    scoring: [
+      ["錠は3つ", "進むほど規則と桁が増える"],
+      ["ホストのヒントで", "答えが左から1桁ずつ開く"],
+      ["ヒントとまちがいの回数で", "ランクがS〜Dに決まる"],
+    ],
+    promises: [
+      ["自分の画面を他の人に見せない"],
+      ["手がかりは英語で伝える"],
+      ["入力する前に", "答えを読み上げて確かめる"],
     ],
   },
 ];

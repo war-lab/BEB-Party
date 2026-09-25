@@ -1,86 +1,13 @@
 // ESCAPE CALLの通し検証（基本設計/13_ESCAPECALLゲームモジュール.md のテスト観点）。
 // 部屋作成から脱出まで通ること、誤答とヒントが履歴に残ること、錠の中身がstateに載らないことを確かめる。
 //
-// 各ページの画面に出た断片（data属性）を集めて、テスト側で答えを組み立てる。
-// 答えの計算はshared/games/escapecallのcomputeCodeと同じ規則をここに写す。
-// e2eはワークスペースのパッケージに依存しないため、importせずに持つ（規則を変えたらここも変える）。
-import { expect, test, type Page } from "@playwright/test";
+// 各ページの画面に出た断片を集めて、テスト側で答えを組み立てる（support/escapecall.ts）。
+import { expect, test } from "@playwright/test";
+import { collectPieces, enterCode, solve, waitForLock, wrongCodeFor } from "./support/escapecall";
 import { openTable, readStateMessages } from "./support/room";
 
 const GAME_TITLE = "ESCAPE CALL";
 const PACK_TITLE = "深夜の研究所";
-
-interface Collected {
-  order: string[];
-  front: string[];
-  back: string[];
-  map: Map<string, string>;
-  rules: { ruleId: string; param: string }[];
-}
-
-/** 全員の画面から、いま挑戦中の錠の断片を集める */
-async function collectPieces(pages: Page[]): Promise<Collected> {
-  const collected: Collected = { order: [], front: [], back: [], map: new Map(), rules: [] };
-  for (const page of pages) {
-    for (const order of await page.locator("[data-testid='piece-order']").all()) {
-      const part = await order.getAttribute("data-part");
-      const symbols = await order.locator("li[data-symbol]").evaluateAll((items) =>
-        items.map((item) => item.getAttribute("data-symbol") ?? ""),
-      );
-      if (part === "front") collected.front = symbols;
-      else if (part === "back") collected.back = symbols;
-      else collected.order = symbols;
-    }
-    const entries = await page
-      .locator("[data-testid='piece-map'] li[data-symbol]")
-      .evaluateAll((items) => items.map((item) => [item.getAttribute("data-symbol") ?? "", item.getAttribute("data-digit") ?? ""]));
-    for (const [symbol, digit] of entries) {
-      collected.map.set(symbol!, digit!);
-    }
-    const rules = await page
-      .locator("[data-testid='piece-rule'] li[data-rule-id]")
-      .evaluateAll((items) =>
-        items.map((item) => ({ ruleId: item.getAttribute("data-rule-id") ?? "", param: item.getAttribute("data-param") ?? "" })),
-      );
-    collected.rules.push(...rules);
-  }
-  if (collected.order.length === 0) {
-    collected.order = [...collected.front, ...collected.back];
-  }
-  return collected;
-}
-
-/** shared/games/escapecall の computeCode と同じ手順 */
-function solve({ order, map, rules }: Collected): string {
-  let symbols = [...order];
-  for (const rule of rules) {
-    if (rule.ruleId === "skip_color") symbols = symbols.filter((symbol) => symbol.split("_")[0] !== rule.param);
-    if (rule.ruleId === "skip_shape") symbols = symbols.filter((symbol) => symbol.split("_")[1] !== rule.param);
-    if (rule.ruleId === "reverse") symbols = [...symbols].reverse();
-  }
-  let digits = symbols.map((symbol) => map.get(symbol) ?? "?");
-  for (const rule of rules) {
-    if (rule.ruleId === "swap_ends" && digits.length > 1) {
-      digits = [digits[digits.length - 1]!, ...digits.slice(1, -1), digits[0]!];
-    }
-    if (rule.ruleId === "add_one") digits = digits.map((digit) => String((Number(digit) + 1) % 10));
-  }
-  return digits.join("");
-}
-
-async function enterCode(page: Page, code: string): Promise<void> {
-  for (const digit of code) {
-    await page.click(`[data-testid='key-${digit}']`);
-  }
-  await page.click("[data-testid='submit']");
-}
-
-async function waitForLock(pages: Page[], lockNumber: number): Promise<void> {
-  for (const page of pages) {
-    await expect(page.locator("[data-testid='stage-timer']")).toContainText(`解錠 ${lockNumber} / 3`, { timeout: 30_000 });
-    await expect(page.locator("[data-testid='my-pieces'] section").first()).toBeVisible({ timeout: 30_000 });
-  }
-}
 
 for (const levels of [
   [2, 4],
@@ -101,16 +28,13 @@ for (const levels of [
         await page.click("[data-testid='ready']", { timeout: 30_000 });
       }
 
-      const codes: string[] = [];
       for (let lock = 1; lock <= 3; lock += 1) {
         await waitForLock(table.pages, lock);
         const code = solve(await collectPieces(table.pages));
-        codes.push(code);
 
         if (lock === 1) {
           // 誤答は履歴に残るだけで錠は開かない
-          const wrong = String((Number(code[0]) + 1) % 10) + code.slice(1);
-          await enterCode(others[0]!, wrong);
+          await enterCode(others[0]!, wrongCodeFor(code));
           await expect(host!.locator("[data-testid='attempt']")).toHaveCount(1, { timeout: 10_000 });
           // ヒントはホストだけに出て、押すと1桁目が開く
           await expect(others[0]!.locator("[data-testid='hint']")).toHaveCount(0);

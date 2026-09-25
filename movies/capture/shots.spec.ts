@@ -1,4 +1,4 @@
-// 5ゲームの全ステージの素材を撮る。
+// 6ゲームの全ステージの素材を撮る。
 //
 // 実アプリを実際にプレイして撮る（モックを描かない）。素材は movies/assets/shots/ へ出す。
 // 各ゲームを1テストにするのは、途中で失敗しても他のゲームの素材が残るようにするためである。
@@ -6,6 +6,7 @@
 // 卓を立てるところは検証用のE2Eヘルパー（e2e/support/room.ts）を再利用する。
 // 「5〜6人で入室してロビーに並ぶ」は撮影でも検証でも同じ手順であり、二重に持つ理由がない。
 import { expect, test } from "@playwright/test";
+import { collectPieces, enterCode, solve, waitForLock, wrongCodeFor } from "../../e2e/support/escapecall";
 import { openTable, startGame, voteAll } from "../../e2e/support/room";
 import { confirmGoalsTolerant, findPageBy, readyAllTolerant, shoot, startWith } from "./support";
 
@@ -278,6 +279,65 @@ test("BLIND ROOM", async ({ browser, baseURL }) => {
     }
     await expect(host.locator("[data-testid='round-record']")).toBeVisible({ timeout: 30_000 });
     await shoot(host, "blindroom-reveal");
+  } finally {
+    await table.close();
+  }
+});
+
+/**
+ * ESCAPE CALLは2〜4人のゲームであり、6人の卓では開始できない。3人で撮る。
+ * レベルを散らすのは、断片の割り当てがレベルで決まり（規則は最も高い人、対応表は最も低い人）、
+ * 3種類の断片がそれぞれ別の端末に出るようにするためである（基本設計/13のレベル差の吸収）。
+ */
+const ESCAPE_LEVELS = [2, 5, 3];
+
+test("ESCAPE CALL", async ({ browser, baseURL }) => {
+  const table = await openTable(browser, baseURL!, ESCAPE_LEVELS, { testTitle: "escapecall" });
+  try {
+    const host = table.pages[0]!;
+    await startWith(host, "ESCAPE CALL", "深夜の研究所");
+
+    // briefing: 舞台の導入と、色と形の英語名
+    await expect(host.locator("[data-testid='ready']")).toBeVisible({ timeout: 20_000 });
+    await shoot(host, "escapecall-briefing");
+    for (const page of table.pages) {
+      await page.click("[data-testid='ready']");
+    }
+
+    // 錠1: 並びと対応表。どの端末に何が出るかはサーバが決めるため、見えている断片で探す
+    await waitForLock(table.pages, 1);
+    const orderHolder = await findPageBy(table.pages, "[data-testid='piece-order']");
+    const mapHolder = await findPageBy(table.pages, "[data-testid='piece-map']");
+    await shoot(orderHolder, "escapecall-solving-order");
+    await shoot(mapHolder, "escapecall-solving-map");
+    await enterCode(orderHolder, solve(await collectPieces(table.pages)));
+
+    // 錠2: 規則が加わる。誤答とヒントを入れてから、入力と履歴の画面を撮る
+    await waitForLock(table.pages, 2);
+    const ruleHolder = await findPageBy(table.pages, "[data-testid='piece-rule']");
+    // 錠が開いた直後は解錠の演出（UNLOCKED!）が画面に重なる。消えてから撮る（実測で写り込んだ）
+    for (const page of table.pages) {
+      await expect(page.locator("[data-testid='unlocked']")).toHaveCount(0, { timeout: 5_000 });
+    }
+    await shoot(ruleHolder, "escapecall-solving-rule");
+    const second = solve(await collectPieces(table.pages));
+    await enterCode(mapHolder, wrongCodeFor(second));
+    await expect(host.locator("[data-testid='attempt']")).toHaveCount(1, { timeout: 15_000 });
+    await host.click("[data-testid='hint']");
+    await expect(host.locator(".slots li.hinted")).toHaveCount(1, { timeout: 15_000 });
+    // 10キーと履歴は画面の下半分にある。錠の桁が上端に来る位置まで送ってから撮る
+    await host.locator("[data-testid='lock']").evaluate((element) => element.scrollIntoView({ block: "start" }));
+    await host.locator("[data-testid='keypad']").scrollIntoViewIfNeeded();
+    await shoot(host, "escapecall-solving-attempts");
+    await enterCode(mapHolder, second);
+
+    // 錠3を開けて脱出する
+    await waitForLock(table.pages, 3);
+    await enterCode(ruleHolder, solve(await collectPieces(table.pages)));
+
+    // debrief: 成否とランク、3つの錠の答えと断片
+    await expect(host.locator("[data-testid='outcome']")).toBeVisible({ timeout: 30_000 });
+    await shoot(host, "escapecall-debrief");
   } finally {
     await table.close();
   }
