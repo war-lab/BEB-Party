@@ -236,14 +236,14 @@ describe("ready と solving への遷移", () => {
 describe("submit", () => {
   it("桁数違い・数字以外・文字列以外は invalid_code で拒否される", () => {
     const table = solvingTable();
-    for (const payload of [{ code: "123" }, { code: "12a4" }, { code: 1234 }, {}]) {
+    for (const payload of [{ lockIndex: 0, code: "123" }, { lockIndex: 0, code: "12a4" }, { lockIndex: 0, code: 1234 }, { lockIndex: 0 }]) {
       expect(act(table, "p1", ACTIONS.submit, payload).reject?.code).toBe(ERROR_CODES.invalidCode);
     }
   });
 
   it("誤答は attempts に1行増えるだけで、ステージも締切も変わらない", () => {
     const table = solvingTable();
-    const transition = act(table, "p1", ACTIONS.submit, { code: wrongCode(currentCode(table)) });
+    const transition = act(table, "p1", ACTIONS.submit, { lockIndex: table.publicState.currentLockIndex, code: wrongCode(currentCode(table)) });
     expect(transition.publicState?.attempts).toHaveLength(1);
     expect(transition.publicState?.attempts[0]?.accepted).toBe(false);
     expect(transition.stage).toBeUndefined();
@@ -253,15 +253,15 @@ describe("submit", () => {
   it("同じ錠への同じ誤答は already_attempted で拒否され、状態が変わらない", () => {
     let table = solvingTable();
     const wrong = wrongCode(currentCode(table));
-    table = apply(table, act(table, "p1", ACTIONS.submit, { code: wrong }));
-    const again = act(table, "p2", ACTIONS.submit, { code: wrong });
+    table = apply(table, act(table, "p1", ACTIONS.submit, { lockIndex: table.publicState.currentLockIndex, code: wrong }));
+    const again = act(table, "p2", ACTIONS.submit, { lockIndex: table.publicState.currentLockIndex, code: wrong });
     expect(again.reject?.code).toBe(ERROR_CODES.alreadyAttempted);
     expect(again.publicState).toBeUndefined();
   });
 
   it("正答で錠が開き、次の錠へ進み、締切を置き直さず、全員へ次の錠の断片の全量が送られる", () => {
     const table = solvingTable();
-    const transition = act(table, "p2", ACTIONS.submit, { code: currentCode(table) });
+    const transition = act(table, "p2", ACTIONS.submit, { lockIndex: table.publicState.currentLockIndex, code: currentCode(table) });
     expect(transition.publicState?.locks[0]?.opened).toBe(true);
     expect(transition.publicState?.currentLockIndex).toBe(1);
     expect(transition.deadlineSeconds).toBeUndefined();
@@ -275,9 +275,9 @@ describe("submit", () => {
   it("開いた錠の答えを次の錠へ提出しても開かない", () => {
     let table = solvingTable();
     const first = currentCode(table);
-    table = apply(table, act(table, "p1", ACTIONS.submit, { code: first }));
+    table = apply(table, act(table, "p1", ACTIONS.submit, { lockIndex: table.publicState.currentLockIndex, code: first }));
     if (first !== currentCode(table)) {
-      const transition = act(table, "p1", ACTIONS.submit, { code: first });
+      const transition = act(table, "p1", ACTIONS.submit, { lockIndex: table.publicState.currentLockIndex, code: first });
       expect(transition.publicState?.locks[1]?.opened).toBe(false);
     }
   });
@@ -286,7 +286,7 @@ describe("submit", () => {
     let table = solvingTable();
     let transition;
     for (let index = 0; index < 3; index += 1) {
-      transition = act(table, "p1", ACTIONS.submit, { code: currentCode(table) });
+      transition = act(table, "p1", ACTIONS.submit, { lockIndex: table.publicState.currentLockIndex, code: currentCode(table) });
       table = apply(table, transition);
     }
     expect(transition?.stage).toBe(STAGES.debrief);
@@ -308,26 +308,53 @@ describe("submit", () => {
     expect(transition.reject?.code).toBe(ERROR_CODES.invalidStage);
   });
 
+  // 錠が開いた直後に届いた前の錠の答えを、次の錠への誤答として記録しない（ランクが不当に下がるため）
+  it("前の錠を指す提出は stale_lock で拒否され、attempts も錠も変わらない", () => {
+    let table = solvingTable();
+    const first = currentCode(table);
+    table = apply(table, act(table, "p1", ACTIONS.submit, { lockIndex: 0, code: first }));
+    expect(table.publicState.currentLockIndex).toBe(1);
+    const late = act(table, "p2", ACTIONS.submit, { lockIndex: 0, code: first });
+    expect(late.reject?.code).toBe(ERROR_CODES.staleLock);
+    expect(late.publicState).toBeUndefined();
+  });
+
+  // 錠番号は遅着の検出にだけ使う。先の錠を指定して総当たりする経路にならない（13のsubmit）
+  it("先の錠を指す提出と、錠番号の無い提出も stale_lock で拒否される", () => {
+    const table = solvingTable();
+    expect(act(table, "p1", ACTIONS.submit, { lockIndex: 1, code: "1234" }).reject?.code).toBe(ERROR_CODES.staleLock);
+    expect(act(table, "p1", ACTIONS.submit, { code: "1234" }).reject?.code).toBe(ERROR_CODES.staleLock);
+  });
+
   it("ペイロードが ACTION_MAX_CHARS 未満に収まる", () => {
-    expect(JSON.stringify({ code: "99999" }).length).toBeLessThan(ACTION_MAX_CHARS);
+    expect(JSON.stringify({ lockIndex: 2, code: "99999" }).length).toBeLessThan(ACTION_MAX_CHARS);
   });
 });
 
 describe("hint", () => {
   it("ホスト以外は not_host で拒否される", () => {
     const table = solvingTable();
-    expect(act(table, "p2", ACTIONS.hint).reject?.code).toBe(ERROR_CODES.notHost);
+    expect(act(table, "p2", ACTIONS.hint, { lockIndex: table.publicState.currentLockIndex }).reject?.code).toBe(ERROR_CODES.notHost);
   });
 
   it("左から1桁ずつ開示され、codeLength - 1 桁を超えると no_more_hints で拒否される", () => {
     let table = solvingTable();
     const code = currentCode(table);
     for (let index = 0; index < code.length - 1; index += 1) {
-      const transition = act(table, "p1", ACTIONS.hint);
+      const transition = act(table, "p1", ACTIONS.hint, { lockIndex: table.publicState.currentLockIndex });
       table = apply(table, transition);
       expect(table.publicState.hints[index]).toEqual({ lockIndex: 0, position: index, digit: code[index] });
     }
-    expect(act(table, "p1", ACTIONS.hint).reject?.code).toBe(ERROR_CODES.noMoreHints);
+    expect(act(table, "p1", ACTIONS.hint, { lockIndex: table.publicState.currentLockIndex }).reject?.code).toBe(ERROR_CODES.noMoreHints);
+  });
+
+  // 錠が開いた直後に届いたヒントの要求で、次の錠の桁を開けない
+  it("前の錠を指すヒントの要求は stale_lock で拒否され、次の錠の桁が開かない", () => {
+    let table = solvingTable();
+    table = apply(table, act(table, "p1", ACTIONS.submit, { lockIndex: 0, code: currentCode(table) }));
+    const late = act(table, "p1", ACTIONS.hint, { lockIndex: 0 });
+    expect(late.reject?.code).toBe(ERROR_CODES.staleLock);
+    expect(late.publicState).toBeUndefined();
   });
 });
 
@@ -351,13 +378,13 @@ describe("結果", () => {
 
   it("誤答とヒントの数がランクに反映される", () => {
     let table = solvingTable();
-    table = apply(table, act(table, "p1", ACTIONS.hint));
+    table = apply(table, act(table, "p1", ACTIONS.hint, { lockIndex: table.publicState.currentLockIndex }));
     for (let offset = 1; offset <= 3; offset += 1) {
-      table = apply(table, act(table, "p1", ACTIONS.submit, { code: wrongCode(currentCode(table), offset) }));
+      table = apply(table, act(table, "p1", ACTIONS.submit, { lockIndex: table.publicState.currentLockIndex, code: wrongCode(currentCode(table), offset) }));
     }
     let transition;
     for (let index = 0; index < 3; index += 1) {
-      transition = act(table, "p1", ACTIONS.submit, { code: currentCode(table) });
+      transition = act(table, "p1", ACTIONS.submit, { lockIndex: table.publicState.currentLockIndex, code: currentCode(table) });
       table = apply(table, transition);
     }
     expect(transition?.result?.hintCount).toBe(1);

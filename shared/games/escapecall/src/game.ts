@@ -162,9 +162,21 @@ export const ACTIONS = {
 
 export type ActionName = (typeof ACTIONS)[keyof typeof ACTIONS];
 
-/** submit のペイロード。錠の番号を含めない。対象は常にいま挑戦中の錠である（13のsubmit） */
+/**
+ * submit のペイロード。
+ *
+ * `lockIndex` は操作した時点で画面に出ていた錠である。対象の指定ではなく、遅着の検出に使う。
+ * 錠が開いた直後に届いた前の錠の答えを、次の錠への誤答として記録しないためである（13のsubmit）。
+ * 現在の錠と一致しなければ拒否するため、先の錠へ総当たりを掛ける経路にはならない。
+ */
 export interface SubmitPayload {
+  lockIndex: number;
   code: string;
+}
+
+/** hint のペイロード。lockIndex の意味は SubmitPayload と同じ */
+export interface HintPayload {
+  lockIndex: number;
 }
 
 /**
@@ -173,6 +185,8 @@ export interface SubmitPayload {
  */
 export const ERROR_CODES = {
   invalidStage: "invalid_stage",
+  /** 操作した時点の錠が、いま挑戦中の錠と違う（錠が開いた直後の遅着） */
+  staleLock: "stale_lock",
   /** 数字以外を含む、桁数が錠と違う、文字列でない */
   invalidCode: "invalid_code",
   /** 同じ錠へ同じ答えをすでに提出している */

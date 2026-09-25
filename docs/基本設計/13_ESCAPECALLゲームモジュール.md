@@ -385,7 +385,7 @@ interface LockSecret {
 ステージ違いはすべて `invalid_stage` で拒否する。
 
 拒否のコードはすべてゲームモジュール側で定義し、共通コアのエラーコード表には載せない（[12](./12_BLINDROOMゲームモジュール.md) と同じ）。
-`invalid_stage` / `invalid_code` / `already_attempted` / `not_host` / `no_more_hints` の5つを持つ。
+`invalid_stage` / `stale_lock` / `invalid_code` / `already_attempted` / `not_host` / `no_more_hints` の6つを持つ。
 
 ### ready
 
@@ -393,18 +393,30 @@ interface LockSecret {
 
 ### submit
 
-payloadは `{ code: string }` とし、錠の番号を含めない。
+payloadは `{ lockIndex: number; code: string }` とする。
 対象は常に `currentLockIndex` の錠とする。
-クライアントから対象を指定できると、まだ手がかりの無い先の錠へ総当たりを掛ける経路ができる。
+
+`lockIndex` は、操作した時点で画面に出ていた錠である。
+対象の指定ではなく、遅着の検出に使う。
+`currentLockIndex` と一致しなければ `stale_lock` で拒否し、状態を変えない。
+
+遅着を検出しないと、錠が開いた直後に届いた前の錠の答えが、次の錠への誤答として記録される。
+錠1と錠2はどちらも4桁であるため、桁数の検査では弾けない。
+誤答数はランクに入るため、正しく解いた卓のランクが下がる。
+
+一致したときだけ受理するため、先の錠を指定して総当たりを掛ける経路にはならない。
+クライアントから任意の錠を対象にできると、まだ手がかりの無い先の錠へ総当たりを掛けられる。
+対象を `currentLockIndex` に固定するのはこのためであり、`lockIndex` はその固定を崩さない。
 
 提出者をホストに限らない。
 協力型であり、最後の入力を誰が打つかに意味を持たせない。
 提出をホストに限ると、対応表しか持たない人が解錠の操作に一度も関与できないまま終わる。
 
-拒否する条件は2つある。
+拒否する条件は3つある。
 
 | 条件 | code |
 | --- | --- |
+| `lockIndex` が `currentLockIndex` と違う、または欠けている | `stale_lock` |
 | `code` が文字列でない、数字以外を含む、桁数が錠の `codeLength` と違う | `invalid_code` |
 | 同じ錠へ同じ答えをすでに提出している | `already_attempted` |
 
@@ -426,6 +438,9 @@ payloadは `{ code: string }` とし、錠の番号を含めない。
 ### hint
 
 いま挑戦中の錠の答えを、左から1桁ずつ公開状態の `hints` へ開示する。
+
+payloadは `{ lockIndex: number }` とし、`submit` と同じく `currentLockIndex` と一致しなければ `stale_lock` で拒否する。
+錠が開いた直後に届いたヒントの要求で、次の錠の桁を開けないためである。
 
 ホスト操作に限る。
 誰でも押せると、1人の判断で卓全体のヒント数が増え、結果のランクが下がる。
@@ -766,6 +781,9 @@ interface LockSolution {
 * `submit`: 正答で錠が開き、`currentLockIndex` が進み、`deadlineSeconds` を返さないこと
 * `submit`: 3つ目の錠の正答で `result` が返り、`outcome` が `escaped` になること
 * `submit`: 開いた錠の答えを次の錠へ提出しても開かないこと
+* `submit`: 前の錠を指す提出（錠が開いた直後の遅着）が `stale_lock` で拒否され、`attempts` が増えないこと
+* `submit`: 先の錠を指す提出と、錠番号の無い提出が `stale_lock` で拒否されること
+* `hint`: 前の錠を指すヒントの要求が `stale_lock` で拒否され、次の錠の桁が開かないこと
 * `hint`: ホスト以外からの送信が `not_host` で拒否されること
 * `hint`: 左から1桁ずつ開示され、`codeLength - 1` 桁を超える要求が `no_more_hints` で拒否されること
 * 締切: `briefing` の締切で `solving` へ進み、錠1の断片が配られること

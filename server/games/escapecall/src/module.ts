@@ -230,11 +230,19 @@ function handleReady(
   return toSolving(room, next, gameSecret);
 }
 
-function readCode(payload: unknown): unknown {
+function readField(payload: unknown, key: "code" | "lockIndex"): unknown {
   if (typeof payload !== "object" || payload === null) {
     return undefined;
   }
-  return (payload as { code?: unknown }).code;
+  return (payload as Record<string, unknown>)[key];
+}
+
+/**
+ * 操作した時点の錠が、いま挑戦中の錠と一致するか。
+ * 錠が開いた直後に届いた前の錠への操作を、次の錠へ適用しないために見る（13のsubmit・hint）。
+ */
+function isCurrentLock(payload: unknown, lockIndex: number): boolean {
+  return readField(payload, "lockIndex") === lockIndex;
 }
 
 function handleSubmit(
@@ -251,8 +259,11 @@ function handleSubmit(
     return { reject: { code: ERROR_CODES.invalidStage } };
   }
 
-  // 対象は常にいま挑戦中の錠。クライアントから錠を指定させない（13のsubmit）
-  const code = readCode(payload);
+  // 対象は常にいま挑戦中の錠。送られた錠番号は遅着の検出にだけ使う（13のsubmit）
+  if (!isCurrentLock(payload, lockIndex)) {
+    return { reject: { code: ERROR_CODES.staleLock } };
+  }
+  const code = readField(payload, "code");
   if (typeof code !== "string" || !CODE_PATTERN.test(code) || code.length !== label.codeLength) {
     return { reject: { code: ERROR_CODES.invalidCode } };
   }
@@ -293,6 +304,7 @@ function handleHint(
   publicState: EscapeCallPublic,
   gameSecret: EscapeCallGameSecret,
   playerId: string,
+  payload: unknown,
 ): Transition {
   const lockIndex = publicState.currentLockIndex;
   const lock = gameSecret.locks[lockIndex];
@@ -302,6 +314,9 @@ function handleHint(
   // 場の合意でヒントを取る形にする。誰でも押せると1人の判断でランクが下がる（13のhint）
   if (!isHost(room, playerId)) {
     return { reject: { code: ERROR_CODES.notHost } };
+  }
+  if (!isCurrentLock(payload, lockIndex)) {
+    return { reject: { code: ERROR_CODES.staleLock } };
   }
   const revealed = hintCountOf(publicState, lockIndex);
   // 全桁を開示すると錠を解く工程が消える。残り1桁なら10通りの総当たりで必ず開けられる
@@ -398,7 +413,7 @@ export const escapeCallModule: GameModule<EscapeCallPublic, EscapeCallSecret, Es
       case ACTIONS.submit:
         return handleSubmit(room, publicState, gameSecret, playerId, payload);
       case ACTIONS.hint:
-        return handleHint(room, publicState, gameSecret, playerId);
+        return handleHint(room, publicState, gameSecret, playerId, payload);
       default:
         return { reject: { code: ERROR_CODES.invalidStage } };
     }

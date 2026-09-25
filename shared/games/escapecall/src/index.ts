@@ -92,6 +92,7 @@ export {
   type EscapeCallSecret,
   type EscapeCallSettings,
   type HintEntry,
+  type HintPayload,
   type HolderEntry,
   type LockPublic,
   type LockSolution,

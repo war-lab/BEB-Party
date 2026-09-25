@@ -93,7 +93,7 @@
       return;
     }
     ui.lastErrorCode = null;
-    hintPending = sendAction(ACTIONS.hint);
+    hintPending = sendAction(ACTIONS.hint, { lockIndex });
   }
 
   function press(digit: string): void {
@@ -111,7 +111,7 @@
       return;
     }
     ui.lastErrorCode = null;
-    pending = sendAction(ACTIONS.submit, { code: input });
+    pending = sendAction(ACTIONS.submit, { lockIndex, code: input });
     if (pending) {
       input = "";
     }
@@ -198,6 +198,8 @@
       </div>
       {#if ui.lastErrorCode === "already_attempted"}
         <p class="error" data-testid="submit-error">その答えはもう試しています。</p>
+      {:else if ui.lastErrorCode === "stale_lock"}
+        <p class="error" data-testid="submit-error">錠が先に開きました。次の錠の手がかりを見てください。</p>
       {/if}
     </section>
 
