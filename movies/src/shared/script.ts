@@ -367,7 +367,7 @@ export const SCRIPTS: MovieScript[] = [
       {
         shot: "escapecall-solving-rule",
         stage: "解錠 2つ目の錠から",
-        caption: ["規則を持つ人は", "読み方の指示を英語で伝える"],
+        caption: ["規則を持つ人は", "答えの作り方を英語で伝える"],
         hold: 3.6,
       },
       {

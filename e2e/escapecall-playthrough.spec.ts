@@ -63,7 +63,9 @@ for (const levels of [
         expect(message).not.toMatch(/(red|blue|yellow|black)_(star|circle|triangle|square)/);
         expect(message).not.toContain('"pieces"');
         expect(message).not.toContain('"rulePhrases"');
-        expect(message).not.toMatch(/Skip the|Ignore every|Leave out every|right to left|Swap the first|Add one to/i);
+        expect(message).not.toMatch(
+          /Skip the|Read only the symbols|do not use it|right to left|Start with the last symbol|of the answer|change places|Add one to|goes up by one/i,
+        );
       }
     } finally {
       await table.close();

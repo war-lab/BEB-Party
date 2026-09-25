@@ -1,7 +1,7 @@
 <!--
   自分の断片1つ（基本設計/13の断片）。並び・対応表・規則のどれかを描く。
 
-  並びの記号に番号を振らない。番号があれば「1番は」と言えば済み、first / then / last のような
+  並びの記号に番号を振らない。番号があれば「1番は」と言えば済み、first / next / last のような
   順序の表現を使う理由が消える（13の画面）。
   E2Eが答えを組み立てられるよう、記号・数字・規則を data 属性にも持たせる。表示には使わない。
 -->
@@ -14,9 +14,16 @@
   }
   let { piece }: Props = $props();
 
-  const partLabel = $derived(
-    piece.kind === "rule" ? "" : piece.part === "front" ? "（前半）" : piece.part === "back" ? "（後半）" : "",
-  );
+  // 並びは順序があるので前半・後半と呼ぶ。数字の表は順序を持たないため「半分」と呼び、先に話す人と誤読させない
+  const partLabel = $derived.by(() => {
+    if (piece.kind === "rule" || piece.part === "whole") {
+      return "";
+    }
+    if (piece.kind === "map") {
+      return "（半分）";
+    }
+    return piece.part === "front" ? "（前半）" : "（後半）";
+  });
 </script>
 
 {#if piece.kind === "order"}
@@ -28,7 +35,7 @@
       {/each}
     </ol>
     {#if piece.part === "back"}
-      <p class="note">前半を持つ人の続きです。</p>
+      <p class="note">前半を持つ人の続きです。<em>The third one is ...</em> のように、何番目かを付けて言います。</p>
     {:else if piece.part === "front"}
       <p class="note">この後ろに、後半を持つ人の記号が続きます。</p>
     {/if}
@@ -47,7 +54,7 @@
   </section>
 {:else}
   <section class="piece rule" data-testid="piece-rule">
-    <h3>読み方の規則<span class="sub">上から順に</span></h3>
+    <h3>規則<span class="sub">上から順に使う</span></h3>
     <ol class="rules">
       {#each piece.rules as rule, index (index)}
         <li data-rule-id={rule.ruleId} data-param={rule.param ?? ""}>

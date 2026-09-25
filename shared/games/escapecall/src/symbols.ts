@@ -11,7 +11,7 @@
 export const COLORS = {
   red: { en: "red", ja: "赤", fill: "#FF3D3D" },
   blue: { en: "blue", ja: "青", fill: "#2E7CF6" },
-  yellow: { en: "yellow", ja: "黄", fill: "#FFC400" },
+  yellow: { en: "yellow", ja: "黄色", fill: "#FFC400" },
   black: { en: "black", ja: "黒", fill: "#161B33" },
 } as const;
 

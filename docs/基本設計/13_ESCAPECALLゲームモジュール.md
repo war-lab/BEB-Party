@@ -58,7 +58,7 @@ gameIdは `escapecall` とする。
 | --- | --- | --- |
 | 赤 | red | `#FF3D3D` |
 | 青 | blue | `#2E7CF6` |
-| 黄 | yellow | `#FFC400` |
+| 黄色 | yellow | `#FFC400` |
 | 黒 | black | `#161B33` |
 
 | 形 | 英語 |
@@ -75,7 +75,10 @@ gameIdは `escapecall` とする。
 白を除くのは、画面の地が白に近く、白い記号の輪郭しか見えないためである。
 
 形は色がなくても区別できる4種とする。
-色を取り違えても形で絞れるため、1語の聞き違いで錠が止まる確率を下げる。
+色を取り違えても、対応表に同じ形の別の色が無ければ形で絞れる。
+同じ形の別の色が表にある場合（例: `blue star` と `black star`）は、聞き違えると別の数字が黙って返り、「持っていない」にならない。
+
+`blue` と `black` は語頭が同じで聞き違えやすいため、確認の言い回し（`Blue or black?`）を `keyExpressions` に置く（[お題レビュー/lab.md](../お題レビュー/lab.md)）。
 
 記号はクライアントがインラインSVGで描く。
 画像ファイルを持たない。
@@ -94,7 +97,7 @@ gameIdは `escapecall` とする。
 
 | 断片 | 中身 | 必要な英語 |
 | --- | --- | --- |
-| 並び（order） | 錠に描かれた記号の列（左から右） | 色と形の名前、順序（first, then, last） |
+| 並び（order） | 錠に描かれた記号の列（左から右） | 色と形の名前、順序（first, next, last） |
 | 対応表（map） | 記号と数字の対応（例: red star → 3） | 色と形の名前、数字 |
 | 規則（rule） | 並びをどう読み替えるかの英文 | 指示文の理解と言い換え |
 
@@ -221,7 +224,7 @@ A〜Dは、その錠での参加者のレベルの降順とする（次節）。
 | 規則を持つ人のレベル | 英文 | 日本語の補足 |
 | --- | --- | --- |
 | 1〜2 | `easy`（短い命令文。例: "Skip the black ones."） | 表示する |
-| 3〜5 | `standard`（条件を含む文。例: "Ignore every black symbol when you read the row."） | 表示しない |
+| 3〜5 | `standard`（条件や否定を含む文。例: "Read only the symbols that are not black."） | 表示しない |
 
 日本語の補足は規則を理解するためのものであり、伝えるのは英語で行う。
 補足を読み上げることは「自分の画面を見せない」約束と同じく場の指摘に委ね、機械では検出しない。
@@ -597,7 +600,8 @@ interface LockSolution {
 
 * 答えの入力は数字だけの10キーとし、錠の桁数ぶんの枠を出す。英字キーボードを開かない
 * 自分の断片を画面の上半分に置き、入力を下半分に置く。断片を見ながら入力できるようにする
-* 色と形の英語名の早見表を、断片の横から開けるようにする。開いている間も断片は見える
+* 色と形の英語名と `keyExpressions` の早見表を、断片の下から開けるようにする。作戦会議は90秒で終わり、詰まったときに言い回しを見返す手段が無いと困るため、解錠中にも出す
+* 並びの前半・後半は「（前半）」「（後半）」と表示する。数字の表は順序を持たないため「（半分）」と表示し、先に話す人と誤読させない
 * ホストの画面にだけ、ヒントの要求ボタンを出す
 * 錠が開いたときは、[ビジュアルデザイン.md](../ビジュアルデザイン.md) のカットインの文法で解錠を見せてから、次の錠の断片へ切り替える
 
@@ -630,8 +634,8 @@ interface LockSolution {
   "scene": {
     "titleEn": "The Midnight Lab",
     "titleJa": "深夜の研究所",
-    "introEn": "The power went out and the doors locked. Open three locks before the guard comes back.",
-    "introJa": "停電で扉が閉まった。警備員が戻る前に3つの錠を開けよう。"
+    "introEn": "The lights are off. All the doors are locked. Open three locks before the guard comes back.",
+    "introJa": "明かりが消え、扉はすべて閉まっている。警備員が戻る前に3つの錠を開けよう。"
   },
   "lockLabels": [
     { "en": "The storage box", "ja": "保管箱" },
@@ -640,34 +644,42 @@ interface LockSolution {
   ],
   "keyExpressions": [
     { "en": "What is the first symbol?", "ja": "最初の記号は？" },
+    { "en": "What comes next?", "ja": "その次は？" },
+    { "en": "The first one is a blue circle.", "ja": "最初は青い円" },
     { "en": "What number is the red star?", "ja": "赤い星は何番？" },
-    { "en": "Say that again, please.", "ja": "もう一度お願い" }
+    { "en": "The red star is three.", "ja": "赤い星は3" },
+    { "en": "Blue or black?", "ja": "青？黒？" },
+    { "en": "I don't have that one.", "ja": "それは持っていない" },
+    { "en": "Who has the rule? Please read it.", "ja": "規則はだれ？読んで" },
+    { "en": "Who has the first half?", "ja": "前半はだれ？" },
+    { "en": "Say that again, please.", "ja": "もう一度お願い" },
+    { "en": "Let me check. Is it four, seven, one, two?", "ja": "確認させて。4, 7, 1, 2？" }
   ],
   "rulePhrases": {
     "skip_color": {
       "easy": "Skip the {color} ones.",
-      "standard": "Ignore every {color} symbol when you read the row.",
+      "standard": "Read only the symbols that are not {color}.",
       "ja": "{color}の記号は飛ばす"
     },
     "skip_shape": {
       "easy": "Skip the {shape}s.",
-      "standard": "Leave out every {shape} when you read the row.",
+      "standard": "If a symbol is a {shape}, do not use it.",
       "ja": "{shape}は飛ばす"
     },
     "reverse": {
-      "easy": "Read it from right to left.",
-      "standard": "Read the row backwards, starting from the right end.",
-      "ja": "右から左へ読む"
+      "easy": "Read the symbols from right to left.",
+      "standard": "Start with the last symbol and finish with the first one.",
+      "ja": "記号を右から左へ読む"
     },
     "swap_ends": {
-      "easy": "Swap the first and last numbers.",
-      "standard": "Switch the first number with the last one.",
-      "ja": "最初と最後の数字を入れ替える"
+      "easy": "Swap the first and last numbers of the answer.",
+      "standard": "In the final answer, the first and last numbers change places.",
+      "ja": "答えの最初と最後の数字を入れ替える"
     },
     "add_one": {
-      "easy": "Add one to each number. Nine becomes zero.",
-      "standard": "Make every number one bigger, and turn nine into zero.",
-      "ja": "すべての数字に1を足す（9は0にする）"
+      "easy": "Add one to each number. For nine, write zero.",
+      "standard": "Each number goes up by one. If a number is nine, it goes back to zero.",
+      "ja": "すべての数字に1を足す（9のときは0と書く）"
     }
   }
 }
@@ -738,7 +750,9 @@ interface LockSolution {
 | ランクの閾値 | S、A、Bの閾値は仮置きである |
 | 所要時間 | 錠ごとの所要時間と、既定600秒の妥当性は実測していない |
 | 画面を見せない約束 | 画面を見せ合うと英語で伝える理由が消える。機械では検出せず、場に委ねる |
-| 色の聞き分け | 4色は色覚特性でも分離する組み合わせから選んだが、赤と黒を実機の画面で取り違えないかは確認していない |
+| 色の聞き分け | 4色は色覚特性でも分離する組み合わせから選んだが、赤と黒を実機の画面で取り違えないかは確認していない。`blue` と `black` を口頭で聞き違えないか、濃紺の黒を `navy` と呼ばないかも未確認である |
+| 2人卓で規則が口に出ない | 2人卓では、並びと規則を同じ人が持つ。規則を英語で伝える工程が起きず、規則を持つ人が一人で当てはめて終わる。割り当てを変えるか（錠2以降は低い方に並びを渡す等）は実プレイを見てから決める（[お題レビュー/lab.md](../お題レビュー/lab.md)） |
+| 聞き手のレベルと `standard` | 英文の段は規則を持つ人のレベルで決まるが、聞くのは卓の全員である。レベル5の人が `standard` をそのまま読み上げると、レベル1の聞き手に届かない可能性がある。言い換えてよいことは遊び方に書いたが、言い換えの例を画面に出すかは未決である |
 
 ## 旧ESCAPEからの変更
 

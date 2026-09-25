@@ -33,7 +33,7 @@
   <div class="body">
     {#if result}
       <section class="headline" data-testid="outcome" data-outcome={result.outcome}>
-        <p class="outcome">{result.outcome === "escaped" ? "ESCAPED!" : "TIME UP"}</p>
+        <p class="outcome">{result.outcome === "escaped" ? "ESCAPED!" : "TIME'S UP!"}</p>
         <p class="rank" data-testid="rank">RANK {result.rank}</p>
         <p class="stats">
           開けた錠 {result.openedCount} / {result.locks.length} ／ ヒント {result.hintCount}回 ／ まちがい {result.wrongCount}回
@@ -43,7 +43,7 @@
       {#each result.locks as lock (lock.index)}
         <section class="lock" data-testid="lock-solution">
           <h2>
-            <span class="en">{lock.labelEn}</span>
+            <span class="en">{lock.labelEn}<span class="ja">{lock.labelJa}</span></span>
             <span class="state">{lock.opened ? "OPEN" : "LOCKED"}</span>
           </h2>
           <p class="code">答え <strong>{lock.code}</strong></p>
@@ -139,6 +139,12 @@
     justify-content: space-between;
     font-family: var(--font-display);
     font-size: 1rem;
+  }
+  h2 .ja {
+    margin-left: 0.4rem;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    color: var(--mist);
   }
   h2 .state {
     font-size: 0.8rem;
