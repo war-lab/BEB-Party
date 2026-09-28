@@ -53,6 +53,8 @@
   let lastHintCount = -1;
   let lastAttemptCount = -1;
   let lastLockIndex = -1;
+  // 送信中に切れたときの状態。再接続後に新しい状態が届くまで、送った操作が届いたかは分からない
+  let staleState: EscapeCallPublic | null = null;
 
   $effect(() => acquireWakeLock());
 
@@ -64,6 +66,8 @@
       unlockedFlash = true;
       setTimeout(() => (unlockedFlash = false), 1400);
       input = "";
+      // 前の錠で出たエラー（already_attempted 等）を次の錠の画面に残さない
+      ui.lastErrorCode = null;
     }
     if (count !== lastAttemptCount || index !== lastLockIndex) {
       pending = false;
@@ -83,6 +87,26 @@
   // サーバが拒否した場合（already_attempted 等）も入力を戻す
   $effect(() => {
     if (ui.lastErrorCode !== null) {
+      pending = false;
+      hintPending = false;
+    }
+  });
+
+  // 送信中に接続が切れた場合も入力を戻す。送った操作が届かなければ試行数もヒント数も変わらず、
+  // 上の2つの解除が起きないため、10キーとヒントが押せないまま残る。
+  // 戻すのは再接続後に新しい状態が届いてから。接続が戻った直後（状態の再送より前）に戻すと、
+  // 届いていたヒントをもう一度押せてしまい、2桁開く
+  $effect(() => {
+    const connected = ui.connectionStatus === "connected";
+    const current = publicState;
+    if (!connected) {
+      if ((pending || hintPending) && staleState === null) {
+        staleState = current;
+      }
+      return;
+    }
+    if (staleState !== null && current !== staleState) {
+      staleState = null;
       pending = false;
       hintPending = false;
     }
@@ -142,8 +166,15 @@
         <p class="label"><span class="en">{lock.labelEn}</span><span class="ja">{lock.labelJa}</span></p>
         <ol class="slots" aria-label="答えの桁">
           {#each Array.from({ length: lock.codeLength }, (_, index) => index) as position (position)}
-            <li class:hinted={hintDigitAt(position) !== undefined}>
-              {input[position] ?? hintDigitAt(position) ?? ""}
+            {@const hinted = hintDigitAt(position)}
+            {@const typed = input[position]}
+            <!-- ヒントの数字と違う数字を打ったら、黄色の枠のまま別の数字を出さず、食い違いとして示す -->
+            <li
+              class:hinted={hinted !== undefined && (typed === undefined || typed === hinted)}
+              class:mismatch={hinted !== undefined && typed !== undefined && typed !== hinted}
+              aria-label={hinted !== undefined ? `ヒント ${hinted}` : undefined}
+            >
+              {typed ?? hinted ?? ""}
             </li>
           {/each}
         </ol>
@@ -191,7 +222,15 @@
         {#each ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as digit (digit)}
           <button onclick={() => press(digit)} disabled={pending} data-testid={`key-${digit}`}>{digit}</button>
         {/each}
-        <button class="erase" onclick={erase} disabled={pending || input.length === 0} data-testid="key-erase">←</button>
+        <button
+          class="erase"
+          onclick={erase}
+          disabled={pending || input.length === 0}
+          aria-label="1文字消す"
+          data-testid="key-erase"
+        >
+          ←
+        </button>
         <button onclick={() => press("0")} disabled={pending} data-testid="key-0">0</button>
         <button
           class="enter"
@@ -311,6 +350,10 @@
   }
   .slots li.hinted {
     background: var(--yellow);
+  }
+  .slots li.mismatch {
+    background: var(--red-veil);
+    border-color: var(--red-deep);
   }
   .mine,
   .holders,

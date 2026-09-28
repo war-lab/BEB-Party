@@ -4,7 +4,9 @@ import {
   BOARD_SIZES,
   BUILDING_SECONDS,
   DEFAULT_BOARD_SIZE_ID,
+  DEFAULT_LAPS_ID,
   ERROR_CODES,
+  LAPS_IDS,
   PLACE_COUNT,
   STAGES,
   STAGE_DEADLINE_SECONDS,
@@ -198,7 +200,12 @@ function partialBoard(sample: Board, count: number): Board {
   return board;
 }
 
-function place(progress: Progress, playerId: string, cells: Board, overrides: { disconnected?: string[] } = {}) {
+function place(
+  progress: Progress,
+  playerId: string,
+  cells: Board,
+  overrides: { disconnected?: string[]; players?: Player[] } = {},
+) {
   return act(progress, playerId, ACTIONS.place, { roundIndex: progress.publicState.roundIndex, cells }, overrides);
 }
 
@@ -627,6 +634,67 @@ describe("ラウンドの進行", () => {
     const started = startGame({ players: five });
     expect(started.publicState.totalRounds).toBe(5);
   });
+
+  it("対応人数は3〜6人である", () => {
+    expect(blindRoomModule.playerCount).toEqual([3, 6]);
+  });
+
+  /** 全員が毎ラウンド見本どおりに置いて最後まで進める */
+  function playPerfectly(table: Player[], settings: unknown): Progress {
+    let progress = begin({ players: table, settings });
+    const overrides = { players: table };
+    for (let round = 0; round < progress.publicState.totalRounds; round += 1) {
+      progress = toBuilding(progress, overrides);
+      for (const listener of listenerIds(progress, overrides)) {
+        progress = place(progress, listener, sampleOf(progress), overrides);
+      }
+      progress = deadline(progress, overrides);
+      if (round < progress.publicState.totalRounds - 1) {
+        expect(progress.result).toBeUndefined();
+        progress = deadline(progress, overrides);
+      }
+    }
+    return progress;
+  }
+
+  it("3人でも3ラウンドで最後まで進み、resultが返る", () => {
+    const three = playersOf([1, 3, 5]);
+    const progress = playPerfectly(three, {});
+    expect(progress.publicState.totalRounds).toBe(3);
+    expect(progress.result?.rounds).toHaveLength(3);
+    // 聞き手として2ラウンド×5点、説明者として1ラウンド×5点（12の得点）
+    expect(progress.result?.scores.map((entry) => entry.points)).toEqual([15, 15, 15]);
+  });
+
+  it("2周ではラウンド数が参加人数×2になり、1周目と同じ順で全員が2回ずつ説明者を務める", () => {
+    const four = playersOf([1, 2, 4, 5]);
+    const started = startGame({ players: four, settings: { laps: "2" } });
+    const order = started.publicState.describerOrder;
+    expect(started.publicState.totalRounds).toBe(8);
+    expect(order).toHaveLength(8);
+    expect(order.slice(4)).toEqual(order.slice(0, 4));
+    expect([...order.slice(0, 4)].sort()).toEqual(four.map((player) => player.id).sort());
+    // 見本とアイテムセットも全ラウンド分を開始時に作る
+    const secret = started.gameSecret as BlindRoomGameSecret;
+    expect(secret.samples).toHaveLength(8);
+    expect(secret.itemSetIds).toHaveLength(8);
+  });
+
+  it("1周を選んだ場合は、周回数を指定しない場合と同じ説明者の順と見本になる", () => {
+    const withLaps = startGame({ settings: { laps: "1" } });
+    const withoutLaps = startGame();
+    expect(withLaps.publicState.describerOrder).toEqual(withoutLaps.publicState.describerOrder);
+    expect((withLaps.gameSecret as BlindRoomGameSecret).samples).toEqual(
+      (withoutLaps.gameSecret as BlindRoomGameSecret).samples,
+    );
+  });
+
+  it("3人・2周で最後まで進み、満点は聞き手4ラウンド×5点と説明者2ラウンド×5点の30点になる", () => {
+    const three = playersOf([2, 3, 4]);
+    const progress = playPerfectly(three, { laps: "2" });
+    expect(progress.result?.rounds).toHaveLength(6);
+    expect(progress.result?.scores.map((entry) => entry.points)).toEqual([30, 30, 30]);
+  });
 });
 
 describe("設定と記述子", () => {
@@ -660,6 +728,24 @@ describe("設定と記述子", () => {
     }
     expect(field.options.map((option) => option.value)).toEqual(Object.keys(BOARD_SIZES));
     expect(field.default).toBe(DEFAULT_BOARD_SIZE_ID);
+  });
+
+  it("周回数の記述子が、選べる周回数と既定を載せる", () => {
+    const field = blindRoomModule.settingsFields.find((entry) => entry.key === "laps");
+    expect(field?.type).toBe("select");
+    if (field?.type !== "select") {
+      throw new Error("lapsは選択の記述子である");
+    }
+    expect(field.options.map((option) => option.value)).toEqual(LAPS_IDS);
+    expect(field.default).toBe(DEFAULT_LAPS_ID);
+  });
+
+  it("未知の周回数を拒否し、既知の周回数を受理する", () => {
+    for (const id of LAPS_IDS) {
+      expect(blindRoomModule.validateSettings({ laps: id }).valid).toBe(true);
+    }
+    expect(blindRoomModule.validateSettings({ laps: "3" }).valid).toBe(false);
+    expect(blindRoomModule.validateSettings({ laps: 2 }).valid).toBe(false);
   });
 
   it("未知の広さを拒否し、既知の広さを受理する", () => {

@@ -11,6 +11,7 @@ import {
   type ErrorMessage,
   type GameTransition,
   type JoinMessage,
+  type KickMessage,
   type Player,
   type SelectGameMessage,
   type ServerMessage,
@@ -65,6 +66,10 @@ function roomCapacity(gameId: string | undefined): number {
   const all = Object.values(registry).map((module) => module.playerCount[1]);
   return all.length > 0 ? Math.max(...all) : 0;
 }
+
+// 失効済みトークンとして残す件数の上限。1部屋で外す人数は数人であり、上限はstorageの肥大を止める保険である。
+// 超えたら古いものから捨てる。捨てたトークンの端末は、戻ってくると新しい席を得る（ADR-0028）
+const REVOKED_TOKENS_LIMIT = 100;
 
 // 90秒(ハートビート間隔25秒の3倍を超える値)より古い自動応答は切断済みとみなす（基本設計/01_サーバ.md、ADR-0013）
 const HEARTBEAT_DEAD_THRESHOLD_MS = 90_000;
@@ -177,6 +182,8 @@ export class RoomDO extends DurableObject<Env> {
         return this.handleAction(ws, message);
       case "nextGame":
         return this.handleNextGame(ws);
+      case "kick":
+        return this.handleKick(ws, message);
     }
   }
 
@@ -232,6 +239,12 @@ export class RoomDO extends DurableObject<Env> {
 
     const room = await this.getRoom();
     const secrets = await this.getSecrets();
+
+    // 外された端末の自動再接続で席を取り直させない。ソケットは閉じない。閉じると kicked を知らない
+    // 旧SPAが再接続を繰り返す（ADR-0028）。トークンを持たないjoinは止めないため、本人は入り直せる
+    if (message.reconnectToken && (secrets.revokedTokens ?? []).includes(message.reconnectToken)) {
+      return this.sendError(ws, ERROR_CODES.KICKED, "removed by host");
+    }
 
     if (message.reconnectToken) {
       const existingPlayerId = Object.entries(secrets.reconnectTokens).find(
@@ -492,6 +505,55 @@ export class RoomDO extends DurableObject<Env> {
     await this.updateAlarm(nextRoom);
 
     this.broadcastState(nextRoom);
+  }
+
+  /**
+   * ロビーでホストが切断中の参加者を外す（ADR-0028）。
+   *
+   * ゲーム中は受理しない。席を消すとゲームモジュールが配った役割や断片の持ち主がいなくなるため。
+   * 接続中の参加者も受理しない。同室にいるなら口頭で済み、誤って外す事故を避けられる
+   */
+  private async handleKick(ws: WebSocket, message: KickMessage): Promise<void> {
+    const room = await this.getRoom();
+    if (room.lifecycle !== "lobby") {
+      return this.sendError(ws, ERROR_CODES.INVALID_LIFECYCLE, "not in lobby");
+    }
+    if (!this.isHost(ws, room)) {
+      return this.sendError(ws, ERROR_CODES.NOT_HOST, "host only");
+    }
+    const target = room.players.find((p) => p.id === message.playerId);
+    if (!target || target.id === this.getAttachedPlayerId(ws)) {
+      return this.sendError(ws, ERROR_CODES.INVALID_PAYLOAD, "unknown player");
+    }
+    // 押す直前に戻ってきた人は外さない
+    if (target.connected) {
+      return this.sendError(ws, ERROR_CODES.INVALID_PAYLOAD, "player is connected");
+    }
+
+    room.players = room.players.filter((p) => p.id !== target.id);
+    const secrets = await this.getSecrets();
+    const token = secrets.reconnectTokens[target.id];
+    delete secrets.reconnectTokens[target.id];
+    delete secrets.playerSecrets[target.id];
+    if (token) {
+      secrets.revokedTokens = [...(secrets.revokedTokens ?? []), token].slice(-REVOKED_TOKENS_LIMIT);
+    }
+    this.reassignHostIfNeeded(room);
+
+    await this.ctx.storage.put("room", room);
+    await this.ctx.storage.put("secrets", secrets);
+    await this.updateAlarm(room);
+
+    // 切断扱いの席のソケットは、通常は閉じている（死活判定は無応答のソケットを閉じる）。
+    // 閉じきる前のソケットが一覧に残っている間に備え、残っていれば知らせてから閉じる。
+    // 閉じた後のwebSocketCloseは、席が無いため何もしない
+    for (const socket of this.ctx.getWebSockets()) {
+      if (this.getAttachedPlayerId(socket) === target.id) {
+        this.sendError(socket, ERROR_CODES.KICKED, "removed by host");
+        socket.close(1000, "kicked");
+      }
+    }
+    this.broadcastState(room);
   }
 
   // --- 時間駆動処理（アラーム多重化・死活判定・部屋のGC。基本設計/01_サーバ.md、ADR-0013） ---

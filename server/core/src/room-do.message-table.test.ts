@@ -82,7 +82,7 @@ describe("メッセージ処理表: 表にない組み合わせはerror", () => 
     }
   });
 
-  it("finished中のselectGame/configure/start/actionはinvalid_lifecycleで拒否される", async () => {
+  it("finished中のselectGame/configure/start/action/kickはinvalid_lifecycleで拒否される", async () => {
     const { host } = await setupRoomAtStage(uniqueRoomCode("mt-finished"), "finished");
 
     for (const message of [
@@ -90,6 +90,7 @@ describe("メッセージ処理表: 表にない組み合わせはerror", () => 
       { v: 1, type: "configure", settings: {} },
       { v: 1, type: "start" },
       { v: 1, type: "action", action: "advance" },
+      { v: 1, type: "kick", playerId: "any-player" },
     ]) {
       const recv = collectMessages(host, 1);
       sendMessage(host, message);

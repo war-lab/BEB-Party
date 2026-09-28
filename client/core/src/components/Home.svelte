@@ -2,7 +2,7 @@
 <script lang="ts">
   import { untrack } from "svelte";
   import { PLAYER_ICONS, type Level, type PlayerIconId } from "@beb/shared-core";
-  import { connect } from "../connection";
+  import { connect, storedIdentity } from "../connection";
 
   interface Props {
     onEnter: (code: string) => void;
@@ -13,10 +13,14 @@
 
   const LEVELS: Level[] = [1, 2, 3, 4, 5];
 
-  let name = $state("");
-  let level = $state<Level>(3);
+  // その部屋で名乗った記録があれば埋めておく。ホストに外された人が入り直すときに打ち直さずに済む（ADR-0028）
+  const remembered = untrack(() => (initialCode ? storedIdentity(initialCode) : null));
+  let name = $state(remembered?.name ?? "");
+  let level = $state<Level>(remembered?.level ?? 3);
   // 初期選択はランダムにする。全員が同じ既定アイコンで入ると見分けがつかない
-  let icon = $state<PlayerIconId>(PLAYER_ICONS[Math.floor(Math.random() * PLAYER_ICONS.length)]!.id);
+  let icon = $state<PlayerIconId>(
+    remembered?.icon ?? PLAYER_ICONS[Math.floor(Math.random() * PLAYER_ICONS.length)]!.id,
+  );
   // 初期表示のときだけ使う値であり、以後の変化は追わない
   let codeInput = $state(untrack(() => initialCode) ?? "");
   let creating = $state(false);

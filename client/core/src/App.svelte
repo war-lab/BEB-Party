@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Component } from "svelte";
   import { serverState } from "./stores/server-state.svelte";
+  import { ui } from "./stores/ui.svelte";
   import { connect, disconnect, spectate, storedIdentity } from "./connection";
   import ConnectionBanner from "./components/ConnectionBanner.svelte";
   import Home from "./components/Home.svelte";
@@ -66,7 +67,8 @@
       spectate(restoredCode);
     } else {
       const identity = storedIdentity(restoredCode);
-      if (identity) {
+      // 外された部屋の記録では自動接続しない。ホームで本人に入り直すかを選ばせる（ADR-0028）
+      if (identity && !identity.kicked) {
         connect(restoredCode, identity.name, identity.level, identity.icon);
       } else {
         // 名前とレベルを申告してから参加させる。空名・レベル1固定の席を作らない
@@ -75,6 +77,16 @@
       }
     }
   }
+
+  // ホストに外されたら、部屋コードを入れたホームへ戻す。入り直すかは本人が決める（ADR-0028）
+  $effect(() => {
+    if (ui.lastErrorCode === "kicked" && code && !hostMode) {
+      pendingCode = code;
+      code = null;
+      // 履歴を置き換える。pushStateだと戻るボタンで /room/CODE に戻り、リロードで自動接続が走る
+      history.replaceState({}, "", "/");
+    }
+  });
 
   $effect(() => {
     const room = serverState.room;

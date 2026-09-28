@@ -20,7 +20,7 @@ test("6 browser contexts sync to the same lobby state", async ({ browser, baseUR
 
     const dontSayIt = host.locator(".title-card", { hasText: "DON'T SAY IT" });
     await expect(dontSayIt).toContainText("禁止語を避けて");
-    await expect(dontSayIt).toContainText("5〜6人");
+    await expect(dontSayIt).toContainText("3〜6人");
     await expect(dontSayIt.locator(".title-card-icon")).toHaveText("🤐");
     for (const page of table.pages) {
       await expect(page.locator(".roster .beb-tile:not(.empty)")).toHaveCount(6, { timeout: 10_000 });

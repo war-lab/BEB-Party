@@ -54,6 +54,18 @@ export interface NextGameMessage {
   type: "nextGame";
 }
 
+/**
+ * ロビーでホストが切断中の参加者を外す（ADR-0028）。
+ *
+ * `playerId` は対象の指定であって認証情報ではない（ADR-0006が禁じる使い方に当たらない）。
+ * 権限は送信元がホストのソケットであることで確かめる（ADR-0028）
+ */
+export interface KickMessage {
+  v: number;
+  type: "kick";
+  playerId: string;
+}
+
 // C→S ゲーム固有メッセージ。中身は`action`と追加payloadのみで、
 // 共通コアは`action`文字列を見てGameModuleへディスパッチするだけで中身を解釈しない
 export interface ActionMessage {
@@ -70,6 +82,7 @@ export type ClientMessage =
   | ConfigureMessage
   | StartMessage
   | NextGameMessage
+  | KickMessage
   | ActionMessage;
 
 // S→C

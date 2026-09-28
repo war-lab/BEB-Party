@@ -6,7 +6,7 @@ import { expect, test, type WebSocketRoute } from "@playwright/test";
 import { clientIpHeaders, createRoom, joinRoom, openTable, readRoomCode } from "./support/room";
 
 test("人数が足りないあいだは開始できず、あと何人かが出る", async ({ browser, baseURL }) => {
-  // 収録ゲームはいずれも5〜6人。3人で止めて理由を読む
+  // DETECTIVESは5〜6人。3人で止めて理由を読む
   const table = await openTable(browser, baseURL!, [3, 3, 3], { testTitle: test.info().title });
 
   try {

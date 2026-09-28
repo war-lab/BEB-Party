@@ -90,6 +90,22 @@ export async function waitForLock(pages: Page[], lockNumber: number): Promise<vo
   }
 }
 
+/**
+ * 数字の表だけを持つページを探す。どの人数・どの錠にも1人以上いる（13の断片の割り当て）。
+ * 見つからなければ割り当ての前提が崩れているので、黙って別のページで代用せず落とす
+ */
+export async function findMapOnlyPage(pages: Page[]): Promise<Page> {
+  for (const page of pages) {
+    const mine = page.locator("[data-testid='my-pieces']");
+    const maps = await mine.locator("[data-testid='piece-map']").count();
+    const others = await mine.locator("[data-testid='piece-order'], [data-testid='piece-rule']").count();
+    if (maps > 0 && others === 0) {
+      return page;
+    }
+  }
+  throw new Error("数字の表だけを持つ参加者がいない");
+}
+
 /** 前の錠と桁数が同じで、答えと違う数字列。誤答の見本に使う */
 export function wrongCodeFor(code: string): string {
   return String((Number(code[0]) + 1) % 10) + code.slice(1);

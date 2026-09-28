@@ -8,7 +8,7 @@
 <script lang="ts">
   import { faceColor, playerIconOf, sendCommon, StageTimer, ui } from "@beb/client-core";
   import type { Room } from "@beb/shared-core";
-  import { STAGES, type EscapeCallResult, type PieceKind } from "@beb/shared-escapecall";
+  import { STAGES, symbolNameEn, type EscapeCallResult, type PieceKind } from "@beb/shared-escapecall";
   import SymbolIcon from "./SymbolIcon.svelte";
   import { stageLabels } from "./stage-labels";
 
@@ -50,7 +50,7 @@
 
           <div class="row">
             {#each lock.order as symbol, index (index)}
-              <SymbolIcon {symbol} size={34} />
+              <SymbolIcon {symbol} size={34} label={symbolNameEn(symbol)} />
             {/each}
           </div>
 
@@ -64,7 +64,7 @@
 
           <ul class="map">
             {#each lock.map as entry (entry.symbol)}
-              <li><SymbolIcon symbol={entry.symbol} size={24} /><span>{entry.digit}</span></li>
+              <li><SymbolIcon symbol={entry.symbol} size={24} label={symbolNameEn(entry.symbol)} /><span>{entry.digit}</span></li>
             {/each}
           </ul>
 
