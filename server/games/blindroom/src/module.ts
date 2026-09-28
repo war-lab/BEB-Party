@@ -8,6 +8,11 @@ import {
   BOARD_SIZE_IDS,
   BUILDING_SECONDS,
   DEFAULT_BOARD_SIZE_ID,
+  DEFAULT_LAPS_ID,
+  LAPS_IDS,
+  LAPS_OPTIONS,
+  isLapsId,
+  lapsOf,
   ERROR_CODES,
   PLACE_COUNT,
   STAGES,
@@ -79,6 +84,7 @@ function readSettings(settings: unknown): BlindRoomSettings {
   return {
     buildingSeconds: typeof seconds === "number" ? seconds : BUILDING_SECONDS.default,
     boardSizeId: isBoardSizeId(sizeId) ? sizeId : DEFAULT_BOARD_SIZE_ID,
+    laps: lapsOf(source.laps),
   };
 }
 
@@ -93,6 +99,10 @@ function validateSettings(settings: unknown): ValidationResult {
 
   if ("boardSizeId" in source && !isBoardSizeId(source.boardSizeId)) {
     return { valid: false, reason: `boardSizeIdは${BOARD_SIZE_IDS.join(" / ")}のいずれかである必要がある` };
+  }
+
+  if ("laps" in source && !isLapsId(source.laps)) {
+    return { valid: false, reason: `lapsは${LAPS_IDS.join(" / ")}のいずれかである必要がある` };
   }
 
   if (!("buildingSeconds" in source)) {
@@ -490,7 +500,8 @@ export const blindRoomModule: GameModule<
   title: "BLIND ROOM",
   tagline: "見えない部屋の配置を英語で伝え、同じ形を作る",
   icon: "🧩",
-  playerCount: [5, 6],
+  // 3人から遊べる。2人は説明者と聞き手が1人ずつで、1周が2ラウンドしかない（12のロビーの記述子）
+  playerCount: [3, 6],
   contentLabelJa: "部屋を選ぶ",
   settingsFields: [
     {
@@ -499,6 +510,13 @@ export const blindRoomModule: GameModule<
       labelJa: "盤面の広さ",
       options: BOARD_SIZE_IDS.map((id) => ({ value: id, labelJa: BOARD_SIZES[id].labelJa })),
       default: DEFAULT_BOARD_SIZE_ID,
+    },
+    {
+      type: "select",
+      key: "laps",
+      labelJa: "説明の周回",
+      options: LAPS_IDS.map((id) => ({ value: id, labelJa: LAPS_OPTIONS[id].labelJa })),
+      default: DEFAULT_LAPS_ID,
     },
     {
       type: "number",
@@ -519,14 +537,16 @@ export const blindRoomModule: GameModule<
     const random = createRandom(seed);
     const pack = resolvePack(contentId);
 
-    // 全員が1回ずつ説明者を務める。順にレベルの重みを掛けない（12のstart）
-    const describerOrder = shuffle(
+    // 全員が周回数と同じ回数ずつ説明者を務める。順にレベルの重みを掛けない（12のstart）。
+    // 2周目も1周目と同じ順で回す。周ごとに並べ直すと、周の境目で同じ人が続けて説明者になりうる
+    const { buildingSeconds, boardSizeId, laps } = readSettings(settings);
+    const lapOrder = shuffle(
       players.map((player: Player) => player.id),
       random,
     );
+    const describerOrder = Array.from({ length: laps }, () => lapOrder).flat();
 
     // アイテムセットと見本を全ラウンド分ここで固定する。handleActionにシードが渡らない（基本設計/05）
-    const { buildingSeconds, boardSizeId } = readSettings(settings);
     const cellCount = cellCountOf(boardSizeId);
     const itemSetIds = describerOrder.map((playerId) => pickItemSetId(pack, levelOf(players, playerId)));
     const samples = itemSetIds.map((setId) =>

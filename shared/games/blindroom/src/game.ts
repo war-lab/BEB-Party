@@ -236,6 +236,35 @@ export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
 export interface BlindRoomSettings {
   buildingSeconds: number;
   boardSizeId: BoardSizeId;
+  /** 説明者が何周するか。ラウンド数は参加人数 × 周回数になる */
+  laps: number;
+}
+
+/**
+ * 周回数の選択肢。キーが `settings.laps` に入る値であり、ロビーの select で選ぶ。
+ *
+ * 3〜4人の卓では1周が短く、説明者の当たり外れで結果が決まりやすい。2周にすると全員が2回ずつ説明者を務める。
+ * 人数から自動で決めないのは、4人で2周にすると1ゲームが約16分になり、受入条件の15分を超えるためである
+ * （12の所要時間の見積り）。選ぶのはホストに任せる。
+ */
+export const LAPS_OPTIONS = {
+  "1": { laps: 1, labelJa: "1周（全員が1回ずつ説明）" },
+  "2": { laps: 2, labelJa: "2周（全員が2回ずつ説明）" },
+} as const;
+
+export type LapsId = keyof typeof LAPS_OPTIONS;
+
+export const LAPS_IDS = Object.keys(LAPS_OPTIONS) as LapsId[];
+
+export const DEFAULT_LAPS_ID: LapsId = "1";
+
+export function isLapsId(value: unknown): value is LapsId {
+  return typeof value === "string" && Object.hasOwn(LAPS_OPTIONS, value);
+}
+
+/** 周回数を引く。未知の値は既定へ落として進行を止めない */
+export function lapsOf(id: unknown): number {
+  return isLapsId(id) ? LAPS_OPTIONS[id].laps : LAPS_OPTIONS[DEFAULT_LAPS_ID].laps;
 }
 
 /** 盤面の広さの既定値。ロビーの記述子と validateSettings が参照する */
