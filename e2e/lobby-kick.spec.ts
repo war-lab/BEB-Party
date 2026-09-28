@@ -55,11 +55,15 @@ test("切断中の参加者をホストが外すと席が消え、その人は�
     await expect(other.locator("[data-testid='kick']")).toHaveCount(0);
     await host.screenshot({ path: test.info().outputPath("host-lobby-kick.png") });
 
-    // 1回目は確認に切り替わるだけで、席は残る
-    await guestTile.locator("[data-testid='kick']").click();
-    await expect(guestTile.locator("[data-testid='kick']")).toHaveText("外す？");
+    // 1回目は確認に切り替わるだけで、席は残る。そのまま置くと4秒で取り消される
+    const kickButton = guestTile.locator("[data-testid='kick']");
+    await kickButton.click();
+    await expect(kickButton).toHaveText("外す？");
     await expect(tiles).toHaveCount(3);
-    await guestTile.locator("[data-testid='kick']").click();
+    await expect(kickButton).toHaveText("外す", { timeout: 6_000 });
+    await kickButton.click();
+    await expect(kickButton).toHaveText("外す？");
+    await kickButton.click();
     await expect(tiles).toHaveCount(2, { timeout: 10_000 });
     await expect(other.locator("[data-testid='participant-tile']")).toHaveCount(2, { timeout: 10_000 });
 
@@ -72,6 +76,18 @@ test("切断中の参加者をホストが外すと席が消え、その人は�
     await expect(guest.locator('input[placeholder="なまえ"]')).toHaveValue("Player3");
     await guest.screenshot({ path: test.info().outputPath("guest-kicked.png") });
     // 自動で席を取り直していない
+    await expect(tiles).toHaveCount(2);
+
+    // 戻るボタンとリロードでも、部屋のURLを直接開いても、席を取り直さない。
+    // 名乗った記録は残るが、外された印のある記録では自動接続しない
+    await guest.goBack();
+    await guest.reload();
+    await expect(guest.locator(".room-chip")).toHaveCount(0);
+    await guest.goto(`/room/${table.code}`);
+    await expect(guest.locator('input[placeholder="部屋コード"]')).toHaveValue(table.code);
+    await expect(guest.locator('input[placeholder="なまえ"]')).toHaveValue("Player3");
+    await expect(guest.locator(".room-chip")).toHaveCount(0);
+    await host.waitForTimeout(2_000);
     await expect(tiles).toHaveCount(2);
 
     // 本人が入り直すと、新しい席で戻れる

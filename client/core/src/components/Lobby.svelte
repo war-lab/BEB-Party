@@ -166,6 +166,12 @@
     rate_limited: "操作が多すぎます。少し待ってからもう一度押してください",
   };
   let kickSendError = $state<string | null>(null);
+  // 「接続が戻っていない」は接続が戻った時点で古くなる。次に押すまで残さない
+  $effect(() => {
+    if (ui.connectionStatus === "connected") {
+      kickSendError = null;
+    }
+  });
   const kickNote = $derived(
     kickSendError ?? (lastSent === "kick" && ui.lastErrorCode ? (KICK_ERRORS[ui.lastErrorCode] ?? null) : null),
   );

@@ -13,8 +13,27 @@
   }
   let { player, onKick }: Props = $props();
 
-  // 1回目で確認に切り替え、2回目で外す。並んだ小さなボタンを誤って押しても席が消えないようにする
+  // 1回目で確認に切り替え、2回目で外す。並んだボタンを誤って押しても席が消えないようにする
   let confirming = $state(false);
+  // 確認のまま置かれた状態を戻すまでの時間。blurには頼らない。Safariはタップでボタンにフォーカスを付けず、blurが起きない
+  const CONFIRM_TIMEOUT_MS = 4000;
+
+  // 確認は4秒で取り消す。残すと、後で戻ってきたときに1回押すだけで外れる
+  $effect(() => {
+    if (!confirming) {
+      return;
+    }
+    const timer = setTimeout(() => (confirming = false), CONFIRM_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  });
+
+  // ボタンが消えたら（その人が戻った、ホストでなくなった）確認を捨てる。
+  // 席は player.id で描き分けるため、同じ部品が次に切断したときまで状態を持ち越す
+  $effect(() => {
+    if (!onKick) {
+      confirming = false;
+    }
+  });
 
   function kick(): void {
     if (!confirming) {
@@ -46,7 +65,7 @@
       class:confirming
       onclick={kick}
       onblur={() => (confirming = false)}
-      aria-label={confirming ? `${player.name}さんを外す（確定）` : `${player.name}さんを部屋から外す`}
+      aria-label={confirming ? `${player.name}さんを外す？ もう一度押すと外れます` : `${player.name}さんを外す`}
       data-testid="kick"
     >
       {confirming ? "外す？" : "外す"}
@@ -65,9 +84,11 @@
   .kick {
     margin-top: 0.3rem;
     width: 100%;
+    /* タップの的を2rem（32px）以上にする。WCAG 2.5.8 の最小24pxを下回らせない */
+    min-height: 2rem;
     font-family: var(--font-heading);
     font-weight: var(--font-heading-weight);
-    font-size: 0.66rem;
+    font-size: 0.72rem;
     color: var(--ink);
     background: var(--panel);
     border: 2px solid var(--ink);

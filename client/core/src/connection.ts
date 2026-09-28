@@ -49,21 +49,26 @@ function identityKey(code: string): string {
  * その部屋で名乗った名前とレベル。リロード・タブ復帰の復帰時に使う。
  *
  * これが無い状態で自動接続すると、URLやQRから直接開いた人が
- * 名前もレベルも申告しないまま参加者として登録される
+ * 名前もレベルも申告しないまま参加者として登録される。
+ *
+ * `kicked` はホストに外された後の記録であることを示す。ホームの初期値には使うが、自動接続には使わない。
+ * 使うとトークンの無いjoinになり、本人が選ぶ前に新しい席を取り直す（ADR-0028）
  */
-export function storedIdentity(code: string): { name: string; level: Level; icon: PlayerIconId | undefined } | null {
+export function storedIdentity(
+  code: string,
+): { name: string; level: Level; icon: PlayerIconId | undefined; kicked: boolean } | null {
   const raw = sessionStorage.getItem(identityKey(code));
   if (!raw) {
     return null;
   }
   try {
-    const parsed = JSON.parse(raw) as { name?: unknown; level?: unknown; icon?: unknown };
+    const parsed = JSON.parse(raw) as { name?: unknown; level?: unknown; icon?: unknown; kicked?: unknown };
     if (typeof parsed.name !== "string" || typeof parsed.level !== "number") {
       return null;
     }
     // iconを持たない古いsessionStorageの値でも復帰できるようにする（サーバが既定値を割り当てる）
     const icon = isPlayerIconId(parsed.icon) ? parsed.icon : undefined;
-    return { name: parsed.name, level: parsed.level as Level, icon };
+    return { name: parsed.name, level: parsed.level as Level, icon, kicked: parsed.kicked === true };
   } catch {
     return null;
   }
@@ -79,6 +84,14 @@ function saveReconnectToken(code: string, token: string): void {
 
 function clearReconnectToken(code: string): void {
   sessionStorage.removeItem(sessionKey(code));
+}
+
+/** 名乗った記録に外された印を付ける。connect() で名乗り直すと印の無い記録に置き換わる */
+function markIdentityKicked(code: string): void {
+  const identity = storedIdentity(code);
+  if (identity) {
+    sessionStorage.setItem(identityKey(code), JSON.stringify({ ...identity, kicked: true }));
+  }
 }
 
 function wsUrl(code: string): string {
@@ -291,6 +304,8 @@ function handleServerMessage(raw: string): void {
         if (message.code === "kicked" && currentCode) {
           // 外されたトークンは二度と通らない。残すと入り直しのjoinにも付いて、また kicked になる（ADR-0028）
           clearReconnectToken(currentCode);
+          markIdentityKicked(currentCode);
+          ui.myPlayerId = null;
           clearServerState();
           clearSecret();
           clearResult();

@@ -67,6 +67,10 @@ function roomCapacity(gameId: string | undefined): number {
   return all.length > 0 ? Math.max(...all) : 0;
 }
 
+// 失効済みトークンとして残す件数の上限。1部屋で外す人数は数人であり、上限はstorageの肥大を止める保険である。
+// 超えたら古いものから捨てる。捨てたトークンの端末は、戻ってくると新しい席を得る（ADR-0028）
+const REVOKED_TOKENS_LIMIT = 100;
+
 // 90秒(ハートビート間隔25秒の3倍を超える値)より古い自動応答は切断済みとみなす（基本設計/01_サーバ.md、ADR-0013）
 const HEARTBEAT_DEAD_THRESHOLD_MS = 90_000;
 // 最終アクセスから2時間で部屋を破棄する（基本設計/01_サーバ.md）
@@ -532,7 +536,7 @@ export class RoomDO extends DurableObject<Env> {
     delete secrets.reconnectTokens[target.id];
     delete secrets.playerSecrets[target.id];
     if (token) {
-      secrets.revokedTokens = [...(secrets.revokedTokens ?? []), token];
+      secrets.revokedTokens = [...(secrets.revokedTokens ?? []), token].slice(-REVOKED_TOKENS_LIMIT);
     }
     this.reassignHostIfNeeded(room);
 

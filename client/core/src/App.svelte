@@ -67,7 +67,8 @@
       spectate(restoredCode);
     } else {
       const identity = storedIdentity(restoredCode);
-      if (identity) {
+      // 外された部屋の記録では自動接続しない。ホームで本人に入り直すかを選ばせる（ADR-0028）
+      if (identity && !identity.kicked) {
         connect(restoredCode, identity.name, identity.level, identity.icon);
       } else {
         // 名前とレベルを申告してから参加させる。空名・レベル1固定の席を作らない
@@ -82,7 +83,8 @@
     if (ui.lastErrorCode === "kicked" && code && !hostMode) {
       pendingCode = code;
       code = null;
-      history.pushState({}, "", "/");
+      // 履歴を置き換える。pushStateだと戻るボタンで /room/CODE に戻り、リロードで自動接続が走る
+      history.replaceState({}, "", "/");
     }
   });
 

@@ -17,6 +17,7 @@ beforeAll(() => {
   registry[STUB_GAME_ID] = stubGameModule;
 });
 
+type Stub = Awaited<ReturnType<typeof createRoom>>;
 type Joined = { playerId: string; reconnectToken: string };
 type PlayersState = { players: { id: string; name: string; connected: boolean }[] };
 
@@ -25,6 +26,35 @@ async function join(ws: WebSocket, name: string, reconnectToken?: string): Promi
   sendMessage(ws, { v: 1, type: "join", name, level: 3, ...(reconnectToken ? { reconnectToken } : {}) });
   const [joined] = await recv;
   return joined as unknown as Joined;
+}
+
+/** 状態を変えない観戦ソケットで、いまの席の並びを読む */
+async function playerNames(stub: Stub): Promise<string[]> {
+  const spectator = await openSocket(stub);
+  const recv = collectMessages(spectator, 1);
+  sendMessage(spectator, { v: 1, type: "spectate" });
+  const [state] = await recv;
+  spectator.close();
+  return (state as unknown as PlayersState).players.map((p) => p.name);
+}
+
+/** 失効済みのトークンで join し、kicked が返ることを確かめる */
+async function expectKicked(stub: Stub, reconnectToken: string): Promise<WebSocket> {
+  const socket = await openSocket(stub);
+  const recv = collectMessages(socket, 1);
+  sendMessage(socket, { v: 1, type: "join", name: "Guest", level: 3, reconnectToken });
+  const [error] = await recv;
+  expect(error).toMatchObject({ type: "error", code: "kicked" });
+  return socket;
+}
+
+/** 一定時間のうちに close が届かないことを確かめる。サーバの close は非同期に届くため、直後の readyState では判定できない */
+async function expectStaysOpen(ws: WebSocket, waitMs = 500): Promise<void> {
+  let closed = false;
+  ws.addEventListener("close", () => (closed = true));
+  await new Promise((resolve) => setTimeout(resolve, waitMs));
+  expect(closed).toBe(false);
+  expect(ws.readyState).toBe(WebSocket.OPEN);
 }
 
 /** ホストと、切断させたゲストのいる部屋を作る */
@@ -45,6 +75,13 @@ async function roomWithDisconnectedGuest(prefix: string) {
   return { stub, host, guest };
 }
 
+async function kick(host: WebSocket, playerId: string): Promise<void> {
+  const recv = collectMessages(host, 1);
+  sendMessage(host, { v: 1, type: "kick", playerId });
+  const [state] = await recv;
+  expect(state).toMatchObject({ type: "state" });
+}
+
 describe("kick", () => {
   it("ホストが切断中の参加者を外すと席が消え、その人の再接続トークンはkickedで止まる", async () => {
     const { stub, host, guest } = await roomWithDisconnectedGuest("kick-basic");
@@ -54,21 +91,45 @@ describe("kick", () => {
     const [state] = await recv;
     expect((state as unknown as PlayersState).players.map((p) => p.name)).toEqual(["Host"]);
 
-    // 外された端末の自動再接続。席を作らず、ソケットも閉じない
-    const returning = await openSocket(stub);
-    const rejected = collectMessages(returning, 1);
-    sendMessage(returning, { v: 1, type: "join", name: "Guest", level: 3, reconnectToken: guest.reconnectToken });
-    const [error] = await rejected;
-    expect(error).toMatchObject({ type: "error", code: "kicked" });
-    expect(returning.readyState).toBe(WebSocket.OPEN);
+    // 外された端末の自動再接続。席を作らない
+    const returning = await expectKicked(stub, guest.reconnectToken);
+    // ソケットは閉じない。閉じると kicked を知らない旧SPAが再接続を繰り返す（ADR-0028）
+    await expectStaysOpen(returning);
 
-    // トークンを持たないjoinなら、新しい席で入り直せる
-    const rejoined = await openSocket(stub);
+    // 同じソケットから、トークンを持たないjoinで新しい席に入り直せる
     const hostRecvRejoin = collectMessages(host, 1);
-    const fresh = await join(rejoined, "Guest");
+    const fresh = await join(returning, "Guest");
     const [afterRejoin] = await hostRecvRejoin;
     expect(fresh.playerId).not.toBe(guest.playerId);
+    expect(fresh.reconnectToken).not.toBe(guest.reconnectToken);
     expect((afterRejoin as unknown as PlayersState).players.map((p) => p.name)).toEqual(["Host", "Guest"]);
+  });
+
+  it("失効させたトークンは、ゲーム中も次のゲームのロビーでもkickedで止まる", async () => {
+    const { stub, host, guest } = await roomWithDisconnectedGuest("kick-lifecycles");
+    await kick(host, guest.playerId);
+
+    // playing。照合できないトークンの既定の扱い（game_in_progress）より先に kicked を返す
+    await selectGameAndContent(host, STUB_GAME_ID, STUB_CONTENT_ID);
+    const startRecv = collectMessages(host, 2); // secret, state
+    sendMessage(host, { v: 1, type: "start" });
+    await startRecv;
+    await expectKicked(stub, guest.reconnectToken);
+
+    // finished → nextGame でロビーへ戻っても失効は残る
+    const advanceRecv = collectMessages(host, 1);
+    sendMessage(host, { v: 1, type: "action", action: "advance" });
+    await advanceRecv;
+    const finishRecv = collectMessages(host, 2); // state, result
+    sendMessage(host, { v: 1, type: "action", action: "finish" });
+    await finishRecv;
+    await expectKicked(stub, guest.reconnectToken);
+    const nextRecv = collectMessages(host, 1);
+    sendMessage(host, { v: 1, type: "nextGame" });
+    const [lobby] = await nextRecv;
+    expect(lobby).toMatchObject({ type: "state", lifecycle: "lobby" });
+    await expectKicked(stub, guest.reconnectToken);
+    expect(await playerNames(stub)).toEqual(["Host"]);
   });
 
   it("満員の部屋で切断中の人を外すと、新しい人が入れる", async () => {
@@ -97,9 +158,7 @@ describe("kick", () => {
     const hostRecvClose = collectMessages(host, 1);
     sockets[0]!.close();
     await hostRecvClose;
-    const hostRecvKick = collectMessages(host, 1);
-    sendMessage(host, { v: 1, type: "kick", playerId: absent!.playerId });
-    await hostRecvKick;
+    await kick(host, absent!.playerId);
 
     const late = await openSocket(stub);
     const joined = await join(late, "Late");
@@ -115,6 +174,8 @@ describe("kick", () => {
     const guest = await join(guestSocket, "Guest");
     await hostRecvJoin;
 
+    // 自分自身の指定は、送信者が接続中であるため connected の判定でも拒否される。
+    // 自己判定の分岐単独には到達しない（送信者が切断扱いなら、その送信自体が届かない）。ここでは結果だけを固定する
     for (const playerId of [guest.playerId, hostJoined.playerId, "no-such-player"]) {
       const recv = collectMessages(host, 1);
       sendMessage(host, { v: 1, type: "kick", playerId });
@@ -130,7 +191,7 @@ describe("kick", () => {
     expect((state as unknown as PlayersState).players).toHaveLength(2);
   });
 
-  it("ホスト以外からのkickはnot_hostで拒否する", async () => {
+  it("ホスト以外からのkickはnot_hostで拒否し、状態を変えない", async () => {
     const { stub, guest } = await roomWithDisconnectedGuest("kick-not-host");
     const other = await openSocket(stub);
     await join(other, "Other");
@@ -138,10 +199,11 @@ describe("kick", () => {
     const recv = collectMessages(other, 1);
     sendMessage(other, { v: 1, type: "kick", playerId: guest.playerId });
     expect((await recv)[0]).toMatchObject({ type: "error", code: "not_host" });
+    expect(await playerNames(stub)).toEqual(["Host", "Guest", "Other"]);
   });
 
-  it("ゲーム中のkickはinvalid_lifecycleで拒否する", async () => {
-    const { host, guest } = await roomWithDisconnectedGuest("kick-playing");
+  it("ゲーム中のkickはinvalid_lifecycleで拒否し、状態を変えない", async () => {
+    const { stub, host, guest } = await roomWithDisconnectedGuest("kick-playing");
     await selectGameAndContent(host, STUB_GAME_ID, STUB_CONTENT_ID);
     const startRecv = collectMessages(host, 2); // secret, state
     sendMessage(host, { v: 1, type: "start" });
@@ -151,5 +213,6 @@ describe("kick", () => {
     const recv = collectMessages(host, 1);
     sendMessage(host, { v: 1, type: "kick", playerId: guest.playerId });
     expect((await recv)[0]).toMatchObject({ type: "error", code: "invalid_lifecycle" });
+    expect(await playerNames(stub)).toEqual(["Host", "Guest"]);
   });
 });

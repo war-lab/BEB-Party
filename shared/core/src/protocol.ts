@@ -57,7 +57,8 @@ export interface NextGameMessage {
 /**
  * ロビーでホストが切断中の参加者を外す（ADR-0028）。
  *
- * `playerId` は対象の指定であって認証情報ではない。権限はホストのソケットであることで確かめる（ADR-0006）
+ * `playerId` は対象の指定であって認証情報ではない（ADR-0006が禁じる使い方に当たらない）。
+ * 権限は送信元がホストのソケットであることで確かめる（ADR-0028）
  */
 export interface KickMessage {
   v: number;
