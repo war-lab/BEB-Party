@@ -7,7 +7,12 @@ import {
   ACTIONS,
   ERROR_CODES,
   MAX_CARD_ADVANCES_PER_ROUND,
+  DEFAULT_LAPS_ID,
+  LAPS_IDS,
+  LAPS_OPTIONS,
   ROUND_SECONDS,
+  isLapsId,
+  lapsOf,
   STAGES,
   STAGE_DEADLINE_SECONDS,
   advancesOf,
@@ -49,13 +54,12 @@ type Transition = GameTransition<DontSayItPublic, DontSayItResult, DontSayItGame
 // --- 設定 ---
 
 function readSettings(settings: unknown): DontSayItSettings {
-  if (typeof settings === "object" && settings !== null && "roundSeconds" in settings) {
-    const value = (settings as { roundSeconds: unknown }).roundSeconds;
-    if (typeof value === "number") {
-      return { roundSeconds: value };
-    }
-  }
-  return { roundSeconds: ROUND_SECONDS.default };
+  const source = typeof settings === "object" && settings !== null ? (settings as Record<string, unknown>) : {};
+  const seconds = source.roundSeconds;
+  return {
+    roundSeconds: typeof seconds === "number" ? seconds : ROUND_SECONDS.default,
+    laps: lapsOf(source.laps),
+  };
 }
 
 function validateSettings(settings: unknown): ValidationResult {
@@ -64,6 +68,9 @@ function validateSettings(settings: unknown): ValidationResult {
   }
   if (typeof settings !== "object") {
     return { valid: false, reason: "settingsはオブジェクトである必要がある" };
+  }
+  if ("laps" in settings && !isLapsId((settings as { laps: unknown }).laps)) {
+    return { valid: false, reason: `lapsは${LAPS_IDS.join(" / ")}のいずれかである必要がある` };
   }
   if (!("roundSeconds" in settings)) {
     return { valid: true };
@@ -483,9 +490,17 @@ export const dontSayItModule: GameModule<
   title: "DON'T SAY IT",
   tagline: "禁止語を避けて、英語でお題を説明する",
   icon: "🤐",
-  playerCount: [5, 6],
+  // 3人から遊べる。説明者・監視役・回答者1人が残る（09の3役）
+  playerCount: [3, 6],
   contentLabelJa: "お題を選ぶ",
   settingsFields: [
+    {
+      type: "select",
+      key: "laps",
+      labelJa: "説明の周回",
+      options: LAPS_IDS.map((id) => ({ value: id, labelJa: LAPS_OPTIONS[id].labelJa })),
+      default: DEFAULT_LAPS_ID,
+    },
     {
       type: "number",
       key: "roundSeconds",
@@ -505,10 +520,14 @@ export const dontSayItModule: GameModule<
     const random = createRandom(seed);
     const target = resolveSet(contentId);
 
-    const speakerOrder = shuffle(
+    // 全員が周回数と同じ回数ずつ説明者を務める。2周目も1周目と同じ順で回し、監視役（次の説明者）の並びも保つ。
+    // 周ごとに並べ直すと、周の境目で同じ人が続けて説明者になりうる（09のstart）
+    const { roundSeconds, laps } = readSettings(settings);
+    const lapOrder = shuffle(
       players.map((player: Player) => player.id),
       random,
     );
+    const speakerOrder = Array.from({ length: laps }, () => lapOrder).flat();
     const deck = shuffle(
       target.cards.map((card) => card.id),
       random,
@@ -526,7 +545,7 @@ export const dontSayItModule: GameModule<
       solvedThisRound: 0,
       violatedThisRound: 0,
       skipUsedThisRound: false,
-      roundSeconds: readSettings(settings).roundSeconds,
+      roundSeconds,
     };
 
     return {

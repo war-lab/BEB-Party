@@ -193,6 +193,62 @@ test("6人で部屋作成からDON'T SAY ITの結果まで進める", async ({ b
   }
 });
 
+// 対応人数の下限と2周（基本設計/09のロビーの記述子と設定）。
+// 2周では説明の順番に同じ人が2回並ぶ。1周分だけを描くことを、描画が止まらずに進むことで確かめる
+test("3人・2周でDON'T SAY ITの結果まで進め、全員が2回ずつ説明者を務める", async ({ browser, baseURL }) => {
+  test.setTimeout(180_000);
+  const table = await openTable(browser, baseURL!, [4, 2, 1], { testTitle: test.info().title, record: true });
+
+  try {
+    const host = table.pages[0]!;
+    await host.click(`.title-card:has-text("${GAME_TITLE}")`);
+    await host.click(`.content-chip:has-text("${SET_TITLE}")`);
+    await host.click(".content-chip:has-text('2周')");
+    await host.click(".beb-btn:has-text('ゲームスタート')");
+
+    for (const page of table.pages) {
+      await expect(page.locator(".roles")).toBeVisible({ timeout: 10_000 });
+      await expect(page.locator(".order li")).toHaveCount(3);
+      await expect(page.locator("[data-testid='laps-note']")).toHaveText("この順番で2周します（全6ラウンド）");
+    }
+    for (const page of table.pages) {
+      await page.click(".beb-btn:has-text('準備できた')");
+    }
+
+    const claimsPerRound = 5;
+    const rounds = 6;
+    const spoke = new Map<Page, number>();
+    for (let round = 1; round <= rounds; round += 1) {
+      const speaker = await findPageBy(table.pages, "[data-testid='speaker-cover']", 15_000);
+      spoke.set(speaker, (spoke.get(speaker) ?? 0) + 1);
+      await openCardAndStart(speaker);
+      await expect(speaker.locator("[data-testid='answer']")).toBeVisible({ timeout: 10_000 });
+
+      // 回答者は1人だけ残る。正解の申告先の候補もその1人になる
+      const watcher = await findPageBy(table.pages, "[data-testid='watched-answer']");
+      const answerers = table.pages.filter((page) => page !== speaker && page !== watcher);
+      expect(answerers).toHaveLength(1);
+
+      for (let claimed = 1; claimed <= claimsPerRound; claimed += 1) {
+        await speaker.click(".beb-btn:has-text('正解')");
+        await expect(speaker.locator("[data-testid='claim-sheet'] .beb-btn.blue")).toHaveCount(1);
+        await speaker.locator("[data-testid='claim-sheet'] .beb-btn.blue").first().click();
+        if (claimed < claimsPerRound) {
+          await expect(speaker.locator("[data-testid='solved-count']")).toHaveText(`成立 ${claimed}枚`);
+        }
+      }
+    }
+    expect([...spoke.values()]).toEqual([2, 2, 2]);
+
+    for (const page of table.pages) {
+      await expect(page.locator("[data-testid='stage-timer']:has-text('結果')")).toBeVisible({ timeout: 10_000 });
+      await expect(page.locator(".cards > li")).toHaveCount(claimsPerRound * rounds);
+    }
+  } finally {
+    await table.close();
+  }
+});
+
 test("DETECTIVESを完走したあとロビーへ戻ってDON'T SAY ITを始められる", async ({ browser, baseURL }) => {
   // 1テストで2ゲーム分の導線を通すため、slow()の3倍でも足りない
   test.setTimeout(240_000);

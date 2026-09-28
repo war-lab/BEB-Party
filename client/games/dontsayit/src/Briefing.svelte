@@ -14,6 +14,10 @@
 
   const isReady = $derived(ui.myPlayerId !== null && publicState.readyPlayerIds.includes(ui.myPlayerId));
   const connectedCount = $derived(room.players.filter((player) => player.connected).length);
+  // 2周のときは speakerOrder に同じ順が2回並ぶ（09のstart）。1周分だけを描き、周回数を添える。
+  // 全体をそのまま描くと同じ playerId がキーに2回現れ、描画が止まる
+  const lapOrder = $derived(publicState.speakerOrder.slice(0, new Set(publicState.speakerOrder).size));
+  const laps = $derived(lapOrder.length > 0 ? publicState.speakerOrder.length / lapOrder.length : 1);
 
   function nameOf(playerId: string): string {
     return room.players.find((player) => player.id === playerId)?.name ?? playerId;
@@ -48,8 +52,11 @@
     </ul>
 
     <h2>説明する順番</h2>
+    {#if laps > 1}
+      <p class="laps" data-testid="laps-note">この順番で{laps}周します（全{publicState.speakerOrder.length}ラウンド）</p>
+    {/if}
     <ol class="order">
-      {#each publicState.speakerOrder as playerId, index (playerId)}
+      {#each lapOrder as playerId, index (playerId)}
         <li class:me={playerId === ui.myPlayerId}>
           <span class="no">{index + 1}</span>
           <span class="face" style={`background:${faceColor(playerId)}`}>
@@ -148,6 +155,10 @@
     line-height: 1.5;
   }
 
+  .laps {
+    margin: 0 0 0.4rem;
+    font-size: 0.8rem;
+  }
   .order {
     list-style: none;
     margin: 0;

@@ -4,6 +4,8 @@ import { fallbackPlayerIconId, type Level, type Player, type Room } from "@beb/s
 import {
   ACTIONS,
   ERROR_CODES,
+  DEFAULT_LAPS_ID,
+  LAPS_IDS,
   MAX_CARD_ADVANCES_PER_ROUND,
   ROUND_SECONDS,
   STAGES,
@@ -17,9 +19,11 @@ import {
 // 収録前でも進行を検証できるようにフィクスチャのセットを差し込む。
 // モジュール側にテスト用の差し込み口を作らないため、ここでモックする
 vi.mock("./sets", async () => {
-  // 6人×1ラウンドの消費上限を回しきれる枚数（MIN_CARDS）を積む
+  // 上限の人数と周回数で消費上限を回しきれる枚数（MIN_CARDS）を積む。
+  // 枚数を直に書くと、下限を変えたときにテストだけが古い前提のまま残る
   const { validSet } = await import("./test-support/fixtures");
-  const target = validSet(36);
+  const { MIN_CARDS } = await import("@beb/shared-dontsayit");
+  const target = validSet(MIN_CARDS);
   return {
     SETS: [target],
     findSet: (setId: string) => (setId === target.id ? target : undefined),
@@ -582,8 +586,8 @@ describe("カタログ", () => {
   // 記述子と検証がずれると、ロビーで入力できる値がサーバに拒否される
   it("設定の記述子がvalidateSettingsと一致する", () => {
     const fields = dontSayItModule.settingsFields;
-    expect(fields).toHaveLength(1);
-    const field = fields[0];
+    expect(fields.map((entry) => entry.key)).toEqual(["laps", "roundSeconds"]);
+    const field = fields.find((entry) => entry.key === "roundSeconds");
     // 記述子はnumberとselectの共用体になった（shared/core）。数値の設定だけを見る
     if (field?.type !== "number") {
       throw new Error("数値の記述子がない");
@@ -604,7 +608,118 @@ describe("カタログ", () => {
     expect(dontSayItModule.title).toBe("DON'T SAY IT");
     expect(dontSayItModule.tagline.length).toBeGreaterThan(0);
     expect(dontSayItModule.icon.length).toBeGreaterThan(0);
-    expect(dontSayItModule.playerCount).toEqual([5, 6]);
+    expect(dontSayItModule.playerCount).toEqual([3, 6]);
+  });
+
+  it("周回数の記述子が、選べる周回数と既定を載せ、validateSettingsと一致する", () => {
+    const field = dontSayItModule.settingsFields.find((entry) => entry.key === "laps");
+    if (field?.type !== "select") {
+      throw new Error("lapsは選択の記述子である");
+    }
+    expect(field.options.map((option) => option.value)).toEqual(LAPS_IDS);
+    expect(field.default).toBe(DEFAULT_LAPS_ID);
+    for (const id of LAPS_IDS) {
+      expect(dontSayItModule.validateSettings({ laps: id }).valid).toBe(true);
+    }
+    expect(dontSayItModule.validateSettings({ laps: "3" }).valid).toBe(false);
+    expect(dontSayItModule.validateSettings({ laps: 2 }).valid).toBe(false);
+  });
+});
+
+describe("少人数と周回", () => {
+  const THREE = [1, 3, 5] as Level[];
+
+  /** 全ラウンドを締切で進め、各ラウンドの説明者・監視役・回答者を記録する */
+  function playAllRounds(levels: Level[], settings: unknown) {
+    let live = readyAll(start(levels, SEED, settings));
+    const roles: { speaker: string; watcher: string; answerers: string[] }[] = [];
+    const total = live.publicState.speakerOrder.length;
+    for (let round = 0; round < total; round += 1) {
+      const speaker = speakerOf(live);
+      const watcher = watcherOf(live);
+      const answerers = live.players.map((player) => player.id).filter((id) => id !== speaker && id !== watcher);
+      roles.push({ speaker, watcher, answerers });
+      live = send(live, ACTIONS.startRound, speaker);
+      live = fireDeadline(live);
+    }
+    return { live, roles };
+  }
+
+  it("3人では3ラウンドで、全員が説明者・監視役・回答者を1回ずつ務める", () => {
+    const { live, roles } = playAllRounds(THREE, undefined);
+    expect(roles).toHaveLength(3);
+    expect(roles.map((role) => role.speaker).sort()).toEqual(["p1", "p2", "p3"]);
+    expect(roles.map((role) => role.watcher).sort()).toEqual(["p1", "p2", "p3"]);
+    // 回答者は各ラウンドに1人だけ残る
+    expect(roles.every((role) => role.answerers.length === 1)).toBe(true);
+    expect(roles.flatMap((role) => role.answerers).sort()).toEqual(["p1", "p2", "p3"]);
+    expect(live.stage).toBe(STAGES.debrief);
+    expect(live.result).toBeDefined();
+  });
+
+  it("3人でも、ただ1人の回答者の正解で説明者と回答者に加点される", () => {
+    let live = toExplaining(start(THREE));
+    const speaker = speakerOf(live);
+    const answerer = answererOf(live);
+    live = send(live, ACTIONS.claimCorrect, speaker, { playerId: answerer, cardId: currentCardId(live) });
+    expect(live.reject).toBeUndefined();
+    expect(live.publicState.scores.find((entry) => entry.playerId === speaker)?.points).toBe(1);
+    expect(live.publicState.scores.find((entry) => entry.playerId === answerer)?.points).toBe(1);
+    // 監視役は加点の対象に選べない
+    const rejected = send(live, ACTIONS.claimCorrect, speaker, {
+      playerId: watcherOf(live),
+      cardId: currentCardId(live),
+    });
+    expect(rejected.reject).toBeDefined();
+  });
+
+  it("2周ではラウンド数が参加人数×2になり、1周目と同じ順で全員が2回ずつ説明者と監視役を務める", () => {
+    const started = start(THREE, SEED, { laps: "2" });
+    const order = started.publicState.speakerOrder;
+    expect(order).toHaveLength(6);
+    expect(order.slice(3)).toEqual(order.slice(0, 3));
+
+    const { live, roles } = playAllRounds(THREE, { laps: "2" });
+    expect(roles).toHaveLength(6);
+    for (const id of ["p1", "p2", "p3"]) {
+      expect(roles.filter((role) => role.speaker === id)).toHaveLength(2);
+      expect(roles.filter((role) => role.watcher === id)).toHaveLength(2);
+    }
+    // 監視役は次のラウンドの説明者。周の境目でも崩れない
+    for (let round = 0; round < roles.length - 1; round += 1) {
+      expect(roles[round]?.watcher).toBe(roles[round + 1]?.speaker);
+    }
+    expect(live.stage).toBe(STAGES.debrief);
+    expect(live.publicState.rounds).toHaveLength(6);
+  });
+
+  it("1周を選んだ場合は、周回数を指定しない場合と同じ説明者の順と山札になる", () => {
+    const withLaps = start(SIX, SEED, { laps: "1" });
+    const withoutLaps = start(SIX, SEED);
+    expect(withLaps.publicState.speakerOrder).toEqual(withoutLaps.publicState.speakerOrder);
+    expect(withLaps.gameSecret.deck).toEqual(withoutLaps.gameSecret.deck);
+  });
+
+  it("6人・2周の12ラウンドで、毎ラウンド上限まで消費しても山札が尽きない", () => {
+    // 検証4の下限（MIN_CARDS）が、上限の人数と周回数の最大消費を満たすことの実地の確認
+    let live = readyAll(start(SIX, SEED, { laps: "2" }));
+    expect(live.publicState.speakerOrder).toHaveLength(12);
+    for (let round = 0; round < 12; round += 1) {
+      const speaker = speakerOf(live);
+      live = send(live, ACTIONS.startRound, speaker);
+      for (let advance = 0; advance < MAX_CARD_ADVANCES_PER_ROUND; advance += 1) {
+        if (live.stage !== STAGES.explaining) {
+          break;
+        }
+        live = send(live, ACTIONS.claimCorrect, speaker, { playerId: answererOf(live), cardId: currentCardId(live) });
+        expect(live.reject).toBeUndefined();
+      }
+      if (round < 11) {
+        expect(live.stage).toBe(STAGES.handoff);
+      }
+    }
+    expect(live.stage).toBe(STAGES.debrief);
+    expect(live.publicState.rounds).toHaveLength(12);
   });
 });
 
