@@ -8,6 +8,7 @@
     room_full: "この部屋は満員です",
     game_in_progress: "ゲームが進行中のため参加できません",
     room_not_found: "その部屋コードは見つかりません",
+    kicked: "ホストに部屋から外されました",
   };
 
   const fatalMessage = $derived(

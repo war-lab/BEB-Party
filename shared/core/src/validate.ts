@@ -27,6 +27,8 @@ export const SETTINGS_MAX_CHARS = 2048;
  * ゲームのルールとして適切な長さ（提出の文字数等）はゲームモジュールが別に検証する。
  */
 export const ACTION_MAX_CHARS = 512;
+/** kickの対象ID の長さ上限。サーバが発行するIDはUUID（36文字）であり、それより長い値は照合するまでもなく不正である */
+export const PLAYER_ID_MAX_LENGTH = 64;
 
 function isValidName(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0 && [...value].length <= NAME_MAX_LENGTH;
@@ -98,6 +100,12 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
     }
     case "nextGame": {
       return { v, type: "nextGame" };
+    }
+    case "kick": {
+      if (typeof raw.playerId !== "string" || raw.playerId.length === 0 || raw.playerId.length > PLAYER_ID_MAX_LENGTH) {
+        return null;
+      }
+      return { v, type: "kick", playerId: raw.playerId };
     }
     case "action": {
       if (typeof raw.action !== "string") {

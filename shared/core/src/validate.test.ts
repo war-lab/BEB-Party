@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ACTION_MAX_CHARS, NAME_MAX_LENGTH, SETTINGS_MAX_CHARS, parseClientMessage } from "./validate";
+import { ACTION_MAX_CHARS, NAME_MAX_LENGTH, PLAYER_ID_MAX_LENGTH, SETTINGS_MAX_CHARS, parseClientMessage } from "./validate";
 
 describe("parseClientMessage", () => {
   it("非オブジェクトを拒否する", () => {
@@ -111,6 +111,14 @@ describe("parseClientMessage", () => {
       contentId: "case-01",
       settings: { investigationSeconds: 600 },
     });
+  });
+
+  it("kickを正しく検証する", () => {
+    expect(parseClientMessage({ v: 1, type: "kick", playerId: "p-1" })).toEqual({ v: 1, type: "kick", playerId: "p-1" });
+    expect(parseClientMessage({ v: 1, type: "kick" })).toBeNull();
+    expect(parseClientMessage({ v: 1, type: "kick", playerId: "" })).toBeNull();
+    expect(parseClientMessage({ v: 1, type: "kick", playerId: 1 })).toBeNull();
+    expect(parseClientMessage({ v: 1, type: "kick", playerId: "x".repeat(PLAYER_ID_MAX_LENGTH + 1) })).toBeNull();
   });
 
   it("start/nextGameを正しく検証する", () => {
