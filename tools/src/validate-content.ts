@@ -12,6 +12,10 @@ import {
 } from "@beb/server-blindroom";
 import { formatFinding as formatCaseFinding, validateCase } from "@beb/server-detectives";
 import { formatFinding as formatSetFinding, validateSet } from "@beb/server-dontsayit";
+import {
+  formatFinding as formatSceneFinding,
+  validatePack as validateScenePack,
+} from "@beb/server-escapecall";
 import { formatFinding as formatPackFinding, validatePack } from "@beb/server-ranking";
 import {
   formatFinding as formatQuestionFinding,
@@ -34,6 +38,10 @@ const validators: GameValidator[] = [
   {
     contentPath: "content/dontsayit",
     validate: (content) => toGameReport(validateSet(content), formatSetFinding),
+  },
+  {
+    contentPath: "content/escapecall",
+    validate: (content) => toGameReport(validateScenePack(content), formatSceneFinding),
   },
   {
     contentPath: "content/ranking",

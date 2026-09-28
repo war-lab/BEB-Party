@@ -68,13 +68,30 @@ async function collectCatalogText() {
   return [...matches].map((match) => match[1]).join("");
 }
 
+/**
+ * shared/games に置いた表示用の日本語（色と形の名前、ステージ名など）を集める。
+ *
+ * ESCAPE CALLは記号の名前をコンテンツではなくコードに持つ（13のコンテンツ形式）。
+ * コメントまで拾うとサブセットが膨らむため、オブジェクトリテラルの `ja: "..."` と
+ * `STAGE_LABELS_JA` の値に当たる `key: "日本語"` の形だけを抜く。
+ */
+async function collectSharedJapanese() {
+  const dir = path.join(rootDir, "shared", "games");
+  if (!existsSync(dir)) {
+    return "";
+  }
+  const source = await walk(dir);
+  const matches = source.matchAll(/\b\w+:\s*"([^"]*[\u3040-\u30ff\u4e00-\u9fff][^"]*)"/g);
+  return [...matches].map((match) => match[1]).join("");
+}
+
 function collectContentJapanese() {
   // content/<gameId>/ を全て走査する。ゲームを追加したときに日本語が抜けて豆腐になるのを防ぐ
   const contentRoot = path.join(rootDir, "content");
   if (!existsSync(contentRoot)) {
     return "";
   }
-  const fields = ["ja", "hintJa", "meaningJa", "briefingJa"];
+  const fields = ["ja", "hintJa", "meaningJa", "briefingJa", "titleJa", "introJa"];
   let text = "";
   const gameDirs = readdirSync(contentRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
@@ -116,11 +133,12 @@ async function main() {
   const uiText = await collectUiText();
   const catalogText = await collectCatalogText();
   const contentText = collectContentJapanese();
+  const sharedText = await collectSharedJapanese();
   // 文字の集合をソート・重複排除して正規化する。ディレクトリ走査順をソートしても
   // ファイル内容の連結順序までは揃わないため、最終的な文字集合自体を正規形にすることで
   // 生成物のバイト列をプラットフォーム非依存にする(CIのLinuxと開発機のWindowsで
   // 異なるバイト列が生成され、差分チェックが誤って失敗することを実測したため)
-  const text = Array.from(new Set(BASE_CHARS + uiText + catalogText + contentText)).sort().join("");
+  const text = Array.from(new Set(BASE_CHARS + uiText + catalogText + contentText + sharedText)).sort().join("");
 
   const fonts = [
     {

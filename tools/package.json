@@ -13,6 +13,7 @@
     "@beb/server-blindroom": "workspace:*",
     "@beb/server-detectives": "workspace:*",
     "@beb/server-dontsayit": "workspace:*",
+    "@beb/server-escapecall": "workspace:*",
     "@beb/server-ranking": "workspace:*",
     "@beb/server-whowrotethis": "workspace:*",
     "@beb/shared-blindroom": "workspace:*",

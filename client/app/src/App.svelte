@@ -8,6 +8,7 @@
     blindroom: () => import("@beb/client-blindroom") as Promise<{ default: Component }>,
     detectives: () => import("@beb/client-detectives") as Promise<{ default: Component }>,
     dontsayit: () => import("@beb/client-dontsayit") as Promise<{ default: Component }>,
+    escapecall: () => import("@beb/client-escapecall") as Promise<{ default: Component }>,
     ranking: () => import("@beb/client-ranking") as Promise<{ default: Component }>,
     whowrotethis: () => import("@beb/client-whowrotethis") as Promise<{ default: Component }>,
   };
@@ -17,6 +18,7 @@
     blindroom: () => import("@beb/client-blindroom/guide") as Promise<{ default: Component }>,
     detectives: () => import("@beb/client-detectives/guide") as Promise<{ default: Component }>,
     dontsayit: () => import("@beb/client-dontsayit/guide") as Promise<{ default: Component }>,
+    escapecall: () => import("@beb/client-escapecall/guide") as Promise<{ default: Component }>,
     ranking: () => import("@beb/client-ranking/guide") as Promise<{ default: Component }>,
     whowrotethis: () => import("@beb/client-whowrotethis/guide") as Promise<{ default: Component }>,
   };
@@ -26,6 +28,7 @@
     blindroom: () => import("@beb/client-blindroom/stage-labels"),
     detectives: () => import("@beb/client-detectives/stage-labels"),
     dontsayit: () => import("@beb/client-dontsayit/stage-labels"),
+    escapecall: () => import("@beb/client-escapecall/stage-labels"),
     ranking: () => import("@beb/client-ranking/stage-labels"),
     whowrotethis: () => import("@beb/client-whowrotethis/stage-labels"),
   };

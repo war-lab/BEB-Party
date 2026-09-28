@@ -40,6 +40,9 @@ export const GAME_ACCENT = {
   whowrotethis: COLOR.blue,
   // 4色が埋まっているため濃い空色を当てる。sky（DETECTIVES）とは明度で分かれる
   blindroom: COLOR.skyDeep,
+  // 協力型で「開く」ことが主題のため、解錠の演出と同じ黄の濃い側ではなく赤の濃い側を当てる。
+  // red（DON'T SAY IT）とは明度で分かれる
+  escapecall: COLOR.redDeep,
 } as const;
 
 export type GameId = keyof typeof GAME_ACCENT;

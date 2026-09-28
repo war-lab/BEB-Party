@@ -21,13 +21,15 @@ const ROOT = path.join(import.meta.dirname, "..");
 const OUTPUT = path.join(ROOT, "output");
 
 /** src/projects/*.ts のファイル名。プロジェクトのURLもこの名前で決まる */
-const ALL_PROJECTS = ["detectives", "dontsayit", "ranking", "whowrotethis", "blindroom"];
+const ALL_PROJECTS = ["detectives", "dontsayit", "ranking", "whowrotethis", "blindroom", "escapecall"];
 
 /**
  * 引数で本数を絞れる（例: `node scripts/render.mjs detectives`）。
  * 見せ方を直したときに1本だけ出して確かめるための口である。
  */
-const PROJECTS = process.argv.slice(2).length > 0 ? process.argv.slice(2) : ALL_PROJECTS;
+// pnpm 11 は `pnpm run render -- detectives` の `--` をそのまま渡してくる（実測）。区切りとして読み飛ばす
+const requested = process.argv.slice(2).filter((arg) => arg !== "--");
+const PROJECTS = requested.length > 0 ? requested : ALL_PROJECTS;
 for (const name of PROJECTS) {
   if (!ALL_PROJECTS.includes(name)) {
     throw new Error(`そのプロジェクトはない: ${name}（${ALL_PROJECTS.join(" / ")}）`);
