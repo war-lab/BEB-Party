@@ -22,6 +22,9 @@
   // 盤面の広さはホストが選ぶ。固定で「3×3」と書くと、既定（4×3）で遊ぶ卓に誤った説明が出る
   const board = $derived(boardSizeOf(publicState.boardSizeId));
   const connectedCount = $derived(room.players.filter((player) => player.connected).length);
+  // 説明者の人数と周回数。2周のときは describerOrder に同じ順が2回並ぶ（12のstart）
+  const describerCount = $derived(new Set(publicState.describerOrder).size);
+  const laps = $derived(describerCount > 0 ? publicState.totalRounds / describerCount : 1);
 </script>
 
 <main class="briefing">
@@ -35,7 +38,9 @@
         {board.columns}×{board.rows}のマスに{PLACE_COUNT}個ならべます。
         説明者だけが見本を見て、英語だけで伝えます。
       </p>
-      <p class="note">説明者は{publicState.totalRounds}人が1回ずつ交代します。</p>
+      <p class="note" data-testid="describer-note">
+        説明者は{describerCount}人が{laps}回ずつ交代します（全{publicState.totalRounds}ラウンド）。
+      </p>
     </section>
 
     <section class="palette" data-testid="palette">

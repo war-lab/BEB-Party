@@ -45,6 +45,12 @@ export {
 export {
   ACTIONS,
   BUILDING_SECONDS,
+  DEFAULT_LAPS_ID,
+  LAPS_IDS,
+  LAPS_OPTIONS,
+  isLapsId,
+  lapsOf,
+  type LapsId,
   DEFAULT_SETTINGS_BOARD_SIZE_ID,
   ERROR_CODES,
   STAGES,
