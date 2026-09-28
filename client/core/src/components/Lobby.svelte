@@ -1,6 +1,6 @@
 <!-- ロビー。キャラクターセレクト風のグリッドとタイトルカード（ビジュアルデザイン.mdのモック） -->
 <script lang="ts">
-  import type { GameSummary } from "@beb/shared-core";
+  import type { GameSummary, Player } from "@beb/shared-core";
   import { serverState } from "../stores/server-state.svelte";
   import { ui } from "../stores/ui.svelte";
   import { sendCommon } from "../connection";
@@ -49,6 +49,7 @@
   const orderedGames = $derived(orderGamesByPlayerCount(catalog, room?.players.length ?? 0));
 
   function selectGame(gameId: string): void {
+    lastSent = null;
     sendCommon({ type: "selectGame", gameId });
   }
 
@@ -74,6 +75,7 @@
   // コンテンツと設定は同じconfigureで送る。コンテンツ未選択のstartはサーバが拒否する（基本設計/01）
   // settingsの中身は解釈せずそのまま渡す。受理の可否はサーバが決める（ADR-0012）
   function configure(id: string): void {
+    lastSent = null;
     sendCommon({ type: "configure", contentId: id, settings: { ...settings } });
   }
 
@@ -150,8 +152,36 @@
     invalid_lifecycle: "すでに始まっています",
     rate_limited: "操作が多すぎます。少し待ってからもう一度押してください",
   };
-  const serverError = $derived(ui.lastErrorCode ? (START_ERRORS[ui.lastErrorCode] ?? null) : null);
+  // サーバの拒否は直前に送った操作の結果として読む。外す操作の拒否（invalid_payload 等）を開始の理由として出さない
+  let lastSent = $state<"start" | "kick" | null>(null);
+  const serverError = $derived(
+    lastSent === "start" && ui.lastErrorCode ? (START_ERRORS[ui.lastErrorCode] ?? null) : null,
+  );
   let sendError = $state<string | null>(null);
+
+  const KICK_ERRORS: Record<string, string> = {
+    invalid_payload: "その人は戻ってきたため、外しませんでした",
+    not_host: "ホストではないため外せません",
+    invalid_lifecycle: "ゲームが始まったため外せません",
+    rate_limited: "操作が多すぎます。少し待ってからもう一度押してください",
+  };
+  let kickSendError = $state<string | null>(null);
+  const kickNote = $derived(
+    kickSendError ?? (lastSent === "kick" && ui.lastErrorCode ? (KICK_ERRORS[ui.lastErrorCode] ?? null) : null),
+  );
+
+  /** 外せるのは切断中の他人の席だけ。サーバも同じ条件で検証する（ADR-0028） */
+  function canKick(player: Player): boolean {
+    return isHost && !player.connected && player.id !== ui.myPlayerId;
+  }
+
+  function kick(playerId: string): void {
+    ui.lastErrorCode = null;
+    lastSent = "kick";
+    kickSendError = sendCommon({ type: "kick", playerId })
+      ? null
+      : "接続が戻っていないため送れませんでした。戻ったらもう一度押してください";
+  }
 
   // 出す順は「いま直せること」が先。サーバの拒否と送信の失敗はその後に残る
   const startNote = $derived(startBlocker ?? sendError ?? serverError);
@@ -160,6 +190,7 @@
     // 前回の拒否を残さない。押し直したことが分かるようにする
     ui.lastErrorCode = null;
     sendError = null;
+    lastSent = "start";
     if (!sendCommon({ type: "start" })) {
       sendError = "接続が戻っていないため送れませんでした。戻ったらもう一度押してください";
     }
@@ -184,12 +215,15 @@
 
   <section class="roster" aria-label="参加者">
     {#each room?.players ?? [] as player (player.id)}
-      <ParticipantTile {player} />
+      <ParticipantTile {player} onKick={canKick(player) ? () => kick(player.id) : undefined} />
     {/each}
     {#each Array.from({ length: emptySlots }, (_, index) => index) as slot (slot)}
       <div class="beb-tile empty">待機中…</div>
     {/each}
   </section>
+  {#if kickNote}
+    <p class="kick-note" role="status" data-testid="kick-note">{kickNote}</p>
+  {/if}
 
   {#if isHost}
     <section class="host-controls">
@@ -359,6 +393,15 @@
   .qr-panel p {
     margin: 0.4rem 0 0;
     font-size: 0.8rem;
+  }
+
+  .kick-note {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: var(--radius-tile);
+    padding: 0.3rem 0.7rem;
   }
 
   .roster {

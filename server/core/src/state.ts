@@ -12,6 +12,9 @@ export interface SecretsState {
   lastResult?: { gameId: string; payload: unknown };
   // playerId -> reconnectToken
   reconnectTokens: Record<string, string>;
+  // kickで外した参加者のreconnectToken。この値でのjoinはkickedで止める（ADR-0028）。
+  // 導入前に作られた部屋のsecretsには無いため省略可とし、無ければ空として扱う
+  revokedTokens?: string[];
   // playerId -> 直近に配布したsecret.payload（再接続時の再送用）
   playerSecrets: Record<string, unknown>;
   // ゲームモジュールが保持する秘密状態。共通コアは中身を解釈しない（基本設計/01、ADR-0015）

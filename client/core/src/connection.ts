@@ -20,7 +20,7 @@ const RECONNECT_BACKOFF_MS = [1_000, 2_000, 4_000, 8_000, 10_000]; // 上限10�
 // 「一度もopenしないまま閉じた」ことをもって429相当の可能性として扱い、最低30秒待つ
 const CONNECT_FAILURE_BACKOFF_MS = 30_000;
 // 再試行しても状況が変わらないエラー。受けたら再接続をやめ、画面に理由を出す（基本設計/02）
-const FATAL_ERROR_CODES = new Set(["spectator_limit", "room_full", "game_in_progress"]);
+const FATAL_ERROR_CODES = new Set(["spectator_limit", "room_full", "game_in_progress", "kicked"]);
 // ハンドシェイクが一度も成立しない状態。部屋コードの誤り（404）と混雑（429）を
 // ブラウザのWebSocket APIでは区別できないため、両方を含む文言で知らせる
 export const CONNECT_FAILED = "connect_failed";
@@ -77,6 +77,10 @@ function saveReconnectToken(code: string, token: string): void {
   sessionStorage.setItem(sessionKey(code), token);
 }
 
+function clearReconnectToken(code: string): void {
+  sessionStorage.removeItem(sessionKey(code));
+}
+
 function wsUrl(code: string): string {
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";
   return `${protocol}//${location.host}/room/${code}/ws`;
@@ -86,6 +90,8 @@ function wsUrl(code: string): string {
 export function connect(code: string, name: string, level: Level, icon: PlayerIconId | undefined): void {
   currentCode = code;
   pendingJoin = { name, level, icon };
+  // 前の入室で受けた致命的なエラー（kicked 等）を持ち越さない。入り直した後もバナーが残る
+  ui.lastErrorCode = null;
   sessionStorage.setItem(identityKey(code), JSON.stringify({ name, level, icon }));
   entryMode = "join";
   closedByClient = false;
@@ -148,7 +154,8 @@ export function sendCommon(
     | { type: "selectGame"; gameId: string }
     | { type: "configure"; contentId?: string; settings?: unknown }
     | { type: "start" }
-    | { type: "nextGame" },
+    | { type: "nextGame" }
+    | { type: "kick"; playerId: string },
 ): boolean {
   return send({ v: PROTOCOL_VERSION, ...message });
 }
@@ -281,6 +288,13 @@ function handleServerMessage(raw: string): void {
         }
         socket?.close();
         ui.connectionStatus = "disconnected";
+        if (message.code === "kicked" && currentCode) {
+          // 外されたトークンは二度と通らない。残すと入り直しのjoinにも付いて、また kicked になる（ADR-0028）
+          clearReconnectToken(currentCode);
+          clearServerState();
+          clearSecret();
+          clearResult();
+        }
         break;
       }
       if (message.code === "unsupported_version") {

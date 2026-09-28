@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Component } from "svelte";
   import { serverState } from "./stores/server-state.svelte";
+  import { ui } from "./stores/ui.svelte";
   import { connect, disconnect, spectate, storedIdentity } from "./connection";
   import ConnectionBanner from "./components/ConnectionBanner.svelte";
   import Home from "./components/Home.svelte";
@@ -75,6 +76,15 @@
       }
     }
   }
+
+  // ホストに外されたら、部屋コードを入れたホームへ戻す。入り直すかは本人が決める（ADR-0028）
+  $effect(() => {
+    if (ui.lastErrorCode === "kicked" && code && !hostMode) {
+      pendingCode = code;
+      code = null;
+      history.pushState({}, "", "/");
+    }
+  });
 
   $effect(() => {
     const room = serverState.room;
