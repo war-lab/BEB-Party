@@ -3,7 +3,7 @@
 //
 // 各ページの画面に出た断片を集めて、テスト側で答えを組み立てる（support/escapecall.ts）。
 import { expect, test } from "@playwright/test";
-import { collectPieces, enterCode, solve, waitForLock, wrongCodeFor } from "./support/escapecall";
+import { collectPieces, enterCode, findMapOnlyPage, solve, waitForLock, wrongCodeFor } from "./support/escapecall";
 import { openTable, readStateMessages } from "./support/room";
 
 const GAME_TITLE = "ESCAPE CALL";
@@ -42,8 +42,9 @@ for (const levels of [
           await expect(others[0]!.locator(".slots li.hinted")).toHaveCount(1, { timeout: 10_000 });
         }
 
-        // 対応表しか持たない人でも入力できる（13のsubmit）
-        await enterCode(table.pages[table.pages.length - 1]!, code);
+        // 対応表しか持たない人でも入力できる（13のsubmit）。レベルの降順で割り当てるため、
+        // 最後のページが対応表だけを持つとは限らない。画面の断片から該当者を探して打たせる
+        await enterCode(await findMapOnlyPage(table.pages), code);
       }
 
       for (const page of table.pages) {

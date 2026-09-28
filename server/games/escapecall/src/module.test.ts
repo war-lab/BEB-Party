@@ -148,20 +148,35 @@ describe("start", () => {
     expect(publicState.locks.every((lock) => !lock.opened)).toBe(true);
   });
 
-  // 不変条件2。state は全員へブロードキャストされる
-  it("公開状態に答え・並び・対応表・規則の文が現れない", () => {
-    const table = solvingTable();
-    const text = JSON.stringify(table.publicState);
-    for (const lock of table.gameSecret.locks) {
-      expect(text).not.toContain(`"${lock.code}"`);
-      for (const symbol of lock.order) {
-        expect(text).not.toContain(symbol);
-      }
-      for (const rule of lock.rules) {
-        const phrase = validPack().rulePhrases[rule.ruleId];
-        expect(text).not.toContain(phrase.standard.split("{")[0]!.trim());
-      }
+  // 不変条件2。state は全員へブロードキャストされる。
+  // 解錠中に公開状態へ足される欄（試行・ヒント・持ち主・開いた錠）の後でも漏れないことを見る
+  it("公開状態に答え・並び・対応表・規則の文が現れない（誤答・ヒント・解錠の後も）", () => {
+    function expectNoSecret(publicState: EscapeCallPublic, gameSecret: EscapeCallGameSecret): void {
+      const text = JSON.stringify(publicState);
+      gameSecret.locks.forEach((lock, index) => {
+        // 開いた錠の答えは試行の履歴に載る（13の公開状態）。まだ開いていない錠の答えだけを見る
+        if (!publicState.locks[index]?.opened) {
+          expect(text).not.toContain(`"${lock.code}"`);
+        }
+        for (const symbol of lock.order) {
+          expect(text).not.toContain(symbol);
+        }
+        for (const rule of lock.rules) {
+          const phrase = validPack().rulePhrases[rule.ruleId];
+          expect(text).not.toContain(phrase.standard.split("{")[0]!.trim());
+        }
+      });
     }
+
+    let table = solvingTable();
+    expectNoSecret(table.publicState, table.gameSecret);
+    table = apply(table, act(table, "p2", ACTIONS.submit, { lockIndex: 0, code: wrongCode(currentCode(table)) }));
+    expectNoSecret(table.publicState, table.gameSecret);
+    table = apply(table, act(table, "p1", ACTIONS.hint, { lockIndex: 0 }));
+    expectNoSecret(table.publicState, table.gameSecret);
+    table = apply(table, act(table, "p2", ACTIONS.submit, { lockIndex: 0, code: currentCode(table) }));
+    expect(table.publicState.currentLockIndex).toBe(1);
+    expectNoSecret(table.publicState, table.gameSecret);
   });
 
   it("カタログに規則の言い回しが含まれない", () => {
@@ -276,9 +291,22 @@ describe("submit", () => {
     let table = solvingTable();
     const first = currentCode(table);
     table = apply(table, act(table, "p1", ACTIONS.submit, { lockIndex: table.publicState.currentLockIndex, code: first }));
-    if (first !== currentCode(table)) {
-      const transition = act(table, "p1", ACTIONS.submit, { lockIndex: table.publicState.currentLockIndex, code: first });
-      expect(transition.publicState?.locks[1]?.opened).toBe(false);
+    // 錠1と錠2の答えがたまたま同じ seed では検査にならない。前提が崩れたら黙って通さず落とす
+    expect(currentCode(table)).not.toBe(first);
+    const transition = act(table, "p1", ACTIONS.submit, { lockIndex: table.publicState.currentLockIndex, code: first });
+    expect(transition.publicState?.locks[1]?.opened).toBe(false);
+  });
+
+  // currentLockIndex は locks[].opened から導ける値を別に持っている。両者がずれると、
+  // 秘密の送り直しとヒントの対象が別の錠を指す（13の公開状態）
+  it("currentLockIndex は開いた錠の数と一致し、開いた錠は先頭から連続する", () => {
+    let table = solvingTable();
+    for (let index = 0; index < 2; index += 1) {
+      table = apply(table, act(table, "p1", ACTIONS.submit, { lockIndex: index, code: wrongCode(currentCode(table)) }));
+      table = apply(table, act(table, "p1", ACTIONS.submit, { lockIndex: index, code: currentCode(table) }));
+      const opened = table.publicState.locks.map((lock) => lock.opened);
+      expect(table.publicState.currentLockIndex).toBe(index + 1);
+      expect(opened).toEqual(LOCK_SPECS.map((_, lockIndex) => lockIndex <= index));
     }
   });
 
@@ -402,11 +430,14 @@ describe("結果", () => {
     const delivered = Object.values(table.gameSecret.locks[2]!.assignments)
       .flat()
       .find((piece) => piece.kind === "rule");
-    if (delivered?.kind === "rule") {
-      expect(transition.result?.locks[2]?.rules.map((rule) => rule.textEn)).toEqual(
-        delivered.rules.map((rule) => rule.textEn),
-      );
+    // 規則の断片が見つからなければ検査にならない。黙って通さず落とす
+    expect(delivered?.kind).toBe("rule");
+    if (delivered?.kind !== "rule") {
+      return;
     }
+    expect(transition.result?.locks[2]?.rules.map((rule) => rule.textEn)).toEqual(
+      delivered.rules.map((rule) => rule.textEn),
+    );
   });
 });
 

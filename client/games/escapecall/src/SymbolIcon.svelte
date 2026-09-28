@@ -13,14 +13,25 @@
   interface Props {
     symbol: SymbolId;
     size?: number;
+    /** 読み上げ用の名前。解錠中は名前を伏せるため渡さない（渡すのは答えを明かした後の画面だけ） */
+    label?: string;
   }
-  let { symbol, size = 44 }: Props = $props();
+  let { symbol, size = 44, label }: Props = $props();
 
   const fill = $derived(COLORS[colorOf(symbol)].fill);
   const shape = $derived(shapeOf(symbol));
 </script>
 
-<svg class="symbol" width={size} height={size} viewBox="0 0 40 40" aria-hidden="true" data-symbol={symbol}>
+<svg
+  class="symbol"
+  width={size}
+  height={size}
+  viewBox="0 0 40 40"
+  role={label ? "img" : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : "true"}
+  data-symbol={symbol}
+>
   <rect class="backdrop" x="0" y="0" width="40" height="40" rx="7" />
   {#if shape === "star"}
     <polygon

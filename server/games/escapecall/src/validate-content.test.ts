@@ -39,6 +39,27 @@ describe("検証1: 構造", () => {
   it("錠の答えなど定義に無い欄を落とす", () => {
     expect(itemsOf({ ...validPack(), codes: ["1234"] })).toContain("schema");
   });
+
+  // scene と keyExpressions は公開状態へ複製される。入れ子の余分な欄が全員へ配られる経路を塞ぐ（ADR-0003）
+  it("入れ子の定義に無い欄も落とす", () => {
+    const withExtra = (mutate: (pack: Record<string, unknown>) => void): unknown => {
+      const pack = validPack() as unknown as Record<string, unknown>;
+      mutate(pack);
+      return pack;
+    };
+    expect(itemsOf(withExtra((pack) => ((pack.scene as Record<string, unknown>).answer = "1234")))).toEqual(["schema"]);
+    expect(
+      itemsOf(withExtra((pack) => ((pack.keyExpressions as Record<string, unknown>[])[0]!.code = "1234"))),
+    ).toEqual(["schema"]);
+    expect(
+      itemsOf(withExtra((pack) => ((pack.lockLabels as Record<string, unknown>[])[0]!.code = "1234"))),
+    ).toEqual(["schema"]);
+    expect(
+      itemsOf(
+        withExtra((pack) => ((pack.rulePhrases as Record<string, Record<string, unknown>>).reverse!.hard = "x")),
+      ),
+    ).toEqual(["schema"]);
+  });
 });
 
 describe("値の検証", () => {
