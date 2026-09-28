@@ -47,6 +47,9 @@
 | コマンド | 用途 |
 | --- | --- |
 | `pnpm --filter @beb/server-detectives run generate:cases` | 事件インデックス（`cases.generated.ts`）の生成 |
+| `pnpm --filter @beb/server-dontsayit run generate:sets` | DON'T SAY ITのお題インデックス（`sets.generated.ts`）の生成 |
+| `pnpm --filter @beb/server-blindroom run generate:packs` | BLIND ROOMのお題インデックス（`packs.generated.ts`）の生成 |
+| `pnpm --filter @beb/server-escapecall run generate:packs` | ESCAPE CALLの舞台インデックス（`packs.generated.ts`）の生成 |
 | `pnpm --filter @beb/client-blindroom run icons:generate` | BLIND ROOMの盤面アイコン（SVG20点）の生成 |
 | `pnpm --filter @beb/client-app run fonts:generate` | フォントサブセットの生成 |
 

@@ -81,14 +81,17 @@ describe("generateLock", () => {
     }
   });
 
-  // 規則を持つ人の情報を欠くと答えが決まらないことの根拠（13の規則）
-  it("規則を1つずつ外すと答えが変わる", () => {
+  // 規則を持つ人の情報を欠くと答えが決まらないことの根拠（13の規則）。
+  // 1つずつ外す場合に加え、錠3で2つとも外す場合（規則の断片を持つ人が抜けた卓が、規則なしで計算した値）も見る
+  it("規則の一部または全部を外すと答えが変わる", () => {
     for (let seed = 0; seed < SEED_COUNT; seed += 1) {
       for (const lock of generateLocks(createRandom(seed))) {
-        lock.rules.forEach((_, removed) => {
-          const without = lock.rules.filter((__, index) => index !== removed);
-          expect(computeCode(lock.order, without, mapOf(lock) as never)).not.toBe(lock.code);
-        });
+        const ruleCount = lock.rules.length;
+        // 真部分集合をビットで列挙する（全部を残す組み合わせだけを除く）
+        for (let kept = 0; kept < (1 << ruleCount) - 1; kept += 1) {
+          const subset = lock.rules.filter((_, index) => (kept & (1 << index)) !== 0);
+          expect(computeCode(lock.order, subset, mapOf(lock) as never)).not.toBe(lock.code);
+        }
       }
     }
   });

@@ -29,7 +29,7 @@
 {#if piece.kind === "order"}
   <section class="piece order" data-testid="piece-order" data-part={piece.part}>
     <h3>錠の記号{partLabel}<span class="sub">左から右へ</span></h3>
-    <ol class="row">
+    <ol class="row" style={`--count:${piece.symbols.length}`}>
       {#each piece.symbols as symbol, index (index)}
         <li data-symbol={symbol}><SymbolIcon {symbol} size={46} /></li>
       {/each}
@@ -90,13 +90,20 @@
     color: var(--mist);
     letter-spacing: 0;
   }
+  /* 並びは折り返さず1行に置く。2行に割れると「左から右へ」の読み順が崩れる。
+     除く規則の入った錠では1人が最大7記号を持ち、390px幅では46pxのままだと収まらないため、記号の側を縮める */
   .row {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(var(--count), minmax(0, 46px));
     gap: 0.35rem;
+  }
+  .row li :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
   }
   .grid {
     list-style: none;

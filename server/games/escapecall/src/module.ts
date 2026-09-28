@@ -372,7 +372,13 @@ export const escapeCallModule: GameModule<EscapeCallPublic, EscapeCallSecret, Es
 
     const publicState: EscapeCallPublic = {
       packId: pack.id,
-      scene: { ...pack.scene },
+      // 欄を名指しで写す。パックに余分な欄があっても全員向けの公開状態へ載せない（ADR-0003。検証1と二重に塞ぐ）
+      scene: {
+        titleEn: pack.scene.titleEn,
+        titleJa: pack.scene.titleJa,
+        introEn: pack.scene.introEn,
+        introJa: pack.scene.introJa,
+      },
       locks: LOCK_SPECS.map((spec, index) => ({
         index,
         labelEn: pack.lockLabels[index]?.en ?? "",
@@ -385,7 +391,7 @@ export const escapeCallModule: GameModule<EscapeCallPublic, EscapeCallSecret, Es
       readyPlayerIds: [],
       attempts: [],
       hints: [],
-      keyExpressions: pack.keyExpressions.map((entry) => ({ ...entry })),
+      keyExpressions: pack.keyExpressions.map((entry) => ({ en: entry.en, ja: entry.ja })),
       escapeSeconds,
     };
 

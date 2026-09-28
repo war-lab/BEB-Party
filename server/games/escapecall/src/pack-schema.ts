@@ -25,9 +25,29 @@ export type ParseResult = { ok: true; value: EscapeCallPack } | { ok: false; iss
 
 /** 定義に無い欄。錠の答え・並び・対応表を書く欄を設けない（ADR-0027） */
 const ROOT_KEYS = ["id", "title", "scene", "lockLabels", "keyExpressions", "rulePhrases"];
+const SCENE_KEYS = ["titleEn", "titleJa", "introEn", "introJa"];
+const PAIR_KEYS = ["en", "ja"];
+const PHRASE_KEYS = ["easy", "standard", "ja"];
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * 定義に無い欄を落とす。ルート直下に限らず入れ子でも見る。
+ * scene と keyExpressions はランタイムで公開状態へ複製されるため、余分な欄が全員へ配られうる（ADR-0003）
+ */
+function rejectUnknownKeys(
+  value: Record<string, unknown>,
+  allowed: readonly string[],
+  path: string,
+  issues: SchemaIssue[],
+): void {
+  for (const key of Object.keys(value)) {
+    if (!allowed.includes(key)) {
+      issues.push({ path: `${path}.${key}`, message: "定義に無い欄である。錠の答えや並びはコンテンツに持たない（ADR-0027）" });
+    }
+  }
 }
 
 function readString(source: Record<string, unknown>, key: string, path: string, issues: SchemaIssue[]): string {
@@ -57,6 +77,7 @@ function parsePair(value: unknown, path: string, issues: SchemaIssue[]): KeyExpr
     issues.push({ path, message: "オブジェクトである必要がある" });
     return { en: "", ja: "" };
   }
+  rejectUnknownKeys(value, PAIR_KEYS, path, issues);
   return { en: readString(value, "en", path, issues), ja: readString(value, "ja", path, issues) };
 }
 
@@ -66,6 +87,7 @@ function parseScene(value: unknown, issues: SchemaIssue[]): SceneText {
     issues.push({ path, message: "オブジェクトである必要がある" });
     return { titleEn: "", titleJa: "", introEn: "", introJa: "" };
   }
+  rejectUnknownKeys(value, SCENE_KEYS, path, issues);
   return {
     titleEn: readString(value, "titleEn", path, issues),
     titleJa: readString(value, "titleJa", path, issues),
@@ -91,6 +113,7 @@ function parseRulePhrases(value: unknown, issues: SchemaIssue[]): Record<RuleId,
       issues.push({ path: entryPath, message: "オブジェクトである必要がある" });
       continue;
     }
+    rejectUnknownKeys(phrase, PHRASE_KEYS, entryPath, issues);
     (result as Record<string, RulePhrase>)[ruleId] = {
       easy: typeof phrase.easy === "string" ? phrase.easy : "",
       standard: typeof phrase.standard === "string" ? phrase.standard : "",
@@ -106,11 +129,7 @@ export function parsePack(content: unknown): ParseResult {
     return { ok: false, issues: [{ path: "(root)", message: "オブジェクトである必要がある" }] };
   }
 
-  for (const key of Object.keys(content)) {
-    if (!ROOT_KEYS.includes(key)) {
-      issues.push({ path: `(root).${key}`, message: "定義に無い欄である。錠の答えや並びはコンテンツに持たない（ADR-0027）" });
-    }
-  }
+  rejectUnknownKeys(content, ROOT_KEYS, "(root)", issues);
 
   const pack: EscapeCallPack = {
     id: readString(content, "id", "(root)", issues),
