@@ -66,9 +66,9 @@ export interface GameModule<TPublic, TSecret, TResult, TGameSecret = unknown> {
    * 戻り値は、そのプレイヤーへ最後に送った秘密情報と一致させる。終局後や開示中は現在のステージと
    * 食い違う場合があるため、room.lifecycle と room.stage を見て場合分けする。
    * undefined を返すと秘密情報を送らない。例外を投げると共通コアは保存済みの値を送る。
-   * 収録済みの全ゲームが実装したら必須にする
+   * 必須にしているのは、秘密情報の形を変えたゲームが作り直しを実装し忘れると、旧版の値が届く問題に戻るため
    */
-  rebuildSecret?(input: {
+  rebuildSecret(input: {
     room: Room;
     publicState: TPublic;
     gameSecret: TGameSecret | undefined;
