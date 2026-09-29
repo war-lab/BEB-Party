@@ -194,6 +194,78 @@ function buildSecrets(
   return secrets;
 }
 
+/**
+ * 秘密情報を作り直すときの、聞き手の盤面の出どころ（12の再接続での作り直し）。
+ *
+ * briefing / handoff / building では gameSecret.boards が最後に送った盤面と一致する。
+ * reveal と終局後は toReveal が gameSecret.boards を空へ戻すが、秘密情報は送り直さない。
+ * そのため手元に残る盤面は、そのラウンドの RoundRecord.boards に移した盤面である。
+ * 説明者の未接続で飛ばして終局した場合は、最後に送ったのが飛ばしたラウンドの handoff であり、盤面は空である。
+ */
+function boardsForRebuild(
+  stage: string | undefined,
+  publicState: BlindRoomPublic,
+  gameSecret: BlindRoomGameSecret,
+): Record<string, Board> {
+  switch (stage) {
+    case STAGES.briefing:
+    case STAGES.handoff:
+    case STAGES.building:
+      return gameSecret.boards;
+    case STAGES.reveal: {
+      const record = publicState.rounds.at(-1);
+      // 飛ばして終局した場合は、末尾の記録が現ラウンドより前のラウンドを指すか、記録が無い
+      if (record === undefined || record.roundIndex !== publicState.roundIndex) {
+        return {};
+      }
+      return Object.fromEntries(record.boards.map((board) => [board.playerId, board.cells]));
+    }
+    default:
+      throw new Error(`秘密情報を作り直せないステージ: ${String(stage)}`);
+  }
+}
+
+/**
+ * 再接続したプレイヤーへ送る秘密情報を作り直す（ADR-0029）。
+ *
+ * 遷移と同じ buildSecrets を通し、そのプレイヤーへ最後に送った値と一致させる。
+ * 説明者の hintEn は再接続した時点のパックから引く。
+ * パックかアイテムセットが見つからないときは例外を投げる。hintEn を空にして黙って劣化させるより、
+ * 共通コアに保存済みの値を送らせる方が説明者の画面が保たれる。
+ */
+function rebuildSecret(input: {
+  room: Room;
+  publicState: BlindRoomPublic;
+  gameSecret: BlindRoomGameSecret | undefined;
+  playerId: string;
+}): BlindRoomSecret | undefined {
+  const { room, publicState, gameSecret, playerId } = input;
+  if (gameSecret === undefined) {
+    throw new Error("gameSecretが無いため秘密情報を作り直せない");
+  }
+  if (!isParticipant(room, playerId)) {
+    return undefined;
+  }
+
+  const roundIndex = publicState.roundIndex;
+  const describerId = publicState.describerOrder[roundIndex];
+  const cellCount = cellCountOf(publicState.boardSizeId);
+  const sample = gameSecret.samples[roundIndex] ?? emptyBoard(cellCount);
+  const boards = boardsForRebuild(room.stage, publicState, gameSecret);
+
+  // アイテムセットを読むのは説明者の hintEn だけである。聞き手はコンテンツが消えても作り直せる
+  let set: ItemSet | undefined;
+  if (playerId === describerId) {
+    const itemSetId = gameSecret.itemSetIds[roundIndex] ?? "";
+    set = itemSetOf(resolvePack(publicState.packId), itemSetId);
+    if (set === undefined) {
+      throw new Error(`未登録のアイテムセットid: ${itemSetId}`);
+    }
+  }
+
+  return buildSecrets(room.players, set, sample, describerId, roundIndex, boards, cellCount).get(playerId);
+}
+
 // --- 得点 ---
 
 function addPoints(scores: readonly ScoreEntry[], playerId: string, delta: number): ScoreEntry[] {
@@ -626,6 +698,8 @@ export const blindRoomModule: GameModule<
         return {};
     }
   },
+
+  rebuildSecret,
 
   validateContent,
 };
