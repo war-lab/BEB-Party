@@ -498,5 +498,22 @@ export const rankingModule: GameModule<RankingPublic, RankingSecret, RankingResu
     }
   },
 
+  // ステージと lifecycle で場合分けしない。秘密情報を送るのは start と startNextRound だけで、
+  // どちらも roundIndex を進めた直後に全員分を送る。以後は次のラウンドへ進むまで roundIndex が動かないため、
+  // 開示中も終局後も、最後に送った値は現在の roundIndex の目標から決まる（10の再接続時の作り直し）
+  rebuildSecret: ({ room, publicState, gameSecret, playerId }) => {
+    if (gameSecret === undefined) {
+      // 開始後は常に gameSecret がある。無ければ作り直せないため、共通コアに保存済みの値を送らせる
+      throw new Error("gameSecretが無いため秘密情報を作り直せない");
+    }
+    const goals = gameSecret.goalsByRound[publicState.roundIndex];
+    if (goals === undefined) {
+      // goalsByRound は setIds と同じ長さで作り、roundIndex はその範囲でしか進まないため到達しない
+      throw new Error(`ラウンド${publicState.roundIndex}の目標が無いため秘密情報を作り直せない`);
+    }
+    // 目標カードの無いプレイヤーには遷移でも送っていないため、undefined を返して送らない
+    return buildSecrets(room.players, goals, publicState.roundIndex).get(playerId);
+  },
+
   validateContent,
 };

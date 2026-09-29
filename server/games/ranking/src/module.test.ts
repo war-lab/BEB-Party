@@ -625,3 +625,231 @@ describe("listContents", () => {
     expect(serialized).not.toContain("question");
   });
 });
+
+describe("rebuildSecret", () => {
+  // 再接続した人の手元の目標カードが、作り直しに切り替えた後に消えたり別ラウンドの値に変わったりする退行を防ぐ。
+  // 共通コアと同じく、遷移が返した secrets を playerId ごとに上書きで溜め、各遷移の直後に全員分を突き合わせる
+
+  /** 共通コアの保存と再接続を模した進行役。遷移を当てるたびに全員分の作り直しを検査する */
+  function harness(input: { players?: Player[]; disconnected?: string[]; seed?: number } = {}) {
+    const members = input.players ?? players;
+    const started = startGame({ players: members, seed: input.seed });
+    let publicState = started.publicState;
+    let gameSecret = started.gameSecret;
+    let stage = started.stage;
+    let lifecycle: Room["lifecycle"] = "playing";
+    const saved = new Map<string, unknown>();
+
+    function room(): Room {
+      return { ...roomOf(publicState, stage, { players: members, disconnected: input.disconnected }), lifecycle };
+    }
+
+    function expectRebuiltMatchesSaved(): void {
+      for (const player of members) {
+        const rebuilt = rankingModule.rebuildSecret?.({
+          room: room(),
+          publicState,
+          gameSecret,
+          playerId: player.id,
+        });
+        expect(rebuilt, `${stage}/${lifecycle}/round${publicState.roundIndex}/${player.id}`).toEqual(
+          saved.get(player.id),
+        );
+      }
+    }
+
+    function apply(transition: ReturnType<typeof rankingModule.onDeadline>): typeof transition {
+      if (transition.reject === undefined) {
+        publicState = transition.publicState ?? publicState;
+        stage = transition.stage ?? stage;
+        gameSecret = transition.gameSecret ?? gameSecret;
+        for (const [playerId, secret] of transition.secrets ?? []) {
+          saved.set(playerId, secret);
+        }
+        if (transition.result !== undefined) {
+          lifecycle = "finished";
+        }
+      }
+      expectRebuiltMatchesSaved();
+      return transition;
+    }
+
+    function act(playerId: string, action: string, payload: unknown = {}) {
+      return apply(
+        rankingModule.handleAction({ room: room(), publicState, gameSecret, playerId, action, payload }),
+      );
+    }
+
+    for (const [playerId, secret] of started.secrets) {
+      saved.set(playerId, secret);
+    }
+    expectRebuiltMatchesSaved();
+
+    return {
+      act,
+      deadline: () => apply(rankingModule.onDeadline({ room: room(), publicState, gameSecret })),
+      /** 接続中の全員が順に action を送る */
+      actAll: (action: string) => {
+        for (const player of members) {
+          if (!input.disconnected?.includes(player.id)) {
+            act(player.id, action);
+          }
+        }
+      },
+      /** gameSecret を差し替える。startNextRound の到達しない分岐を通すためだけに使う */
+      replaceGameSecret: (next: typeof gameSecret) => {
+        gameSecret = next;
+      },
+      get stage() {
+        return stage;
+      },
+      get lifecycle() {
+        return lifecycle;
+      },
+      get roundIndex() {
+        return publicState.roundIndex;
+      },
+      get saved() {
+        return saved;
+      },
+    };
+  }
+
+  const host = () => players[0]!.id;
+  const RANKING = ["b", "a", "c", "d", "e"];
+
+  it("readyと承認で全ラウンドを進め、終局後まで最後に送った値と一致する", () => {
+    const h = harness();
+    for (let round = 0; round < ROUNDS; round += 1) {
+      expect(h.stage).toBe(STAGES.briefing);
+      h.actAll(ACTIONS.ready);
+      expect(h.stage).toBe(STAGES.discussion);
+      h.deadline();
+      expect(h.stage).toBe(STAGES.confirming);
+      h.act(host(), ACTIONS.proposeRanking, { ranking: RANKING });
+      h.actAll(ACTIONS.approveRanking);
+      expect(h.stage).toBe(STAGES.reveal);
+      if (round < ROUNDS - 1) {
+        h.actAll(ACTIONS.ready);
+        expect(h.roundIndex).toBe(round + 1);
+      }
+    }
+    expect(h.lifecycle).toBe("finished");
+    // 終局後も最終ラウンドの目標を返す
+    const last = h.saved.get(host()) as RankingSecret;
+    expect(last.roundIndex).toBe(ROUNDS - 1);
+  });
+
+  it("締切だけで全ラウンドを進め、提案が無い確定を通っても一致する", () => {
+    const h = harness();
+    for (let round = 0; round < ROUNDS; round += 1) {
+      h.deadline(); // briefing -> discussion
+      h.deadline(); // discussion -> confirming
+      h.deadline(); // confirming -> reveal（提案なし）
+      if (round < ROUNDS - 1) {
+        h.deadline(); // reveal -> 次のbriefing
+      }
+    }
+    expect(h.lifecycle).toBe("finished");
+  });
+
+  it("締切で提案ありの確定を通し、拒否された操作の後も一致する", () => {
+    const h = harness();
+    // briefing での承認や confirming 以外の提案は拒否され、状態も秘密情報も変わらない
+    h.act(host(), ACTIONS.approveRanking);
+    h.act(host(), ACTIONS.proposeRanking, { ranking: RANKING });
+    h.act(host(), ACTIONS.ready);
+    h.deadline(); // briefing -> discussion（未readyを既読扱い）
+    h.deadline();
+    h.act(players[1]!.id, ACTIONS.proposeRanking, { ranking: RANKING }); // ホスト以外は拒否
+    h.act(host(), ACTIONS.proposeRanking, { ranking: RANKING });
+    h.act(players[1]!.id, ACTIONS.approveRanking); // 全員揃わず遷移しない
+    h.deadline(); // 提案で確定
+    expect(h.stage).toBe(STAGES.reveal);
+    h.act(host(), ACTIONS.ready); // 揃わず留まる
+    h.deadline();
+    expect(h.stage).toBe(STAGES.briefing);
+    expect(h.roundIndex).toBe(1);
+  });
+
+  it("未接続者を待たずに進んでも、未接続者の作り直しが最後に送った値と一致する", () => {
+    const h = harness({ disconnected: [players[5]!.id] });
+    for (let round = 0; round < ROUNDS; round += 1) {
+      h.actAll(ACTIONS.ready);
+      h.deadline();
+      h.act(host(), ACTIONS.proposeRanking, { ranking: RANKING });
+      h.actAll(ACTIONS.approveRanking);
+      if (round < ROUNDS - 1) {
+        h.actAll(ACTIONS.ready);
+      }
+    }
+    expect(h.lifecycle).toBe("finished");
+    expect((h.saved.get(players[5]!.id) as RankingSecret).roundIndex).toBe(ROUNDS - 1);
+  });
+
+  it("5人でも全ラウンドで一致する", () => {
+    players = playersOf([1, 2, 3, 4, 5]);
+    const h = harness({ players });
+    for (let round = 0; round < ROUNDS; round += 1) {
+      h.actAll(ACTIONS.ready);
+      h.deadline();
+      h.deadline();
+      if (round < ROUNDS - 1) {
+        h.actAll(ACTIONS.ready);
+      }
+    }
+    expect(h.lifecycle).toBe("finished");
+  });
+
+  it("次のセットが引けず開示に留まる分岐でも、前のラウンドの値と一致する", () => {
+    const h = harness();
+    h.deadline();
+    h.deadline();
+    h.deadline();
+    expect(h.stage).toBe(STAGES.reveal);
+    // setIds を1件に縮めて startNextRound の到達しない分岐（{} を返す）を通す
+    const started = startGame();
+    h.replaceGameSecret({ ...started.gameSecret!, setIds: started.gameSecret!.setIds.slice(0, 1) });
+    h.deadline();
+    expect(h.stage).toBe(STAGES.reveal);
+    expect(h.roundIndex).toBe(0);
+  });
+
+  it("目標カードの無いプレイヤーには送らない", () => {
+    const started = startGame();
+    const goals = { ...started.gameSecret!.goalsByRound[0]! };
+    delete goals[players[0]!.id];
+    const rebuilt = rankingModule.rebuildSecret?.({
+      room: roomOf(started.publicState, STAGES.briefing),
+      publicState: started.publicState,
+      gameSecret: { ...started.gameSecret!, goalsByRound: [goals] },
+      playerId: players[0]!.id,
+    });
+    expect(rebuilt).toBeUndefined();
+  });
+
+  it("gameSecretが無いときは例外を投げ、共通コアに保存済みの値を送らせる", () => {
+    const started = startGame();
+    expect(() =>
+      rankingModule.rebuildSecret?.({
+        room: roomOf(started.publicState, STAGES.briefing),
+        publicState: started.publicState,
+        gameSecret: undefined,
+        playerId: players[0]!.id,
+      }),
+    ).toThrow();
+  });
+
+  it("現在のラウンドの目標が無いときは例外を投げる", () => {
+    const started = startGame();
+    const publicState: RankingPublic = { ...started.publicState, roundIndex: ROUNDS };
+    expect(() =>
+      rankingModule.rebuildSecret?.({
+        room: roomOf(publicState, STAGES.briefing),
+        publicState,
+        gameSecret: started.gameSecret,
+        playerId: players[0]!.id,
+      }),
+    ).toThrow();
+  });
+});
