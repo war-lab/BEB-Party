@@ -138,6 +138,4 @@ describe("再接続で秘密情報を作り直す", () => {
     await new Promise((resolve) => setTimeout(resolve, 200));
     expect(secretArrived).toBe(false);
   });
-
-  // rebuildSecretが無いゲームで保存済みの値を送る経路は room-do.reconnect.test.ts が検査している
 });

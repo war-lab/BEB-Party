@@ -799,14 +799,15 @@ export class RoomDO extends DurableObject<Env> {
    * 再接続した人へ送る秘密情報を決める（ADR-0029）。
    *
    * 保存済みの値は送った時点の形と内容のまま残り、デプロイをまたぐと旧版の値が新しい画面へ届く。
-   * そのためゲームモジュールが作り直せるなら、その値を送る。
+   * そのためゲームモジュールが作り直した値を送る。
    * 作り直しが例外になったら保存済みの値を送る。コンテンツのIDが消えた場合などで、送らないと説明者が
    * カードを見られないまま次の遷移まで待つことになる
    */
   private secretForReconnect(room: InternalRoomState, secrets: SecretsState, playerId: string): unknown {
     const stored = secrets.playerSecrets[playerId];
+    // デプロイでゲームごと外された場合に限り、モジュールが引けない
     const gameModule = room.gameId ? registry[room.gameId] : undefined;
-    if (!gameModule?.rebuildSecret) {
+    if (!gameModule) {
       return stored;
     }
     try {
