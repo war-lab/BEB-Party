@@ -633,5 +633,37 @@ export const whoWroteThisModule: GameModule<
     }
   },
 
+  // ステージと lifecycle で場合分けしない。秘密情報を送るのは start と startNextRound の全員分と、
+  // submit の提出者1人分だけである。どれも現在の roundIndex の質問と開示順から作り、提出文は
+  // gameSecret.submissions に正規化済みで残る。roundIndex は次のラウンドへ進むまで動かないため、
+  // 開示中も終局後も、最後に送った値は現在の roundIndex から決まる（11の秘密情報）
+  rebuildSecret: ({ room, publicState, gameSecret, playerId }) => {
+    if (!isParticipant(room, playerId)) {
+      // 参加者でない人には遷移でも送っていないため、送らない
+      return undefined;
+    }
+    if (gameSecret === undefined) {
+      // 開始後は常に gameSecret がある。無ければ作り直せないため、共通コアに保存済みの値を送らせる
+      throw new Error("gameSecretが無いため秘密情報を作り直せない");
+    }
+    const roundIndex = publicState.roundIndex;
+    // hintEn は gameSecret に持たないため、再接続した時点のコンテンツから引く（ADR-0029）。
+    // パックが無ければ resolvePack が例外を投げる
+    const pack = resolvePack(publicState.packId);
+    const question = resolveQuestion(pack, gameSecret.questionIds[roundIndex]);
+    if (question === undefined) {
+      // undefined を返すと「送らない」になり、共通コアが保存済みの値へ戻せない。例外で退避させる
+      throw new Error(`ラウンド${roundIndex}の質問がパック${pack.id}に無いため秘密情報を作り直せない`);
+    }
+    return buildSecret(
+      room.players,
+      question,
+      roundIndex,
+      playerId,
+      gameSecret.submissions[roundIndex]?.[playerId],
+      (gameSecret.revealOrders[roundIndex] ?? []).indexOf(playerId),
+    );
+  },
+
   validateContent,
 };
