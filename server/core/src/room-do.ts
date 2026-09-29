@@ -317,7 +317,7 @@ export class RoomDO extends DurableObject<Env> {
     this.broadcastState(room);
 
     if (room.lifecycle === "playing" || room.lifecycle === "finished") {
-      const payload = secrets.playerSecrets[player.id];
+      const payload = this.secretForReconnect(room, secrets, player.id);
       if (payload !== undefined && room.gameId) {
         this.send(ws, { v: PROTOCOL_VERSION, type: "secret", gameId: room.gameId, payload });
       }
@@ -793,6 +793,33 @@ export class RoomDO extends DurableObject<Env> {
 
   private buildStateMessage(room: InternalRoomState): StateMessage {
     return { ...toPublicRoom(room), v: PROTOCOL_VERSION, type: "state", serverNow: Date.now() };
+  }
+
+  /**
+   * 再接続した人へ送る秘密情報を決める（ADR-0029）。
+   *
+   * 保存済みの値は送った時点の形と内容のまま残り、デプロイをまたぐと旧版の値が新しい画面へ届く。
+   * そのためゲームモジュールが作り直せるなら、その値を送る。
+   * 作り直しが例外になったら保存済みの値を送る。コンテンツのIDが消えた場合などで、送らないと説明者が
+   * カードを見られないまま次の遷移まで待つことになる
+   */
+  private secretForReconnect(room: InternalRoomState, secrets: SecretsState, playerId: string): unknown {
+    const stored = secrets.playerSecrets[playerId];
+    const gameModule = room.gameId ? registry[room.gameId] : undefined;
+    if (!gameModule?.rebuildSecret) {
+      return stored;
+    }
+    try {
+      return gameModule.rebuildSecret({
+        room: toPublicRoom(room),
+        publicState: room.gameState,
+        gameSecret: secrets.gameSecret,
+        playerId,
+      });
+    } catch (error) {
+      console.error(`秘密情報の作り直しに失敗したため保存済みの値を送る: gameId=${room.gameId}`, error);
+      return stored;
+    }
   }
 
   /** finishedのまま接続した人へ、開示済みのresultを再送する */
