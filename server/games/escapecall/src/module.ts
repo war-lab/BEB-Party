@@ -124,6 +124,51 @@ function secretsFor(players: readonly Player[], lock: LockSecret | undefined, lo
   return secrets;
 }
 
+/**
+ * 再接続した人へ送る秘密を作り直す（ADR-0029、13の秘密情報）。
+ *
+ * 遷移で最後に送った値と一致させる。briefing は空の断片、solving と時間切れの debrief は
+ * いま挑戦中の錠の断片である。脱出の debrief だけは currentLockIndex が LOCK_COUNT まで進んでおり、
+ * 最後に送ったのは最後の錠の断片のため、その錠で作る。
+ * 想定外の状態では例外を投げる。共通コアが保存済みの値を送る
+ */
+function rebuildSecretOf(
+  room: Room,
+  publicState: EscapeCallPublic,
+  gameSecret: EscapeCallGameSecret | undefined,
+  playerId: string,
+): EscapeCallSecret {
+  if (gameSecret === undefined) {
+    throw new Error("gameSecretが無いため秘密を作り直せない");
+  }
+  const player = room.players.find((entry) => entry.id === playerId);
+  if (player === undefined) {
+    throw new Error(`参加者でないplayerId: ${playerId}`);
+  }
+
+  let lockIndex: number;
+  switch (room.stage) {
+    case STAGES.briefing:
+      // start が送った値と同じ。briefing 中は断片を配らない
+      return { lockIndex: 0, pieces: [] };
+    case STAGES.solving:
+      lockIndex = publicState.currentLockIndex;
+      break;
+    case STAGES.debrief:
+      // 脱出で終わった場合は最後の錠の断片を最後に送っている。時間切れなら挑戦中だった錠のまま
+      lockIndex = publicState.currentLockIndex >= LOCK_COUNT ? LOCK_COUNT - 1 : publicState.currentLockIndex;
+      break;
+    default:
+      throw new Error(`秘密を作り直せないステージ: ${String(room.stage)}`);
+  }
+
+  const lock = gameSecret.locks[lockIndex];
+  if (lock === undefined) {
+    throw new Error(`錠が見つからない: lockIndex=${lockIndex}`);
+  }
+  return secretsFor([player], lock, lockIndex).get(player.id) as EscapeCallSecret;
+}
+
 // --- 進行の補助 ---
 
 function connectedPlayerIds(room: Room): string[] {
@@ -439,6 +484,9 @@ export const escapeCallModule: GameModule<EscapeCallPublic, EscapeCallSecret, Es
         return {};
     }
   },
+
+  rebuildSecret: ({ room, publicState, gameSecret, playerId }) =>
+    rebuildSecretOf(room, publicState, gameSecret, playerId),
 
   validateContent,
 };

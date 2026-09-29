@@ -352,6 +352,28 @@ interface RuleEntry {
 `briefing` 中は断片を配らない。
 開始時点の秘密は `pieces: []` とする。
 
+### 再接続での作り直し
+
+`rebuildSecret` は、遷移で最後に送った秘密と同じ値を返す（[ADR-0029](../adr/0029-再接続の秘密情報はゲームモジュールが作り直す.md)）。
+断片は `start` で `gameSecret` の `assignments` に確定しているため、コンテンツを引かずに作り直せる。
+
+| 状態 | 返す値 |
+| --- | --- |
+| `briefing` | `{ lockIndex: 0, pieces: [] }` |
+| `solving` | `currentLockIndex` の錠の断片 |
+| `debrief`（時間切れ） | `currentLockIndex` の錠の断片 |
+| `debrief`（脱出） | 最後の錠（`LOCK_COUNT - 1`）の断片 |
+
+脱出の `debrief` だけは `currentLockIndex` をそのまま使えない。
+最後の錠が開いたときに `currentLockIndex` は `LOCK_COUNT` まで進むが、終局の遷移は秘密を送らない。
+そのため最後に送った値は最後の錠の断片であり、`currentLockIndex` で作ると空の断片になって食い違う。
+
+脱出か時間切れかは、`currentLockIndex` が `LOCK_COUNT` 以上かどうかで見分ける。
+どちらもステージは `debrief` であり、ステージでは見分けられない。
+
+`gameSecret` が無い場合、錠が見つからない場合、参加者でない `playerId` の場合、未知のステージの場合は例外を投げる。
+共通コアは例外のときに保存済みの値を送るため、誤った値を返すより安全である。
+
 ## ゲーム秘密状態（gameSecret）
 
 ```typescript
@@ -800,6 +822,10 @@ interface LockSolution {
 * 秘密の配布: `briefing` 中の秘密が `pieces: []` であること
 * 秘密の配布: `solving` へ入るときに全員へ錠1の断片が送られること
 * 秘密の配布: 錠が開いたときに、全員へ次の錠の断片の全量が送られ、前の錠の断片が残らないこと
+* 作り直し: 遷移が返した秘密を `playerId` ごとに上書きで溜めた値と `rebuildSecret` の戻り値が、各遷移の直後に全員について一致すること。`start` から終局まで、`ready` と締切での解錠への進行、誤答、ヒント、錠1〜3の正答、脱出と時間切れでの終局を通し、2人、3人、4人で確かめる
+* 作り直し: 脱出後に、最後の錠の断片が返ること
+* 作り直し: 切断中の人を待たずに解錠へ進んだ後、その人の断片が作り直せること
+* 作り直し: `gameSecret` が無い、錠が無い、参加者でない、未知のステージのときに例外を投げること
 * `submit`: 桁数違い、数字以外、文字列以外が `invalid_code` で拒否されること
 * `submit`: 同じ錠への同じ誤答が `already_attempted` で拒否され、状態が変わらないこと
 * `submit`: 誤答で `attempts` に1行増え、ステージも締切も変わらないこと
