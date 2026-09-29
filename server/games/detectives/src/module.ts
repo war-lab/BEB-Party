@@ -1,7 +1,7 @@
 // DETECTIVESのGameModule実装（基本設計/08_DETECTIVESゲームモジュール.md）。
 //
 // すべて純粋関数として書く。storage・WebSocket・現在時刻・Math.random()に触らない（基本設計/05）。
-import type { ContentSummary, GameModule, GameTransition, Room, ValidationResult } from "@beb/shared-core";
+import type { ContentSummary, GameModule, GameTransition, Player, Room, ValidationResult } from "@beb/shared-core";
 import { createRandom } from "@beb/shared-core";
 import {
   ACTIONS,
@@ -172,11 +172,59 @@ function buildSecrets(target: Case, cast: CastMember[], variant: Variant): Map<s
   return secrets;
 }
 
-// --- 結果の組み立て ---
-
-function levelByPlayerId(room: Room): Map<string, CastMember["level"]> {
-  return new Map(room.players.map((player) => [player.id, player.level]));
+function levelByPlayerId(players: Player[]): Map<string, CastMember["level"]> {
+  return new Map(players.map((player) => [player.id, player.level]));
 }
+
+/**
+ * 公開状態の配役とプレイヤーのレベルから、秘密情報の組み立てに使う配役を組む。
+ *
+ * start と rebuildSecret の両方がこれを通す。組み方を1箇所に置き、再接続で作り直した値が
+ * start の値からずれないようにするため（ADR-0029）
+ */
+function castMembersOf(cast: CastEntry[], players: Player[]): CastMember[] {
+  const levels = levelByPlayerId(players);
+  return cast.map((entry) => {
+    const level = levels.get(entry.playerId);
+    if (level === undefined) {
+      throw new Error(`配役されたプレイヤーが部屋にいない: ${entry.playerId}`);
+    }
+    return {
+      playerId: entry.playerId,
+      characterId: entry.characterId,
+      characterName: entry.characterName,
+      level,
+    };
+  });
+}
+
+/**
+ * 作り直した秘密情報が事件データと噛み合っているかを確かめる。
+ *
+ * buildSecrets は、キャラクターIDが事件データに無ければ空の手札を、レベル別の英文が欠けていれば
+ * textEn が undefined のカードを黙って作る。デプロイで事件データが変わると起きうるため、
+ * 作り直しでは例外にして、共通コアに保存済みの値を送らせる（ADR-0029）
+ */
+function assertRebuilt(secret: DetectivesSecret, target: Case): void {
+  if (!target.characters.some((character) => character.id === secret.characterId)) {
+    throw new Error(`配役されたキャラクターが事件データに無い: ${secret.characterId}`);
+  }
+  if (secret.cards.length === 0) {
+    throw new Error(`キャラクターの証言が事件データに無い: ${secret.characterId}`);
+  }
+  for (const card of secret.cards) {
+    if (typeof card.textEn !== "string") {
+      throw new Error(`証言の英文が事件データに無い: ${card.factId}`);
+    }
+  }
+  // 犯人の手札には嘘カードが1枚だけある。差し替え先の事実が犯人の手札に無いと、嘘が配られない
+  const lies = secret.cards.filter((card) => card.isLie).length;
+  if (lies !== (secret.isCulprit ? 1 : 0)) {
+    throw new Error(`嘘カードの枚数が合わない: ${secret.characterId}（${lies}枚）`);
+  }
+}
+
+// --- 結果の組み立て ---
 
 function buildContradictions(
   target: Case,
@@ -184,7 +232,7 @@ function buildContradictions(
   publicState: DetectivesPublic,
   room: Room,
 ): ContradictionExplanation[] {
-  const levels = levelByPlayerId(room);
+  const levels = levelByPlayerId(room.players);
   const playerOfCharacter = new Map(publicState.cast.map((entry) => [entry.characterId, entry.playerId]));
   const characterName = new Map(publicState.cast.map((entry) => [entry.characterId, entry.characterName]));
   const factById = new Map(target.facts.map((fact) => [fact.id, fact]));
@@ -226,7 +274,7 @@ function judge(votes: DetectivesGameSecret["votes"], culpritPlayerId: string): D
 
 function buildResult(room: Room, publicState: DetectivesPublic, gameSecret: DetectivesGameSecret): DetectivesResult {
   const { target, variant } = restore(gameSecret);
-  const culpritLevel = levelByPlayerId(room).get(gameSecret.culpritPlayerId) ?? 3;
+  const culpritLevel = levelByPlayerId(room.players).get(gameSecret.culpritPlayerId) ?? 3;
 
   return {
     culprit: { playerId: gameSecret.culpritPlayerId, characterId: gameSecret.culpritCharacterId },
@@ -391,7 +439,7 @@ export const detectivesModule: GameModule<
       stage: STAGES.briefing,
       deadlineSeconds: STAGE_DEADLINE_SECONDS.briefing,
       publicState,
-      secrets: buildSecrets(target, cast, variant),
+      secrets: buildSecrets(target, castMembersOf(publicState.cast, players), variant),
       gameSecret: {
         caseId: target.id,
         playerCountVariant,
@@ -441,6 +489,29 @@ export const detectivesModule: GameModule<
         // revealには締切を置かない。ここへは到達しない
         return {};
     }
+  },
+
+  /**
+   * 秘密情報は start で1回だけ全員へ送り、以後の遷移は送らない（08）。
+   * そのためステージと終局で場合分けせず、どの時点でも start と同じ値を作り直す。
+   */
+  rebuildSecret: ({ room, publicState, gameSecret, playerId }) => {
+    if (gameSecret === undefined) {
+      throw new Error("秘密状態が無い");
+    }
+    const entry = publicState.cast.find((member) => member.playerId === playerId);
+    if (entry === undefined) {
+      // 配役されていない人には start でも秘密情報を送っていない
+      return undefined;
+    }
+    const { target, variant } = restore(gameSecret);
+    // 本人の分だけを組む。他のプレイヤーの状態で本人の作り直しを失敗させないため
+    const secret = buildSecrets(target, castMembersOf([entry], room.players), variant).get(playerId);
+    if (secret === undefined) {
+      throw new Error(`秘密情報を組み立てられない: ${playerId}`);
+    }
+    assertRebuilt(secret, target);
+    return secret;
   },
 
   validateContent,
