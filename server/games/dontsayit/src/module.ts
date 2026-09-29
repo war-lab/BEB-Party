@@ -479,6 +479,46 @@ function handleSkipCard(
   return advanceCard(room, publicState, gameSecret, nextPublic);
 }
 
+// --- 再接続 ---
+
+/**
+ * 再接続したプレイヤーへ送る秘密情報を作り直す（ADR-0029、09の再接続時の秘密情報）。
+ *
+ * playing 中は、遷移と同じ buildSecrets に現在の状態を渡す。役とカードは publicState と gameSecret から決まるため、
+ * 最後に送った値と一致する。
+ *
+ * finished では undefined を返し、送らない。終局時の endRound は次のカードを引いてから gameSecret を保存し、
+ * roundIndex も進めないため、同じ式では最終ラウンドの説明者と監視役に誰も見ていないカードが届く。
+ * 最後に見せたカードは gameSecret から確実には引けない。debrief の画面は秘密情報を読まない。
+ *
+ * コンテンツが見つからないときは例外を投げる。回答者へ劣化させると説明者がカードを失うが、
+ * 例外なら共通コアが保存済みの値を送る。
+ */
+function rebuildSecret({
+  room,
+  publicState,
+  gameSecret,
+  playerId,
+}: {
+  room: Room;
+  publicState: DontSayItPublic;
+  gameSecret: DontSayItGameSecret | undefined;
+  playerId: string;
+}): DontSayItSecret | undefined {
+  if (room.lifecycle !== "playing") {
+    return undefined;
+  }
+  if (gameSecret === undefined) {
+    throw new Error("playing中にgameSecretが無い");
+  }
+  const target = resolveSet(publicState.setId);
+  const cardId = gameSecret.currentCardId;
+  if (cardId !== null && findCard(target, cardId) === undefined) {
+    throw new Error(`お題セット${target.id}にカード${cardId}が無い`);
+  }
+  return buildSecrets(target, room.players, publicState, cardId).get(playerId);
+}
+
 // --- GameModule ---
 
 export const dontSayItModule: GameModule<
@@ -611,6 +651,8 @@ export const dontSayItModule: GameModule<
         return {};
     }
   },
+
+  rebuildSecret,
 
   validateContent,
 };
