@@ -64,7 +64,7 @@
 <main class="home beb-speedlines-light">
   <div class="logo">BEB<br /><em>PARTY!</em></div>
   <p class="catch">SPEAK. GUESS. WIN.</p>
-  <span class="tagline">英語でしゃべって遊ぶ、5〜6人のパーティゲーム集</span>
+  <span class="tagline">英語でしゃべって遊ぶパーティゲーム集</span>
 
   <div class="entry">
     <label class="field">
