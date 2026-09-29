@@ -80,5 +80,8 @@ export const stubGameModule: GameModule<StubPublicState, StubSecret, StubResult,
     return { result: { outcome: "lose" } };
   },
 
+  // startが配った値をそのまま作り直す。再接続の既存テストが保存済みの値と同じものを受け取るようにするため
+  rebuildSecret: ({ playerId }) => ({ hint: `secret-for-${playerId}` }),
+
   validateContent: () => ({ valid: true }),
 };
