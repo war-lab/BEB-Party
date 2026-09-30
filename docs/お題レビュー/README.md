@@ -28,6 +28,14 @@ ESCAPE CALLは、規則の英文がコードの作用と同じ意味に読める
 | WHO WROTE THIS? | 日常 | 答えが一意に決まらない質問12件 | [daily.md](./daily.md) |
 | BLIND ROOM | 部屋のもの | 盤面に置くアイテム20件と言い回し17件 | [room.md](./room.md) |
 | ESCAPE CALL | 深夜の研究所 | 規則5種の言い回し15文と、質問と確認の言い回し11件 | [lab.md](./lab.md) |
+| ENGLISH RANKING | 持ち物と道具 | 限られた場面で何を選ぶかを並べる6セット | [gear.md](./gear.md) |
+| ENGLISH RANKING | 住まいと近所づきあい | どこに誰とどう住むかを並べる6セット | [home-life.md](./home-life.md) |
+| WHO WROTE THIS? | 思い出 | 子どもの頃と学生時代の経験を問う質問12件 | [memories.md](./memories.md) |
+| WHO WROTE THIS? | もしも | 仮定の質問12件 | [what-if.md](./what-if.md) |
+| BLIND ROOM | 公園 | 盤面に置くアイテム20件と新しい形状10種 | [park.md](./park.md) |
+| BLIND ROOM | 台所 | 盤面に置くアイテム20件と新しい形状10種 | [kitchen.md](./kitchen.md) |
+| ESCAPE CALL | 沈みかけた船 | 舞台と錠の名前。規則の言い回しは深夜の研究所と同じ | [ship.md](./ship.md) |
+| ESCAPE CALL | 雪に閉ざされた山小屋 | 舞台と錠の名前。規則の言い回しは深夜の研究所と同じ | [cabin.md](./cabin.md) |
 
 ## 記録の書き方
 

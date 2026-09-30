@@ -717,7 +717,7 @@ interface BlindRoomResult {
 検証13を置くのは、`ja` がフォントサブセットの入力になるためである（[07](./07_リポジトリとツールチェーン.md)）。
 
 アイコンは生成物である。
-形状の正本は `client/games/blindroom/scripts/generate-icons.mjs` にあり、10種の形状と色の組み合わせから20点を作る。
+形状の正本は `client/games/blindroom/scripts/generate-icons.mjs` にあり、30種の形状と色の組み合わせから60点を作る。
 SVGを直接編集すると色違いの形が揃わなくなるため、`pnpm --filter @beb/client-blindroom run icons:generate` で作り直す（[07](./07_リポジトリとツールチェーン.md)）。
 
 ### アイコンの検査
@@ -742,7 +742,7 @@ SVGを直接編集すると色違いの形が揃わなくなるため、`pnpm --
 * アイテムが英語で説明しやすいか（`en` が卓の全員に通じる語か）
 * アイコンの絵と `en` が同じものを指して見えるか
 * `standard` のアイテムの差が英語で言い分けられる差か（色は言えるが、形の微差は言えない）
-* 44pxまで縮めたときに20点が互いに取り違えられないか
+* 44pxまで縮めたときに、同じアイテムセットの中で互いに取り違えられないか
 * `describerHints` と `keyExpressions` の枠が文として成立するか
 * `describerHints` の先頭が、どの見本でも使える枠か（レベル別に届くのは先頭から数件であり、easyは4件、standardは2件。位置を条件つきでしか指定できない枠を先頭に置くと、その条件を満たさない見本で説明の取っかかりが無くなる）
 * `describerHints` が盤面の広さに依存しないか（4列に「真ん中」は無く、4段に `middle` は無い。位置は `... from the left` のように数える枠で書く）
