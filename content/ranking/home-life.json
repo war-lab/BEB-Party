@@ -137,7 +137,7 @@
           "hintEn": [
             "Location has to be first.",
             "You can change your furniture, but not the station near you.",
-            "A long commute takes hours from your life."
+            "A long commute takes hours out of your day."
           ],
           "goal": { "type": "top", "item": "location", "within": 1 }
         },
@@ -158,15 +158,15 @@
           "ja": "sunlightをちょうど3位にする",
           "hintEn": [
             "Sunlight belongs in the middle, at number three.",
-            "Sun is nice, but you're at work all day.",
+            "Sunlight is nice, but you're at work all day.",
             "Let's put sunlight third, above size."
           ],
           "goal": { "type": "exact", "item": "sunlight", "rank": 3 }
         }
       ],
       "keyExpressions": [
-        { "en": "X is a deal breaker for me.", "ja": "Xは譲れない条件だ" },
-        { "en": "I can live with X.", "ja": "Xなら我慢できる" },
+        { "en": "X is a must for me.", "ja": "Xは譲れない条件だ" },
+        { "en": "I can give up on X.", "ja": "Xは譲れる" },
         { "en": "X matters more than you think.", "ja": "Xは思っているより大事だ" }
       ]
     },
@@ -249,7 +249,7 @@
         }
       ],
       "keyExpressions": [
-        { "en": "X bothers me the most.", "ja": "Xが一番気になる" },
+        { "en": "I care about X the most.", "ja": "Xが一番気になる" },
         { "en": "I don't care about X.", "ja": "Xは気にしない" },
         { "en": "Why do you think X is so important?", "ja": "なぜXがそんなに大事だと思うの？" }
       ]
@@ -316,7 +316,7 @@
           "hintEn": [
             "The sleep schedule should be second.",
             "Loud noise at 3 a.m. is a real problem.",
-            "It matters a lot, but it's not the top."
+            "It matters a lot, but it's not number one."
           ],
           "goal": { "type": "exact", "item": "sleep_schedule", "rank": 2 }
         },
@@ -333,7 +333,7 @@
         }
       ],
       "keyExpressions": [
-        { "en": "X causes a lot of fights.", "ja": "Xはケンカの原因になりやすい" },
+        { "en": "Without X, there will be fights.", "ja": "Xがないとケンカになる" },
         { "en": "I can live without X.", "ja": "Xはなくても平気だ" },
         { "en": "That's true, but X is still more important.", "ja": "それはそうだが、それでもXの方が大事だ" }
       ]
@@ -445,15 +445,15 @@
           "goal": { "type": "above", "item": "games", "than": "music" }
         },
         {
-          "id": "food_top2",
+          "id": "decorations_top2",
           "difficulty": 1,
-          "ja": "foodを2位以内に入れる",
+          "ja": "decorationsを2位以内に入れる",
           "hintEn": [
-            "Food should be in the top two.",
-            "Hungry guests are not happy guests.",
-            "Good food is what people remember."
+            "Decorations should be in the top two.",
+            "Decorations make a normal room feel special.",
+            "Everyone wants nice photos of the party."
           ],
-          "goal": { "type": "top", "item": "food", "within": 2 }
+          "goal": { "type": "top", "item": "decorations", "within": 2 }
         },
         {
           "id": "guests_first",

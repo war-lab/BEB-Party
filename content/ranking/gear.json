@@ -63,8 +63,8 @@
           "ja": "waterをちょうど2位にする",
           "hintEn": [
             "Water should be second.",
-            "We need water, but rain can give us more.",
-            "Let's put water right after the first one."
+            "Water is important, but we can collect rain.",
+            "Let's put water right after number one."
           ],
           "goal": { "type": "exact", "item": "water", "rank": 2 }
         },
@@ -126,7 +126,7 @@
           "hintEn": [
             "The power bank must be first.",
             "A dead phone means no news and no calls.",
-            "With a charged phone, we can find our family."
+            "With a charged phone, we can call our family."
           ],
           "goal": { "type": "top", "item": "power_bank", "within": 1 }
         },
@@ -176,7 +176,7 @@
       "items": [
         { "id": "tent", "en": "tent", "ja": "テント" },
         { "id": "map", "en": "map", "ja": "地図" },
-        { "id": "rain_jacket", "en": "rain jacket", "ja": "雨具" },
+        { "id": "rain_jacket", "en": "rain jacket", "ja": "レインジャケット" },
         { "id": "stove", "en": "stove", "ja": "調理用コンロ" },
         { "id": "bug_spray", "en": "bug spray", "ja": "虫よけスプレー" }
       ],
@@ -188,20 +188,20 @@
           "hintEn": [
             "Bug spray is more important than a stove.",
             "We can eat cold food for one night.",
-            "Nobody enjoys camping with a hundred bites."
+            "Nobody enjoys camping with a hundred bug bites."
           ],
           "goal": { "type": "above", "item": "bug_spray", "than": "stove" }
         },
         {
-          "id": "rain_jacket_top2",
+          "id": "map_top2",
           "difficulty": 1,
-          "ja": "rain jacketを2位以内に入れる",
+          "ja": "mapを2位以内に入れる",
           "hintEn": [
-            "The rain jacket should be in the top two.",
-            "Mountain weather changes very quickly.",
-            "Getting wet and cold can make you sick."
+            "The map should be in the top two.",
+            "Phones often have no signal in the mountains.",
+            "Getting lost is more dangerous than getting wet."
           ],
-          "goal": { "type": "top", "item": "rain_jacket", "within": 2 }
+          "goal": { "type": "top", "item": "map", "within": 2 }
         },
         {
           "id": "tent_first",
@@ -316,7 +316,7 @@
           "hintEn": [
             "The book should be second.",
             "A book never runs out of battery.",
-            "It's great, but not better than the first one."
+            "It's great, but it's not number one."
           ],
           "goal": { "type": "exact", "item": "book", "rank": 2 }
         },
@@ -350,15 +350,15 @@
       ],
       "goals": [
         {
-          "id": "curtains_over_desk",
+          "id": "desk_over_bed",
           "difficulty": 1,
-          "ja": "curtainsをdeskより上にする",
+          "ja": "deskをbedより上にする",
           "hintEn": [
-            "Curtains are more important than a desk.",
-            "Without curtains, your neighbors can see everything.",
-            "You can work at the kitchen table for now."
+            "A desk is more important than a bed.",
+            "You can sleep on a futon for now.",
+            "If you work at home, you need a desk from day one."
           ],
-          "goal": { "type": "above", "item": "curtains", "than": "desk" }
+          "goal": { "type": "above", "item": "desk", "than": "bed" }
         },
         {
           "id": "fridge_top2",
@@ -501,9 +501,9 @@
         }
       ],
       "keyExpressions": [
-        { "en": "X is a big problem.", "ja": "Xは大問題だ" },
+        { "en": "Losing X is a big problem.", "ja": "Xがないと大問題だ" },
         { "en": "We can live without X for a day.", "ja": "1日ならXなしでもいける" },
-        { "en": "X is not as bad as Y.", "ja": "XはYほど困らない" }
+        { "en": "Losing X is not as bad as losing Y.", "ja": "XはYほど困らない" }
       ]
     }
   ]
