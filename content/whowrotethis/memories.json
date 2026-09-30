@@ -18,17 +18,17 @@
       "en": "What did you want to be as a child?",
       "ja": "子どもの頃、何になりたかった？",
       "hintEn": [
-        "I wanted to be a ...",
+        "I wanted to be a ... because ...",
         "My dream was to become a ...",
         "As a child, I dreamed of being a ..."
       ]
     },
     {
       "id": "q_hated_food",
-      "en": "What food did you hate as a child?",
-      "ja": "子どもの頃に嫌いだった食べ物は？",
+      "en": "What food did you hate as a child, and why?",
+      "ja": "子どもの頃に嫌いだった食べ物と、その理由は？",
       "hintEn": [
-        "I did not like ... at all.",
+        "I did not like ... because it was ...",
         "I hated ... when I was small.",
         "... was my least favorite food."
       ]
@@ -45,8 +45,8 @@
     },
     {
       "id": "q_childhood_fear",
-      "en": "What were you afraid of as a child?",
-      "ja": "子どもの頃に怖かったものは？",
+      "en": "What silly thing were you afraid of as a child?",
+      "ja": "子どもの頃に怖かった、今思うとおかしなものは？",
       "hintEn": [
         "I was afraid of ...",
         "I was scared of ... at night.",
@@ -58,14 +58,14 @@
       "en": "What do you remember most from a school trip?",
       "ja": "修学旅行や遠足でいちばん覚えていることは？",
       "hintEn": [
-        "I remember the ... very well.",
-        "We went to ... by bus.",
+        "I remember when we ...",
+        "On the bus, we ... together.",
         "On the trip, I ... for the first time."
       ]
     },
     {
       "id": "q_quit_hobby",
-      "en": "What lesson or hobby did you give up?",
+      "en": "What hobby or lessons did you give up?",
       "ja": "途中でやめた習い事や趣味は？",
       "hintEn": [
         "I quit ... after one year.",
@@ -110,7 +110,7 @@
       "hintEn": [
         "I believed that ... could talk.",
         "I thought ... lived in my house.",
-        "I was sure that ... was real."
+        "I really thought that ..."
       ]
     },
     {

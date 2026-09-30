@@ -18,8 +18,8 @@
       "en": "If you could be an animal for a day, what would you be?",
       "ja": "1日だけ動物になれるなら、何になる？",
       "hintEn": [
-        "I would be a ... for a day.",
-        "I want to be a ... and ...",
+        "I would be a ... and ...",
+        "I want to be a ... because ...",
         "As a ..., I would ... all day."
       ]
     },
@@ -48,7 +48,7 @@
       "en": "What new holiday would you create?",
       "ja": "新しい祝日を1つ作るなら、何の日にする？",
       "hintEn": [
-        "I would make ... Day.",
+        "I would create ... Day.",
         "On that day, everyone must ...",
         "It is a day to ... with friends."
       ]
@@ -79,7 +79,7 @@
       "ja": "1週間だけ誰かの人生を送れるなら、誰の人生？",
       "hintEn": [
         "I would like to live as ...",
-        "I want to try ...'s life.",
+        "I want to live like ... because ...",
         "I want to see what ... does all day."
       ]
     },
@@ -88,15 +88,15 @@
       "en": "If you could live anywhere, where would you live?",
       "ja": "どこにでも住めるなら、どこに住む？",
       "hintEn": [
-        "I would live in ...",
+        "I would live in ... because ...",
         "I want a small house near ...",
-        "I would move to ... because ..."
+        "Life in ... would be ..."
       ]
     },
     {
       "id": "q_instant_skill",
-      "en": "What skill would you like to learn overnight?",
-      "ja": "一晩で身につけたい技能は？",
+      "en": "What strange skill would you like to learn overnight?",
+      "ja": "一晩で身につけたい、変わった技能は？",
       "hintEn": [
         "I want to learn how to ...",
         "I would like to ... like a pro.",
