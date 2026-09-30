@@ -250,6 +250,16 @@ const SHAPES = {
   <ellipse cx="24" cy="31" rx="20" ry="5" fill="%COLOR%"/>
   <ellipse cx="24" cy="31" rx="20" ry="5"/>`,
 
+  // 斜め上から見た平たいお皿。全体を着色し、内側の線で縁と盛る面を分ける。
+  // 真上から描くと目玉焼きや時計と同じ円になるため、楕円にして平たさを見せる。
+  // 盛る面を白く抜くと44pxで輪やドーナツに見えるため、面も着色したままにする
+  plate: `
+  <ellipse cx="32" cy="38" rx="27" ry="11" fill="%COLOR%"/>
+  <ellipse cx="32" cy="38" rx="27" ry="11"/>
+  <ellipse cx="32" cy="35" rx="27" ry="11" fill="%COLOR%"/>
+  <ellipse cx="32" cy="35" rx="27" ry="11"/>
+  <ellipse cx="32" cy="35" rx="17" ry="6"/>`,
+
   // 真横から見た深いお椀。台の部分は暗色にする
   bowl: `
   <rect x="23" y="46" width="18" height="7" rx="2" fill="${INK}"/>
@@ -362,7 +372,7 @@ const ITEMS = {
   blue_bench: ["bench", "blue"],
   // 台所 easy
   pot: ["pot", "red"],
-  pan: ["pan", "black"],
+  plate: ["plate", "blue"],
   bowl: ["bowl", "white"],
   bottle: ["bottle", "blue"],
   kettle: ["kettle", "yellow"],

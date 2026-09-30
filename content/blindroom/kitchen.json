@@ -24,7 +24,7 @@
       ],
       "items": [
         { "id": "pot", "en": "pot", "ja": "鍋", "icon": "pot" },
-        { "id": "pan", "en": "pan", "ja": "フライパン", "icon": "pan" },
+        { "id": "plate", "en": "plate", "ja": "お皿", "icon": "plate" },
         { "id": "bowl", "en": "bowl", "ja": "お椀", "icon": "bowl" },
         { "id": "bottle", "en": "bottle", "ja": "ボトル", "icon": "bottle" },
         { "id": "kettle", "en": "kettle", "ja": "やかん", "icon": "kettle" },
