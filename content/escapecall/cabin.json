@@ -2,10 +2,10 @@
   "id": "cabin",
   "title": "雪に閉ざされた山小屋",
   "scene": {
-    "titleEn": "The Snowed-In Cabin",
+    "titleEn": "The Cabin in the Snow",
     "titleJa": "雪に閉ざされた山小屋",
-    "introEn": "Snow is falling hard outside. The fire is going out, and the doors are locked. Open three locks and call for help before it gets dark.",
-    "introJa": "外は激しい雪。暖炉の火は消えかけ、扉はすべて閉まっている。暗くなる前に3つの錠を開けて助けを呼ぼう。"
+    "introEn": "It is snowing hard outside. The fire is going out, and the doors are locked. Open three locks and call for help before it gets dark.",
+    "introJa": "外は激しい雪。暖炉の火は消えかけ、扉も閉まっている。暗くなる前に3つの錠を開けて助けを呼ぼう。"
   },
   "lockLabels": [
     { "en": "The toolbox", "ja": "工具箱" },
