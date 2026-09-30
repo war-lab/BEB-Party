@@ -1,0 +1,510 @@
+{
+  "id": "gear",
+  "title": "持ち物と道具",
+  "sets": [
+    {
+      "id": "desert_island",
+      "question": { "en": "What would you take to a desert island?", "ja": "無人島に持っていくなら？" },
+      "items": [
+        { "id": "knife", "en": "knife", "ja": "ナイフ" },
+        { "id": "lighter", "en": "lighter", "ja": "ライター" },
+        { "id": "water", "en": "water", "ja": "水" },
+        { "id": "blanket", "en": "blanket", "ja": "毛布" },
+        { "id": "phone", "en": "phone", "ja": "スマホ" }
+      ],
+      "goals": [
+        {
+          "id": "knife_over_phone",
+          "difficulty": 1,
+          "ja": "knifeをphoneより上にする",
+          "hintEn": [
+            "A knife is more useful than a phone.",
+            "There is no signal on an island.",
+            "With a knife, we can cut wood and open coconuts."
+          ],
+          "goal": { "type": "above", "item": "knife", "than": "phone" }
+        },
+        {
+          "id": "blanket_top2",
+          "difficulty": 1,
+          "ja": "blanketを2位以内に入れる",
+          "hintEn": [
+            "The blanket should be in the top two.",
+            "Nights by the sea get very cold.",
+            "If we can't sleep, we can't do anything the next day."
+          ],
+          "goal": { "type": "top", "item": "blanket", "within": 2 }
+        },
+        {
+          "id": "phone_first",
+          "difficulty": 2,
+          "ja": "phoneを1位にする",
+          "hintEn": [
+            "The phone must be number one.",
+            "One call can bring a rescue boat.",
+            "A phone is also a light, a map, and a clock."
+          ],
+          "goal": { "type": "top", "item": "phone", "within": 1 }
+        },
+        {
+          "id": "knife_last",
+          "difficulty": 2,
+          "ja": "knifeを最下位にする",
+          "hintEn": [
+            "The knife should be last.",
+            "A knife is dangerous if you don't know how to use it.",
+            "We can use sharp stones or shells instead."
+          ],
+          "goal": { "type": "bottom", "item": "knife", "within": 1 }
+        },
+        {
+          "id": "water_exact2",
+          "difficulty": 3,
+          "ja": "waterをちょうど2位にする",
+          "hintEn": [
+            "Water should be second.",
+            "We need water, but rain can give us more.",
+            "Let's put water right after the first one."
+          ],
+          "goal": { "type": "exact", "item": "water", "rank": 2 }
+        },
+        {
+          "id": "lighter_exact3",
+          "difficulty": 3,
+          "ja": "lighterをちょうど3位にする",
+          "hintEn": [
+            "The lighter belongs in the middle, at number three.",
+            "Fire is important, but a lighter runs out.",
+            "Let's put the lighter third, above the knife."
+          ],
+          "goal": { "type": "exact", "item": "lighter", "rank": 3 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "We can't live without X.", "ja": "Xなしでは生きられない" },
+        { "en": "X is useless on an island.", "ja": "Xは島では役に立たない" },
+        { "en": "Is X really that important?", "ja": "Xは本当にそこまで大事？" }
+      ]
+    },
+    {
+      "id": "emergency_bag",
+      "question": { "en": "What should go in your emergency bag first?", "ja": "防災バッグに最優先で入れるものは？" },
+      "items": [
+        { "id": "flashlight", "en": "flashlight", "ja": "懐中電灯" },
+        { "id": "cash", "en": "cash", "ja": "現金" },
+        { "id": "power_bank", "en": "power bank", "ja": "モバイルバッテリー" },
+        { "id": "medicine", "en": "medicine", "ja": "常備薬" },
+        { "id": "food", "en": "food", "ja": "非常食" }
+      ],
+      "goals": [
+        {
+          "id": "medicine_over_cash",
+          "difficulty": 1,
+          "ja": "medicineをcashより上にする",
+          "hintEn": [
+            "Medicine is more important than cash.",
+            "Some people cannot go one day without their medicine.",
+            "Shops may be closed, so cash may not help."
+          ],
+          "goal": { "type": "above", "item": "medicine", "than": "cash" }
+        },
+        {
+          "id": "food_bottom2",
+          "difficulty": 1,
+          "ja": "foodを下から2位以内にする",
+          "hintEn": [
+            "Food should be near the bottom.",
+            "Shelters usually give out food.",
+            "Most people can go a few days with very little food."
+          ],
+          "goal": { "type": "bottom", "item": "food", "within": 2 }
+        },
+        {
+          "id": "power_bank_first",
+          "difficulty": 2,
+          "ja": "power bankを1位にする",
+          "hintEn": [
+            "The power bank must be first.",
+            "A dead phone means no news and no calls.",
+            "With a charged phone, we can find our family."
+          ],
+          "goal": { "type": "top", "item": "power_bank", "within": 1 }
+        },
+        {
+          "id": "cash_first",
+          "difficulty": 2,
+          "ja": "cashを1位にする",
+          "hintEn": [
+            "Cash has to be number one.",
+            "When the power is out, cards and phone payments don't work.",
+            "With cash, you can buy anything that is still for sale."
+          ],
+          "goal": { "type": "top", "item": "cash", "within": 1 }
+        },
+        {
+          "id": "flashlight_exact2",
+          "difficulty": 3,
+          "ja": "flashlightをちょうど2位にする",
+          "hintEn": [
+            "The flashlight should be second.",
+            "Nights without power are really dark.",
+            "It is very useful, but a phone can also give some light."
+          ],
+          "goal": { "type": "exact", "item": "flashlight", "rank": 2 }
+        },
+        {
+          "id": "medicine_exact3",
+          "difficulty": 3,
+          "ja": "medicineをちょうど3位にする",
+          "hintEn": [
+            "Medicine belongs at number three.",
+            "Not everyone needs medicine, but some people really do.",
+            "Let's put medicine in the middle."
+          ],
+          "goal": { "type": "exact", "item": "medicine", "rank": 3 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "In an emergency, X comes first.", "ja": "非常時はXが最優先だ" },
+        { "en": "We can get X at the shelter.", "ja": "Xは避難所でもらえる" },
+        { "en": "I see your point, but X is more urgent.", "ja": "言いたいことは分かるが、Xの方が急ぎだ" }
+      ]
+    },
+    {
+      "id": "camping",
+      "question": { "en": "What do you need most on a camping trip?", "ja": "キャンプで一番必要なものは？" },
+      "items": [
+        { "id": "tent", "en": "tent", "ja": "テント" },
+        { "id": "map", "en": "map", "ja": "地図" },
+        { "id": "rain_jacket", "en": "rain jacket", "ja": "雨具" },
+        { "id": "stove", "en": "stove", "ja": "調理用コンロ" },
+        { "id": "bug_spray", "en": "bug spray", "ja": "虫よけスプレー" }
+      ],
+      "goals": [
+        {
+          "id": "bug_spray_over_stove",
+          "difficulty": 1,
+          "ja": "bug sprayをstoveより上にする",
+          "hintEn": [
+            "Bug spray is more important than a stove.",
+            "We can eat cold food for one night.",
+            "Nobody enjoys camping with a hundred bites."
+          ],
+          "goal": { "type": "above", "item": "bug_spray", "than": "stove" }
+        },
+        {
+          "id": "rain_jacket_top2",
+          "difficulty": 1,
+          "ja": "rain jacketを2位以内に入れる",
+          "hintEn": [
+            "The rain jacket should be in the top two.",
+            "Mountain weather changes very quickly.",
+            "Getting wet and cold can make you sick."
+          ],
+          "goal": { "type": "top", "item": "rain_jacket", "within": 2 }
+        },
+        {
+          "id": "tent_first",
+          "difficulty": 2,
+          "ja": "tentを1位にする",
+          "hintEn": [
+            "The tent has to be first.",
+            "Without a tent, it isn't camping. It's just sitting outside.",
+            "A tent keeps us safe from rain, wind, and animals."
+          ],
+          "goal": { "type": "top", "item": "tent", "within": 1 }
+        },
+        {
+          "id": "map_last",
+          "difficulty": 2,
+          "ja": "mapを最下位にする",
+          "hintEn": [
+            "The map should be last.",
+            "We can use our phones to find the way.",
+            "Most campsites have clear signs."
+          ],
+          "goal": { "type": "bottom", "item": "map", "within": 1 }
+        },
+        {
+          "id": "stove_exact2",
+          "difficulty": 3,
+          "ja": "stoveをちょうど2位にする",
+          "hintEn": [
+            "The stove should be second.",
+            "Hot food and coffee make camping fun.",
+            "It's important, but it's not the first thing we need."
+          ],
+          "goal": { "type": "exact", "item": "stove", "rank": 2 }
+        },
+        {
+          "id": "bug_spray_exact3",
+          "difficulty": 3,
+          "ja": "bug sprayをちょうど3位にする",
+          "hintEn": [
+            "Bug spray belongs in the middle, at number three.",
+            "It's useful, but mostly in summer.",
+            "Let's put bug spray third, above the map."
+          ],
+          "goal": { "type": "exact", "item": "bug_spray", "rank": 3 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "X is a must.", "ja": "Xは必須だ" },
+        { "en": "We can live without X for one night.", "ja": "一晩ならXなしでもいける" },
+        { "en": "Which is more important, X or Y?", "ja": "XとYのどちらが大事？" }
+      ]
+    },
+    {
+      "id": "long_flight",
+      "question": { "en": "What do you need most on a 12-hour flight?", "ja": "12時間のフライトで一番欲しいものは？" },
+      "items": [
+        { "id": "pillow", "en": "pillow", "ja": "枕" },
+        { "id": "headphones", "en": "headphones", "ja": "ヘッドホン" },
+        { "id": "snacks", "en": "snacks", "ja": "お菓子" },
+        { "id": "book", "en": "book", "ja": "本" },
+        { "id": "window_seat", "en": "window seat", "ja": "窓側の席" }
+      ],
+      "goals": [
+        {
+          "id": "snacks_over_book",
+          "difficulty": 1,
+          "ja": "snacksをbookより上にする",
+          "hintEn": [
+            "Snacks are more important than a book.",
+            "The airline doesn't give you food very often.",
+            "You can't read for twelve hours, but you will get hungry."
+          ],
+          "goal": { "type": "above", "item": "snacks", "than": "book" }
+        },
+        {
+          "id": "window_seat_bottom2",
+          "difficulty": 1,
+          "ja": "window seatを下から2位以内にする",
+          "hintEn": [
+            "The window seat should be near the bottom.",
+            "You have to climb over people to use the toilet.",
+            "It's dark outside for most of a long flight."
+          ],
+          "goal": { "type": "bottom", "item": "window_seat", "within": 2 }
+        },
+        {
+          "id": "headphones_first",
+          "difficulty": 2,
+          "ja": "headphonesを1位にする",
+          "hintEn": [
+            "Headphones must be number one.",
+            "Babies cry and the engines are loud.",
+            "With headphones, you can watch movies the whole time."
+          ],
+          "goal": { "type": "top", "item": "headphones", "within": 1 }
+        },
+        {
+          "id": "pillow_first",
+          "difficulty": 2,
+          "ja": "pillowを1位にする",
+          "hintEn": [
+            "The pillow has to be first.",
+            "Sleeping is the best way to make twelve hours go fast.",
+            "Without a pillow, your neck will hurt for days."
+          ],
+          "goal": { "type": "top", "item": "pillow", "within": 1 }
+        },
+        {
+          "id": "book_exact2",
+          "difficulty": 3,
+          "ja": "bookをちょうど2位にする",
+          "hintEn": [
+            "The book should be second.",
+            "A book never runs out of battery.",
+            "It's great, but not better than the first one."
+          ],
+          "goal": { "type": "exact", "item": "book", "rank": 2 }
+        },
+        {
+          "id": "snacks_exact3",
+          "difficulty": 3,
+          "ja": "snacksをちょうど3位にする",
+          "hintEn": [
+            "Snacks belong in the middle, at number three.",
+            "They are nice, but the airline gives you meals.",
+            "Let's put snacks third, right below the book."
+          ],
+          "goal": { "type": "exact", "item": "snacks", "rank": 3 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "For me, X is the most important.", "ja": "私にとってはXが一番大事だ" },
+        { "en": "X doesn't matter on a long flight.", "ja": "長いフライトではXはどうでもいい" },
+        { "en": "Let's move X up.", "ja": "Xを上げよう" }
+      ]
+    },
+    {
+      "id": "new_room",
+      "question": { "en": "What should you buy first for your new room?", "ja": "新しい部屋で最初に買うべきものは？" },
+      "items": [
+        { "id": "bed", "en": "bed", "ja": "ベッド" },
+        { "id": "fridge", "en": "fridge", "ja": "冷蔵庫" },
+        { "id": "curtains", "en": "curtains", "ja": "カーテン" },
+        { "id": "desk", "en": "desk", "ja": "机" },
+        { "id": "washing_machine", "en": "washing machine", "ja": "洗濯機" }
+      ],
+      "goals": [
+        {
+          "id": "curtains_over_desk",
+          "difficulty": 1,
+          "ja": "curtainsをdeskより上にする",
+          "hintEn": [
+            "Curtains are more important than a desk.",
+            "Without curtains, your neighbors can see everything.",
+            "You can work at the kitchen table for now."
+          ],
+          "goal": { "type": "above", "item": "curtains", "than": "desk" }
+        },
+        {
+          "id": "fridge_top2",
+          "difficulty": 1,
+          "ja": "fridgeを2位以内に入れる",
+          "hintEn": [
+            "The fridge should be in the top two.",
+            "Eating out every day costs a lot.",
+            "Without a fridge, you can't keep milk or leftovers."
+          ],
+          "goal": { "type": "top", "item": "fridge", "within": 2 }
+        },
+        {
+          "id": "bed_first",
+          "difficulty": 2,
+          "ja": "bedを1位にする",
+          "hintEn": [
+            "The bed has to be first.",
+            "You need good sleep from the first night.",
+            "Sleeping on the floor hurts your back."
+          ],
+          "goal": { "type": "top", "item": "bed", "within": 1 }
+        },
+        {
+          "id": "washing_machine_last",
+          "difficulty": 2,
+          "ja": "washing machineを最下位にする",
+          "hintEn": [
+            "The washing machine should be last.",
+            "There is a laundromat near most apartments.",
+            "You can wash a few things by hand."
+          ],
+          "goal": { "type": "bottom", "item": "washing_machine", "within": 1 }
+        },
+        {
+          "id": "desk_exact2",
+          "difficulty": 3,
+          "ja": "deskをちょうど2位にする",
+          "hintEn": [
+            "The desk should be second.",
+            "If you work or study at home, a desk is very important.",
+            "It's not the first thing, but it's close."
+          ],
+          "goal": { "type": "exact", "item": "desk", "rank": 2 }
+        },
+        {
+          "id": "curtains_exact3",
+          "difficulty": 3,
+          "ja": "curtainsをちょうど3位にする",
+          "hintEn": [
+            "Curtains belong in the middle, at number three.",
+            "They matter, but you can use a sheet for a few days.",
+            "Let's put curtains third, above the washing machine."
+          ],
+          "goal": { "type": "exact", "item": "curtains", "rank": 3 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "You can buy X later.", "ja": "Xは後で買える" },
+        { "en": "X is the first thing I need.", "ja": "最初に必要なのはXだ" },
+        { "en": "How about X in third place?", "ja": "Xを3位にするのはどう？" }
+      ]
+    },
+    {
+      "id": "power_outage",
+      "question": { "en": "What would you miss most in a power outage?", "ja": "停電で一番困るのは？" },
+      "items": [
+        { "id": "fridge", "en": "fridge", "ja": "冷蔵庫" },
+        { "id": "lights", "en": "lights", "ja": "照明" },
+        { "id": "internet", "en": "internet", "ja": "ネット" },
+        { "id": "air_conditioner", "en": "air conditioner", "ja": "エアコン" },
+        { "id": "hot_water", "en": "hot water", "ja": "お湯" }
+      ],
+      "goals": [
+        {
+          "id": "lights_over_internet",
+          "difficulty": 1,
+          "ja": "lightsをinternetより上にする",
+          "hintEn": [
+            "Lights are more important than the internet.",
+            "You can't do anything in the dark.",
+            "People lived without the internet before, but not without light."
+          ],
+          "goal": { "type": "above", "item": "lights", "than": "internet" }
+        },
+        {
+          "id": "hot_water_bottom2",
+          "difficulty": 1,
+          "ja": "hot waterを下から2位以内にする",
+          "hintEn": [
+            "Hot water should be near the bottom.",
+            "A cold shower for one day is OK.",
+            "We can boil water on a gas stove."
+          ],
+          "goal": { "type": "bottom", "item": "hot_water", "within": 2 }
+        },
+        {
+          "id": "internet_first",
+          "difficulty": 2,
+          "ja": "internetを1位にする",
+          "hintEn": [
+            "The internet must be number one.",
+            "We need news to know what is happening.",
+            "Without the internet, we can't contact anyone."
+          ],
+          "goal": { "type": "top", "item": "internet", "within": 1 }
+        },
+        {
+          "id": "air_conditioner_last",
+          "difficulty": 2,
+          "ja": "air conditionerを最下位にする",
+          "hintEn": [
+            "The air conditioner should be last.",
+            "People lived without air conditioners for a long time.",
+            "We can just open the windows."
+          ],
+          "goal": { "type": "bottom", "item": "air_conditioner", "within": 1 }
+        },
+        {
+          "id": "fridge_exact2",
+          "difficulty": 3,
+          "ja": "fridgeをちょうど2位にする",
+          "hintEn": [
+            "The fridge should be second.",
+            "All the food in the fridge will go bad in a day.",
+            "It's very important, but not the most important."
+          ],
+          "goal": { "type": "exact", "item": "fridge", "rank": 2 }
+        },
+        {
+          "id": "lights_exact3",
+          "difficulty": 3,
+          "ja": "lightsをちょうど3位にする",
+          "hintEn": [
+            "Lights belong in the middle, at number three.",
+            "We can use phone lights or candles for a while.",
+            "Let's put lights third, above hot water."
+          ],
+          "goal": { "type": "exact", "item": "lights", "rank": 3 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "X is a big problem.", "ja": "Xは大問題だ" },
+        { "en": "We can live without X for a day.", "ja": "1日ならXなしでもいける" },
+        { "en": "X is not as bad as Y.", "ja": "XはYほど困らない" }
+      ]
+    }
+  ]
+}

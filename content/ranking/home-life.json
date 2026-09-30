@@ -1,0 +1,510 @@
+{
+  "id": "home-life",
+  "title": "住まいと近所づきあい",
+  "sets": [
+    {
+      "id": "ideal_town",
+      "question": { "en": "What makes a town a great place to live?", "ja": "住みやすい街の条件は？" },
+      "items": [
+        { "id": "parks", "en": "parks", "ja": "公園" },
+        { "id": "trains", "en": "trains", "ja": "電車の便" },
+        { "id": "shops", "en": "shops", "ja": "お店" },
+        { "id": "hospitals", "en": "hospitals", "ja": "病院" },
+        { "id": "schools", "en": "schools", "ja": "学校" }
+      ],
+      "goals": [
+        {
+          "id": "parks_over_shops",
+          "difficulty": 1,
+          "ja": "parksをshopsより上にする",
+          "hintEn": [
+            "Parks are more important than shops.",
+            "We can shop online, but we can't walk in a park online.",
+            "Green places make people calm and healthy."
+          ],
+          "goal": { "type": "above", "item": "parks", "than": "shops" }
+        },
+        {
+          "id": "schools_bottom2",
+          "difficulty": 1,
+          "ja": "schoolsを下から2位以内にする",
+          "hintEn": [
+            "Schools should be near the bottom.",
+            "Not everyone has children.",
+            "Many kids take a train to school anyway."
+          ],
+          "goal": { "type": "bottom", "item": "schools", "within": 2 }
+        },
+        {
+          "id": "trains_first",
+          "difficulty": 2,
+          "ja": "trainsを1位にする",
+          "hintEn": [
+            "Trains must be number one.",
+            "Without trains, you need a car for everything.",
+            "A good station makes work and fun easy to reach."
+          ],
+          "goal": { "type": "top", "item": "trains", "within": 1 }
+        },
+        {
+          "id": "hospitals_first",
+          "difficulty": 2,
+          "ja": "hospitalsを1位にする",
+          "hintEn": [
+            "Hospitals have to be first.",
+            "When you're sick, nothing else matters.",
+            "Older people and families need a hospital nearby."
+          ],
+          "goal": { "type": "top", "item": "hospitals", "within": 1 }
+        },
+        {
+          "id": "shops_exact2",
+          "difficulty": 3,
+          "ja": "shopsをちょうど2位にする",
+          "hintEn": [
+            "Shops should be second.",
+            "We buy food and daily things almost every day.",
+            "They are not the most important, but we use them the most."
+          ],
+          "goal": { "type": "exact", "item": "shops", "rank": 2 }
+        },
+        {
+          "id": "parks_exact3",
+          "difficulty": 3,
+          "ja": "parksをちょうど3位にする",
+          "hintEn": [
+            "Parks belong in the middle, at number three.",
+            "Parks are nice, but we don't go every day.",
+            "Let's put parks third, above schools."
+          ],
+          "goal": { "type": "exact", "item": "parks", "rank": 3 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "I use X every day.", "ja": "Xは毎日使う" },
+        { "en": "X is nice, but not necessary.", "ja": "Xはあると良いが、なくてもいい" },
+        { "en": "Let's put X above Y.", "ja": "XをYより上にしよう" }
+      ]
+    },
+    {
+      "id": "ideal_home",
+      "question": { "en": "What matters most when you choose a new home?", "ja": "部屋探しで一番大事なのは？" },
+      "items": [
+        { "id": "rent", "en": "rent", "ja": "家賃" },
+        { "id": "size", "en": "size", "ja": "広さ" },
+        { "id": "location", "en": "location", "ja": "立地" },
+        { "id": "sunlight", "en": "sunlight", "ja": "日当たり" },
+        { "id": "kitchen", "en": "kitchen", "ja": "キッチン" }
+      ],
+      "goals": [
+        {
+          "id": "sunlight_over_size",
+          "difficulty": 1,
+          "ja": "sunlightをsizeより上にする",
+          "hintEn": [
+            "Sunlight is more important than size.",
+            "A dark room makes you feel down.",
+            "A small room with lots of sun feels bigger."
+          ],
+          "goal": { "type": "above", "item": "sunlight", "than": "size" }
+        },
+        {
+          "id": "kitchen_top2",
+          "difficulty": 1,
+          "ja": "kitchenを2位以内に入れる",
+          "hintEn": [
+            "The kitchen should be in the top two.",
+            "Cooking at home saves a lot of money.",
+            "A tiny kitchen makes every meal hard."
+          ],
+          "goal": { "type": "top", "item": "kitchen", "within": 2 }
+        },
+        {
+          "id": "rent_first",
+          "difficulty": 2,
+          "ja": "rentを1位にする",
+          "hintEn": [
+            "Rent must be number one.",
+            "You pay rent every single month.",
+            "A great home is no good if you can't pay for it."
+          ],
+          "goal": { "type": "top", "item": "rent", "within": 1 }
+        },
+        {
+          "id": "location_first",
+          "difficulty": 2,
+          "ja": "locationを1位にする",
+          "hintEn": [
+            "Location has to be first.",
+            "You can change your furniture, but not the station near you.",
+            "A long commute takes hours from your life."
+          ],
+          "goal": { "type": "top", "item": "location", "within": 1 }
+        },
+        {
+          "id": "size_exact2",
+          "difficulty": 3,
+          "ja": "sizeをちょうど2位にする",
+          "hintEn": [
+            "Size should be second.",
+            "You need space for your things and your friends.",
+            "It's very important, but it's not everything."
+          ],
+          "goal": { "type": "exact", "item": "size", "rank": 2 }
+        },
+        {
+          "id": "sunlight_exact3",
+          "difficulty": 3,
+          "ja": "sunlightをちょうど3位にする",
+          "hintEn": [
+            "Sunlight belongs in the middle, at number three.",
+            "Sun is nice, but you're at work all day.",
+            "Let's put sunlight third, above size."
+          ],
+          "goal": { "type": "exact", "item": "sunlight", "rank": 3 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "X is a deal breaker for me.", "ja": "Xは譲れない条件だ" },
+        { "en": "I can live with X.", "ja": "Xなら我慢できる" },
+        { "en": "X matters more than you think.", "ja": "Xは思っているより大事だ" }
+      ]
+    },
+    {
+      "id": "good_neighbor",
+      "question": { "en": "What makes a good neighbor?", "ja": "良いご近所さんの条件は？" },
+      "items": [
+        { "id": "kindness", "en": "kindness", "ja": "親切さ" },
+        { "id": "quietness", "en": "quietness", "ja": "静かさ" },
+        { "id": "cleanliness", "en": "cleanliness", "ja": "清潔さ" },
+        { "id": "privacy", "en": "privacy", "ja": "干渉しないこと" },
+        { "id": "greetings", "en": "greetings", "ja": "あいさつ" }
+      ],
+      "goals": [
+        {
+          "id": "quietness_over_kindness",
+          "difficulty": 1,
+          "ja": "quietnessをkindnessより上にする",
+          "hintEn": [
+            "Quietness is more important than kindness.",
+            "A kind neighbor who is loud at night is still a problem.",
+            "I just want to sleep well."
+          ],
+          "goal": { "type": "above", "item": "quietness", "than": "kindness" }
+        },
+        {
+          "id": "greetings_top2",
+          "difficulty": 1,
+          "ja": "greetingsを2位以内に入れる",
+          "hintEn": [
+            "Greetings should be in the top two.",
+            "A simple hello makes the whole building friendly.",
+            "If we say hello, we can help each other in an emergency."
+          ],
+          "goal": { "type": "top", "item": "greetings", "within": 2 }
+        },
+        {
+          "id": "privacy_first",
+          "difficulty": 2,
+          "ja": "privacyを1位にする",
+          "hintEn": [
+            "Privacy must be number one.",
+            "A good neighbor doesn't ask about your life.",
+            "I don't want anyone watching when I come home."
+          ],
+          "goal": { "type": "top", "item": "privacy", "within": 1 }
+        },
+        {
+          "id": "greetings_last",
+          "difficulty": 2,
+          "ja": "greetingsを最下位にする",
+          "hintEn": [
+            "Greetings should be last.",
+            "You don't have to talk to your neighbors to live well.",
+            "Many people in big cities never say hello, and that's fine."
+          ],
+          "goal": { "type": "bottom", "item": "greetings", "within": 1 }
+        },
+        {
+          "id": "kindness_exact2",
+          "difficulty": 3,
+          "ja": "kindnessをちょうど2位にする",
+          "hintEn": [
+            "Kindness should be second.",
+            "Kindness helps when you lose your key or miss a package.",
+            "It's very important, but not number one."
+          ],
+          "goal": { "type": "exact", "item": "kindness", "rank": 2 }
+        },
+        {
+          "id": "cleanliness_exact3",
+          "difficulty": 3,
+          "ja": "cleanlinessをちょうど3位にする",
+          "hintEn": [
+            "Cleanliness belongs in the middle, at number three.",
+            "Trash in the hallway is annoying, but it's not the worst.",
+            "Let's put cleanliness third, above greetings."
+          ],
+          "goal": { "type": "exact", "item": "cleanliness", "rank": 3 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "X bothers me the most.", "ja": "Xが一番気になる" },
+        { "en": "I don't care about X.", "ja": "Xは気にしない" },
+        { "en": "Why do you think X is so important?", "ja": "なぜXがそんなに大事だと思うの？" }
+      ]
+    },
+    {
+      "id": "roommate",
+      "question": { "en": "What matters most in a roommate?", "ja": "ルームメイトに一番求めるものは？" },
+      "items": [
+        { "id": "tidiness", "en": "tidiness", "ja": "片付け" },
+        { "id": "cooking", "en": "cooking", "ja": "料理の腕" },
+        { "id": "sleep_schedule", "en": "sleep schedule", "ja": "生活リズム" },
+        { "id": "honesty", "en": "honesty", "ja": "正直さ" },
+        { "id": "humor", "en": "humor", "ja": "ユーモア" }
+      ],
+      "goals": [
+        {
+          "id": "cooking_over_humor",
+          "difficulty": 1,
+          "ja": "cookingをhumorより上にする",
+          "hintEn": [
+            "Cooking is more important than humor.",
+            "Good food at home makes everyone happy.",
+            "Jokes don't fill your stomach."
+          ],
+          "goal": { "type": "above", "item": "cooking", "than": "humor" }
+        },
+        {
+          "id": "honesty_top2",
+          "difficulty": 1,
+          "ja": "honestyを2位以内に入れる",
+          "hintEn": [
+            "Honesty should be in the top two.",
+            "If they lie about small things, you can't trust them.",
+            "Living together needs trust."
+          ],
+          "goal": { "type": "top", "item": "honesty", "within": 2 }
+        },
+        {
+          "id": "tidiness_first",
+          "difficulty": 2,
+          "ja": "tidinessを1位にする",
+          "hintEn": [
+            "Tidiness has to be first.",
+            "Dirty dishes cause the biggest fights.",
+            "A messy room makes the whole home stressful."
+          ],
+          "goal": { "type": "top", "item": "tidiness", "within": 1 }
+        },
+        {
+          "id": "cooking_last",
+          "difficulty": 2,
+          "ja": "cookingを最下位にする",
+          "hintEn": [
+            "Cooking should be last.",
+            "You can cook for yourself.",
+            "We can always order food."
+          ],
+          "goal": { "type": "bottom", "item": "cooking", "within": 1 }
+        },
+        {
+          "id": "sleep_schedule_exact2",
+          "difficulty": 3,
+          "ja": "sleep scheduleをちょうど2位にする",
+          "hintEn": [
+            "The sleep schedule should be second.",
+            "Loud noise at 3 a.m. is a real problem.",
+            "It matters a lot, but it's not the top."
+          ],
+          "goal": { "type": "exact", "item": "sleep_schedule", "rank": 2 }
+        },
+        {
+          "id": "humor_exact3",
+          "difficulty": 3,
+          "ja": "humorをちょうど3位にする",
+          "hintEn": [
+            "Humor belongs in the middle, at number three.",
+            "Laughing together makes living together easier.",
+            "Let's put humor third, right below the sleep schedule."
+          ],
+          "goal": { "type": "exact", "item": "humor", "rank": 3 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "X causes a lot of fights.", "ja": "Xはケンカの原因になりやすい" },
+        { "en": "I can live without X.", "ja": "Xはなくても平気だ" },
+        { "en": "That's true, but X is still more important.", "ja": "それはそうだが、それでもXの方が大事だ" }
+      ]
+    },
+    {
+      "id": "apartment_pet",
+      "question": { "en": "What is the best pet for a small apartment?", "ja": "狭い部屋で飼うならどのペット？" },
+      "items": [
+        { "id": "cat", "en": "cat", "ja": "猫" },
+        { "id": "dog", "en": "dog", "ja": "犬" },
+        { "id": "fish", "en": "fish", "ja": "魚" },
+        { "id": "rabbit", "en": "rabbit", "ja": "うさぎ" },
+        { "id": "hamster", "en": "hamster", "ja": "ハムスター" }
+      ],
+      "goals": [
+        {
+          "id": "cat_over_dog",
+          "difficulty": 1,
+          "ja": "catをdogより上にする",
+          "hintEn": [
+            "A cat is better than a dog.",
+            "Cats don't need a walk every day.",
+            "Dogs need more space to run."
+          ],
+          "goal": { "type": "above", "item": "cat", "than": "dog" }
+        },
+        {
+          "id": "fish_bottom2",
+          "difficulty": 1,
+          "ja": "fishを下から2位以内にする",
+          "hintEn": [
+            "Fish should be near the bottom.",
+            "You can't play with a fish.",
+            "A fish tank is heavy and needs a lot of cleaning."
+          ],
+          "goal": { "type": "bottom", "item": "fish", "within": 2 }
+        },
+        {
+          "id": "dog_first",
+          "difficulty": 2,
+          "ja": "dogを1位にする",
+          "hintEn": [
+            "The dog must be number one.",
+            "A small dog can live happily in an apartment.",
+            "A dog is the best friend you can have."
+          ],
+          "goal": { "type": "top", "item": "dog", "within": 1 }
+        },
+        {
+          "id": "hamster_first",
+          "difficulty": 2,
+          "ja": "hamsterを1位にする",
+          "hintEn": [
+            "The hamster has to be first.",
+            "A hamster needs only a small cage.",
+            "Hamsters are quiet and cheap to keep."
+          ],
+          "goal": { "type": "top", "item": "hamster", "within": 1 }
+        },
+        {
+          "id": "rabbit_exact2",
+          "difficulty": 3,
+          "ja": "rabbitをちょうど2位にする",
+          "hintEn": [
+            "The rabbit should be second.",
+            "Rabbits are quiet, but they need some space.",
+            "It's a good pet, but not the best for a tiny room."
+          ],
+          "goal": { "type": "exact", "item": "rabbit", "rank": 2 }
+        },
+        {
+          "id": "cat_exact3",
+          "difficulty": 3,
+          "ja": "catをちょうど3位にする",
+          "hintEn": [
+            "The cat belongs in the middle, at number three.",
+            "Cats are easy, but they can scratch the walls.",
+            "Let's put the cat third, above the dog."
+          ],
+          "goal": { "type": "exact", "item": "cat", "rank": 3 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "X is easier to take care of than Y.", "ja": "XはYより世話が楽だ" },
+        { "en": "X needs too much space.", "ja": "Xは場所を取りすぎる" },
+        { "en": "I agree with you about X.", "ja": "Xについては賛成だ" }
+      ]
+    },
+    {
+      "id": "home_party",
+      "question": { "en": "What makes a home party fun?", "ja": "ホームパーティを楽しくするのは？" },
+      "items": [
+        { "id": "food", "en": "food", "ja": "料理" },
+        { "id": "music", "en": "music", "ja": "音楽" },
+        { "id": "games", "en": "games", "ja": "ゲーム" },
+        { "id": "guests", "en": "guests", "ja": "呼ぶ顔ぶれ" },
+        { "id": "decorations", "en": "decorations", "ja": "飾り付け" }
+      ],
+      "goals": [
+        {
+          "id": "games_over_music",
+          "difficulty": 1,
+          "ja": "gamesをmusicより上にする",
+          "hintEn": [
+            "Games are more important than music.",
+            "Games get everyone talking and laughing.",
+            "Music just plays in the background."
+          ],
+          "goal": { "type": "above", "item": "games", "than": "music" }
+        },
+        {
+          "id": "food_top2",
+          "difficulty": 1,
+          "ja": "foodを2位以内に入れる",
+          "hintEn": [
+            "Food should be in the top two.",
+            "Hungry guests are not happy guests.",
+            "Good food is what people remember."
+          ],
+          "goal": { "type": "top", "item": "food", "within": 2 }
+        },
+        {
+          "id": "guests_first",
+          "difficulty": 2,
+          "ja": "guestsを1位にする",
+          "hintEn": [
+            "The guests must be number one.",
+            "The right people make any party fun.",
+            "With good friends, even a bag of chips is a party."
+          ],
+          "goal": { "type": "top", "item": "guests", "within": 1 }
+        },
+        {
+          "id": "decorations_last",
+          "difficulty": 2,
+          "ja": "decorationsを最下位にする",
+          "hintEn": [
+            "Decorations should be last.",
+            "Nobody looks at the walls after ten minutes.",
+            "It's a lot of work for very little fun."
+          ],
+          "goal": { "type": "bottom", "item": "decorations", "within": 1 }
+        },
+        {
+          "id": "music_exact2",
+          "difficulty": 3,
+          "ja": "musicをちょうど2位にする",
+          "hintEn": [
+            "Music should be second.",
+            "A quiet room feels awkward.",
+            "Music sets the mood, but it's not the main thing."
+          ],
+          "goal": { "type": "exact", "item": "music", "rank": 2 }
+        },
+        {
+          "id": "games_exact3",
+          "difficulty": 3,
+          "ja": "gamesをちょうど3位にする",
+          "hintEn": [
+            "Games belong in the middle, at number three.",
+            "Games are fun, but some people don't like them.",
+            "Let's put games third, above decorations."
+          ],
+          "goal": { "type": "exact", "item": "games", "rank": 3 }
+        }
+      ],
+      "keyExpressions": [
+        { "en": "Without X, the party is boring.", "ja": "Xがないとパーティは退屈だ" },
+        { "en": "X is nice to have.", "ja": "Xはあると嬉しい程度だ" },
+        { "en": "Let's meet in the middle.", "ja": "間を取ろう" }
+      ]
+    }
+  ]
+}
