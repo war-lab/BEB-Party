@@ -241,13 +241,14 @@ const SHAPES = {
   <circle cx="32" cy="14" r="4" fill="${INK}"/>`,
 
   // 斜め上から見たフライパン。本体と焼き面を着色し、長い柄は暗色に固定する。
-  // 真上から描くと円と柄だけになり、44pxで虫めがねに見えるため、浅い側面を見せる
+  // 真上から描くと円と柄だけになり、44pxで虫めがねに見えるため、浅い側面を見せる。
+  // 側面を深くすると片手鍋に見えるため、高さを口径の3割ほどに抑える
   pan: `
-  <rect x="40" y="29" width="20" height="7" rx="3" fill="${INK}"/>
-  <path d="M4 28 H44 L40 44 Q39 47 35 47 H13 Q9 47 8 44 Z" fill="%COLOR%"/>
-  <path d="M4 28 H44 L40 44 Q39 47 35 47 H13 Q9 47 8 44 Z"/>
-  <ellipse cx="24" cy="28" rx="20" ry="6" fill="%COLOR%"/>
-  <ellipse cx="24" cy="28" rx="20" ry="6"/>`,
+  <rect x="42" y="30" width="19" height="6" rx="3" fill="${INK}"/>
+  <path d="M4 31 H44 L41 40 Q40 43 36 43 H12 Q8 43 7 40 Z" fill="%COLOR%"/>
+  <path d="M4 31 H44 L41 40 Q40 43 36 43 H12 Q8 43 7 40 Z"/>
+  <ellipse cx="24" cy="31" rx="20" ry="5" fill="%COLOR%"/>
+  <ellipse cx="24" cy="31" rx="20" ry="5"/>`,
 
   // 真横から見た深いお椀。台の部分は暗色にする
   bowl: `

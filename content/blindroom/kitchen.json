@@ -26,7 +26,7 @@
         { "id": "pot", "en": "pot", "ja": "鍋", "icon": "pot" },
         { "id": "pan", "en": "pan", "ja": "フライパン", "icon": "pan" },
         { "id": "bowl", "en": "bowl", "ja": "お椀", "icon": "bowl" },
-        { "id": "bottle", "en": "bottle", "ja": "びん", "icon": "bottle" },
+        { "id": "bottle", "en": "bottle", "ja": "ボトル", "icon": "bottle" },
         { "id": "kettle", "en": "kettle", "ja": "やかん", "icon": "kettle" },
         { "id": "spoon", "en": "spoon", "ja": "スプーン", "icon": "spoon" },
         { "id": "fork", "en": "fork", "ja": "フォーク", "icon": "fork" },
@@ -52,8 +52,8 @@
         { "id": "blue_pan", "en": "blue pan", "ja": "青いフライパン", "icon": "blue_pan" },
         { "id": "red_bowl", "en": "red bowl", "ja": "赤いお椀", "icon": "red_bowl" },
         { "id": "blue_bowl", "en": "blue bowl", "ja": "青いお椀", "icon": "blue_bowl" },
-        { "id": "red_bottle", "en": "red bottle", "ja": "赤いびん", "icon": "red_bottle" },
-        { "id": "blue_bottle", "en": "blue bottle", "ja": "青いびん", "icon": "blue_bottle" },
+        { "id": "red_bottle", "en": "red bottle", "ja": "赤いボトル", "icon": "red_bottle" },
+        { "id": "blue_bottle", "en": "blue bottle", "ja": "青いボトル", "icon": "blue_bottle" },
         { "id": "red_kettle", "en": "red kettle", "ja": "赤いやかん", "icon": "red_kettle" },
         { "id": "blue_kettle", "en": "blue kettle", "ja": "青いやかん", "icon": "blue_kettle" }
       ]
