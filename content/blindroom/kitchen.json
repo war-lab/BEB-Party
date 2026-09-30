@@ -1,0 +1,62 @@
+{
+  "id": "kitchen",
+  "title": "台所",
+  "keyExpressions": [
+    { "en": "Where is the ...?", "ja": "〜はどこ？" },
+    { "en": "Which row is it in?", "ja": "どの段にある？" },
+    { "en": "Is it under the ...?", "ja": "〜の下？" },
+    { "en": "Is it second from the left?", "ja": "左から2番目？" },
+    { "en": "Slowly, please.", "ja": "ゆっくりお願い" },
+    { "en": "Say that again, please.", "ja": "もう一度お願い" }
+  ],
+  "itemSets": [
+    {
+      "id": "kitchen_easy",
+      "tier": "easy",
+      "describerHints": [
+        "Put the ... in the ... row, on the ... side.",
+        "Put the ... in the ... row, ... from the left.",
+        "The ... is under the ...",
+        "Yes, it is under the ...",
+        "The ... is next to the ...",
+        "There is nothing in the ... row.",
+        "Put the ... in the top-right corner."
+      ],
+      "items": [
+        { "id": "pot", "en": "pot", "ja": "鍋", "icon": "pot" },
+        { "id": "pan", "en": "pan", "ja": "フライパン", "icon": "pan" },
+        { "id": "bowl", "en": "bowl", "ja": "お椀", "icon": "bowl" },
+        { "id": "bottle", "en": "bottle", "ja": "びん", "icon": "bottle" },
+        { "id": "kettle", "en": "kettle", "ja": "やかん", "icon": "kettle" },
+        { "id": "spoon", "en": "spoon", "ja": "スプーン", "icon": "spoon" },
+        { "id": "fork", "en": "fork", "ja": "フォーク", "icon": "fork" },
+        { "id": "apple", "en": "apple", "ja": "りんご", "icon": "apple" },
+        { "id": "egg", "en": "egg", "ja": "卵", "icon": "egg" },
+        { "id": "fridge", "en": "fridge", "ja": "冷蔵庫", "icon": "fridge" }
+      ]
+    },
+    {
+      "id": "kitchen_standard",
+      "tier": "standard",
+      "describerHints": [
+        "Put the ... in the ... row, on the ... side.",
+        "Put the ... in the ... row, ... from the left.",
+        "The ... is under the ...",
+        "Yes, the red one is next to the ...",
+        "The ... is between the ... and the ..."
+      ],
+      "items": [
+        { "id": "red_pot", "en": "red pot", "ja": "赤い鍋", "icon": "red_pot" },
+        { "id": "blue_pot", "en": "blue pot", "ja": "青い鍋", "icon": "blue_pot" },
+        { "id": "red_pan", "en": "red pan", "ja": "赤いフライパン", "icon": "red_pan" },
+        { "id": "blue_pan", "en": "blue pan", "ja": "青いフライパン", "icon": "blue_pan" },
+        { "id": "red_bowl", "en": "red bowl", "ja": "赤いお椀", "icon": "red_bowl" },
+        { "id": "blue_bowl", "en": "blue bowl", "ja": "青いお椀", "icon": "blue_bowl" },
+        { "id": "red_bottle", "en": "red bottle", "ja": "赤いびん", "icon": "red_bottle" },
+        { "id": "blue_bottle", "en": "blue bottle", "ja": "青いびん", "icon": "blue_bottle" },
+        { "id": "red_kettle", "en": "red kettle", "ja": "赤いやかん", "icon": "red_kettle" },
+        { "id": "blue_kettle", "en": "blue kettle", "ja": "青いやかん", "icon": "blue_kettle" }
+      ]
+    }
+  ]
+}

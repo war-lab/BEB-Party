@@ -1,0 +1,62 @@
+{
+  "id": "park",
+  "title": "公園",
+  "keyExpressions": [
+    { "en": "Where is the ...?", "ja": "〜はどこ？" },
+    { "en": "Which row is it in?", "ja": "どの段にある？" },
+    { "en": "Is it next to the ...?", "ja": "〜のとなり？" },
+    { "en": "Is it on the left side or the right side?", "ja": "左側？右側？" },
+    { "en": "Slowly, please.", "ja": "ゆっくりお願い" },
+    { "en": "Say that again, please.", "ja": "もう一度お願い" }
+  ],
+  "itemSets": [
+    {
+      "id": "park_easy",
+      "tier": "easy",
+      "describerHints": [
+        "Put the ... in the ... row, on the ... side.",
+        "Put the ... in the ... row, ... from the left.",
+        "The ... is next to the ...",
+        "Yes, it is next to the ...",
+        "The ... is above the ...",
+        "There is nothing in the ... row.",
+        "Put the ... in the bottom-right corner."
+      ],
+      "items": [
+        { "id": "tree", "en": "tree", "ja": "木", "icon": "tree" },
+        { "id": "bench", "en": "bench", "ja": "ベンチ", "icon": "bench" },
+        { "id": "bird", "en": "bird", "ja": "鳥", "icon": "bird" },
+        { "id": "kite", "en": "kite", "ja": "凧", "icon": "kite" },
+        { "id": "flower", "en": "flower", "ja": "花", "icon": "flower" },
+        { "id": "balloon", "en": "balloon", "ja": "風船", "icon": "balloon" },
+        { "id": "umbrella", "en": "umbrella", "ja": "傘", "icon": "umbrella" },
+        { "id": "slide", "en": "slide", "ja": "すべり台", "icon": "slide" },
+        { "id": "bucket", "en": "bucket", "ja": "バケツ", "icon": "bucket" },
+        { "id": "bike", "en": "bike", "ja": "自転車", "icon": "bike" }
+      ]
+    },
+    {
+      "id": "park_standard",
+      "tier": "standard",
+      "describerHints": [
+        "Put the ... in the ... row, on the ... side.",
+        "Put the ... in the ... row, ... from the left.",
+        "The ... is next to the ...",
+        "No, the blue one is above the ...",
+        "The ... is between the ... and the ..."
+      ],
+      "items": [
+        { "id": "red_kite", "en": "red kite", "ja": "赤い凧", "icon": "red_kite" },
+        { "id": "blue_kite", "en": "blue kite", "ja": "青い凧", "icon": "blue_kite" },
+        { "id": "red_balloon", "en": "red balloon", "ja": "赤い風船", "icon": "red_balloon" },
+        { "id": "blue_balloon", "en": "blue balloon", "ja": "青い風船", "icon": "blue_balloon" },
+        { "id": "red_umbrella", "en": "red umbrella", "ja": "赤い傘", "icon": "red_umbrella" },
+        { "id": "blue_umbrella", "en": "blue umbrella", "ja": "青い傘", "icon": "blue_umbrella" },
+        { "id": "red_bucket", "en": "red bucket", "ja": "赤いバケツ", "icon": "red_bucket" },
+        { "id": "blue_bucket", "en": "blue bucket", "ja": "青いバケツ", "icon": "blue_bucket" },
+        { "id": "red_bench", "en": "red bench", "ja": "赤いベンチ", "icon": "red_bench" },
+        { "id": "blue_bench", "en": "blue bench", "ja": "青いベンチ", "icon": "blue_bench" }
+      ]
+    }
+  ]
+}
