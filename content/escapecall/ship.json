@@ -1,0 +1,55 @@
+{
+  "id": "ship",
+  "title": "沈みかけた船",
+  "scene": {
+    "titleEn": "The Sinking Ship",
+    "titleJa": "沈みかけた船",
+    "introEn": "Water is coming into the ship. The cabin doors are locked. Open three locks before the water gets too high.",
+    "introJa": "船に水が入ってきて、船室の扉は閉まっている。水が上がりきる前に3つの錠を開けよう。"
+  },
+  "lockLabels": [
+    { "en": "The captain's box", "ja": "船長の箱" },
+    { "en": "The cabin door", "ja": "船室の扉" },
+    { "en": "The door to the deck", "ja": "甲板への扉" }
+  ],
+  "keyExpressions": [
+    { "en": "What is the first symbol?", "ja": "最初の記号は？" },
+    { "en": "What comes next?", "ja": "その次は？" },
+    { "en": "The first one is a yellow triangle.", "ja": "最初は黄色い三角" },
+    { "en": "What number is the black square?", "ja": "黒い四角は何番？" },
+    { "en": "The black square is six.", "ja": "黒い四角は6" },
+    { "en": "Blue or black?", "ja": "青？黒？" },
+    { "en": "I don't have that one.", "ja": "それは持っていない" },
+    { "en": "Who has the rule? Please read it.", "ja": "規則はだれ？読んで" },
+    { "en": "Who has the first half?", "ja": "前半はだれ？" },
+    { "en": "Say that again, please.", "ja": "もう一度お願い" },
+    { "en": "Let me check. Is it two, zero, eight, five?", "ja": "確認させて。2, 0, 8, 5？" }
+  ],
+  "rulePhrases": {
+    "skip_color": {
+      "easy": "Skip the {color} ones.",
+      "standard": "Read only the symbols that are not {color}.",
+      "ja": "{color}の記号は飛ばす"
+    },
+    "skip_shape": {
+      "easy": "Skip the {shape}s.",
+      "standard": "If a symbol is a {shape}, do not use it.",
+      "ja": "{shape}は飛ばす"
+    },
+    "reverse": {
+      "easy": "Read the symbols from right to left.",
+      "standard": "Start with the last symbol and finish with the first one.",
+      "ja": "記号を右から左へ読む"
+    },
+    "swap_ends": {
+      "easy": "Swap the first and last numbers of the answer.",
+      "standard": "In the final answer, the first and last numbers change places.",
+      "ja": "答えの最初と最後の数字を入れ替える"
+    },
+    "add_one": {
+      "easy": "Add one to each number. For nine, write zero.",
+      "standard": "Each number goes up by one. If a number is nine, it goes back to zero.",
+      "ja": "すべての数字に1を足す（9のときは0と書く）"
+    }
+  }
+}
