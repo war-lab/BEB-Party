@@ -1,0 +1,137 @@
+{
+  "id": "what-if",
+  "title": "もしも",
+  "keyExpressions": [
+    { "en": "That sounds just like Ken.", "ja": "いかにも〇〇っぽい" },
+    { "en": "Aya would choose that.", "ja": "〇〇ならそれを選びそう" },
+    { "en": "It is too serious for Ken.", "ja": "〇〇にしては真面目すぎる" },
+    { "en": "I think Aya wrote it.", "ja": "〇〇が書いたと思う" },
+    { "en": "Who would pick that?", "ja": "それを選ぶのは誰？" },
+    { "en": "Would you really do that?", "ja": "本当にそうする？" },
+    { "en": "It was not me.", "ja": "私じゃない" },
+    { "en": "I am not sure.", "ja": "よく分からない" },
+    { "en": "Good idea!", "ja": "いいね！" }
+  ],
+  "questions": [
+    {
+      "id": "q_animal",
+      "en": "If you could be an animal for a day, what would you be?",
+      "ja": "1日だけ動物になれるなら、何になる？",
+      "hintEn": [
+        "I would be a ... for a day.",
+        "I want to be a ... and ...",
+        "As a ..., I would ... all day."
+      ]
+    },
+    {
+      "id": "q_million_yen",
+      "en": "If you got one million yen today, what would you buy?",
+      "ja": "今日100万円もらったら、何を買う？",
+      "hintEn": [
+        "I would buy a new ...",
+        "I would spend it all on ...",
+        "I would give half of it to ..."
+      ]
+    },
+    {
+      "id": "q_dinner_anyone",
+      "en": "If you could have dinner with anyone, who would it be?",
+      "ja": "誰とでも食事ができるなら、誰と食べる？",
+      "hintEn": [
+        "I would have dinner with ...",
+        "I want to eat ... with ...",
+        "I would ask ... about ..."
+      ]
+    },
+    {
+      "id": "q_new_holiday",
+      "en": "What new holiday would you create?",
+      "ja": "新しい祝日を1つ作るなら、何の日にする？",
+      "hintEn": [
+        "I would make ... Day.",
+        "On that day, everyone must ...",
+        "It is a day to ... with friends."
+      ]
+    },
+    {
+      "id": "q_small_shop",
+      "en": "If you opened a small shop, what would you sell?",
+      "ja": "小さなお店を開くなら、何を売る？",
+      "hintEn": [
+        "I would sell ... in my shop.",
+        "My shop is only for ...",
+        "I would open it near ..."
+      ]
+    },
+    {
+      "id": "q_movie_title",
+      "en": "If your life were a movie, what would the title be?",
+      "ja": "自分の人生が映画なら、タイトルは？",
+      "hintEn": [
+        "The title would be ...",
+        "It would be called The ... of ...",
+        "My movie is about a ... who ..."
+      ]
+    },
+    {
+      "id": "q_swap_lives",
+      "en": "Whose life would you like to live for one week?",
+      "ja": "1週間だけ誰かの人生を送れるなら、誰の人生？",
+      "hintEn": [
+        "I would like to live as ...",
+        "I want to try ...'s life.",
+        "I want to see what ... does all day."
+      ]
+    },
+    {
+      "id": "q_live_anywhere",
+      "en": "If you could live anywhere, where would you live?",
+      "ja": "どこにでも住めるなら、どこに住む？",
+      "hintEn": [
+        "I would live in ...",
+        "I want a small house near ...",
+        "I would move to ... because ..."
+      ]
+    },
+    {
+      "id": "q_instant_skill",
+      "en": "What skill would you like to learn overnight?",
+      "ja": "一晩で身につけたい技能は？",
+      "hintEn": [
+        "I want to learn how to ...",
+        "I would like to ... like a pro.",
+        "If I could ..., I would ..."
+      ]
+    },
+    {
+      "id": "q_younger_self",
+      "en": "What would you tell your ten-year-old self?",
+      "ja": "10歳の自分に何を伝える？",
+      "hintEn": [
+        "Do not worry about ...",
+        "You should start ... early.",
+        "I would tell myself to ..."
+      ]
+    },
+    {
+      "id": "q_talking_object",
+      "en": "If one thing in your room could talk, what would it say?",
+      "ja": "部屋のものが1つしゃべれたら、何と言う？",
+      "hintEn": [
+        "My ... would say ...",
+        "My ... would ask me to ...",
+        "My ... would complain about ..."
+      ]
+    },
+    {
+      "id": "q_clone",
+      "en": "If you had a clone, what would you make it do?",
+      "ja": "自分のクローンがいたら、何をさせる？",
+      "hintEn": [
+        "My clone would ... for me.",
+        "I would send my clone to ...",
+        "My clone and I would ... together."
+      ]
+    }
+  ]
+}

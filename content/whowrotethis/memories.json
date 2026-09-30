@@ -1,0 +1,137 @@
+{
+  "id": "memories",
+  "title": "思い出",
+  "keyExpressions": [
+    { "en": "This sounds like Ken as a kid.", "ja": "子どもの頃の〇〇っぽい" },
+    { "en": "Aya told me this story before.", "ja": "〇〇から前にこの話を聞いた" },
+    { "en": "Ken would not write that.", "ja": "〇〇はそんなこと書かない" },
+    { "en": "I think Aya wrote it.", "ja": "〇〇が書いたと思う" },
+    { "en": "Is this your story?", "ja": "これあなたの話？" },
+    { "en": "When did that happen?", "ja": "それいつの話？" },
+    { "en": "That was not me.", "ja": "私じゃない" },
+    { "en": "I cannot guess this one.", "ja": "これは当てられない" },
+    { "en": "Me too!", "ja": "私も！" }
+  ],
+  "questions": [
+    {
+      "id": "q_childhood_dream",
+      "en": "What did you want to be as a child?",
+      "ja": "子どもの頃、何になりたかった？",
+      "hintEn": [
+        "I wanted to be a ...",
+        "My dream was to become a ...",
+        "As a child, I dreamed of being a ..."
+      ]
+    },
+    {
+      "id": "q_hated_food",
+      "en": "What food did you hate as a child?",
+      "ja": "子どもの頃に嫌いだった食べ物は？",
+      "hintEn": [
+        "I did not like ... at all.",
+        "I hated ... when I was small.",
+        "... was my least favorite food."
+      ]
+    },
+    {
+      "id": "q_pocket_money",
+      "en": "What did you spend your pocket money on as a child?",
+      "ja": "子どもの頃、おこづかいを何に使っていた？",
+      "hintEn": [
+        "I bought ... every week.",
+        "I spent it all on ...",
+        "I saved it to buy a ..."
+      ]
+    },
+    {
+      "id": "q_childhood_fear",
+      "en": "What were you afraid of as a child?",
+      "ja": "子どもの頃に怖かったものは？",
+      "hintEn": [
+        "I was afraid of ...",
+        "I was scared of ... at night.",
+        "I could not sleep because of ..."
+      ]
+    },
+    {
+      "id": "q_school_trip",
+      "en": "What do you remember most from a school trip?",
+      "ja": "修学旅行や遠足でいちばん覚えていることは？",
+      "hintEn": [
+        "I remember the ... very well.",
+        "We went to ... by bus.",
+        "On the trip, I ... for the first time."
+      ]
+    },
+    {
+      "id": "q_quit_hobby",
+      "en": "What lesson or hobby did you give up?",
+      "ja": "途中でやめた習い事や趣味は？",
+      "hintEn": [
+        "I quit ... after one year.",
+        "I took ... lessons as a child.",
+        "I gave up ... because ..."
+      ]
+    },
+    {
+      "id": "q_favorite_toy",
+      "en": "What toy did you love as a child?",
+      "ja": "子どもの頃に大好きだったおもちゃは？",
+      "hintEn": [
+        "I loved my ... very much.",
+        "I played with a ... every day.",
+        "My favorite toy was a small ..."
+      ]
+    },
+    {
+      "id": "q_school_mistake",
+      "en": "What silly mistake do you remember from school?",
+      "ja": "学生時代のちょっとした失敗で覚えていることは？",
+      "hintEn": [
+        "I forgot my ... on a test day.",
+        "I once came to school in ...",
+        "I called my teacher ... by mistake."
+      ]
+    },
+    {
+      "id": "q_teen_song",
+      "en": "What song reminds you of your teenage years?",
+      "ja": "10代の頃を思い出す曲は？",
+      "hintEn": [
+        "I listened to ... every day.",
+        "I sang ... at karaoke a lot.",
+        "The song ... reminds me of ..."
+      ]
+    },
+    {
+      "id": "q_strange_belief",
+      "en": "What strange thing did you believe as a child?",
+      "ja": "子どもの頃に信じていた変なことは？",
+      "hintEn": [
+        "I believed that ... could talk.",
+        "I thought ... lived in my house.",
+        "I was sure that ... was real."
+      ]
+    },
+    {
+      "id": "q_secret_place",
+      "en": "Where was your secret place as a child?",
+      "ja": "子どもの頃の秘密の場所はどこ？",
+      "hintEn": [
+        "My secret place was ...",
+        "I often hid behind the ...",
+        "I went to ... to be alone."
+      ]
+    },
+    {
+      "id": "q_collection",
+      "en": "What did you collect as a child?",
+      "ja": "子どもの頃に集めていたものは？",
+      "hintEn": [
+        "I collected ... for years.",
+        "I had a box full of ...",
+        "I kept every ... I found."
+      ]
+    }
+  ]
+}
