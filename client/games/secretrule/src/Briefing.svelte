@@ -101,7 +101,7 @@
   .promise {
     margin: 0 0 0.9rem;
     background: var(--ground-2);
-    border: var(--outline-width) solid var(--yellow);
+    border: var(--outline-width) solid var(--outline-neutral);
     border-radius: var(--radius-tile);
     padding: 0.5rem 0.7rem;
     font-size: 0.84rem;

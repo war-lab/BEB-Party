@@ -54,8 +54,12 @@
   const agreedNumber = $derived(
     agreed === null ? null : publicState.candidates.findIndex((entry) => entry.id === agreed) + 1,
   );
+  // 切断している人の選択は回答に数えない。表示もサーバの判定と同じ範囲で数える
+  const connectedSelections = $derived(
+    publicState.selections.filter((entry) => connectedIds.includes(entry.playerId)),
+  );
   const answerStatus = $derived.by(() => {
-    if (publicState.selections.length === 0) {
+    if (connectedSelections.length === 0) {
       return "まだ誰も選んでいません。このまま進むと、このラウンドは回答しません。";
     }
     if (agreedNumber === null) {
@@ -102,9 +106,13 @@
 
     <KeyExpressions expressions={publicState.keyExpressions} {myLevel} />
 
+    <p class="timing" data-testid="answer-timing">
+      答えはラウンドの終わり（全員が「この選択で進む」を押すか、時間切れ）に決まります。選んだ人の選択が1つに揃っていれば、それが答えになります。
+    </p>
     <CandidateList
       candidates={publicState.candidates}
       {myLevel}
+      {nameOf}
       selections={publicState.selections}
       {eliminatedIds}
       selectable
@@ -164,16 +172,23 @@
   .status {
     margin: 0 0 0.5rem;
     background: var(--ground-2);
-    border: var(--outline-width) solid rgba(255, 255, 255, 0.2);
+    border: var(--outline-width) solid var(--outline-neutral);
     border-radius: var(--radius-tile);
     padding: 0.45rem 0.7rem;
     font-size: 0.8rem;
     color: var(--mist);
   }
+  /* 黄の輪郭は「いまやること」の案内だけに使う。揃っている状態は背景の膜で示す */
   .status.agreed {
-    border-color: var(--yellow);
+    background: linear-gradient(var(--yellow-veil), var(--yellow-veil)), var(--ground-2);
     color: var(--panel);
     font-weight: 700;
+  }
+  .timing {
+    margin: 0 0 0.45rem;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--mist);
   }
   .waiting {
     margin: 0.6rem 0 1rem;

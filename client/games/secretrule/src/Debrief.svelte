@@ -190,7 +190,7 @@
     align-items: center;
     gap: 0.5rem;
     background: var(--ground-2);
-    border: 2px solid rgba(255, 255, 255, 0.14);
+    border: 2px solid var(--outline-neutral);
     border-radius: var(--radius-tile);
     padding: 0.4rem 0.55rem;
   }
@@ -207,6 +207,7 @@
     display: grid;
     font-size: 0.9rem;
     line-height: 1.35;
+    overflow-wrap: anywhere;
   }
   .name {
     font-size: 0.7rem;

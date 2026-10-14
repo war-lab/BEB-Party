@@ -79,7 +79,7 @@
     display: grid;
     gap: 0.2rem;
     background: var(--ground-2);
-    border: 2px solid rgba(255, 255, 255, 0.14);
+    border: 2px solid var(--outline-neutral);
     border-radius: var(--radius-tile);
     padding: 0.45rem 0.6rem;
   }
@@ -107,6 +107,7 @@
     font-size: 0.95rem;
     line-height: 1.4;
     color: var(--panel);
+    overflow-wrap: anywhere;
   }
   .verdict {
     justify-self: start;

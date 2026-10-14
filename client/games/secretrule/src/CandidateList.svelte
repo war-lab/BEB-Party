@@ -25,6 +25,8 @@
     /** proving 以降に強調する正解の候補と避ける候補 */
     solvedId?: string | null;
     avoidId?: string | null;
+    /** 顔アイコンの読み上げ名に使う */
+    nameOf?: (playerId: string) => string;
   }
   let {
     candidates,
@@ -36,6 +38,7 @@
     onSelect,
     solvedId = null,
     avoidId = null,
+    nameOf = (playerId: string) => playerId,
   }: Props = $props();
 
   // レベル3以上は折りたたむ。開いた状態は画面の中でだけ持つ
@@ -81,7 +84,7 @@
         {#if selections.length > 0}
           <span class="faces">
             {#each supporters(candidate.id) as playerId (playerId)}
-              <span class="face" style={`background:${faceColor(playerId)}`}>
+              <span class="face" role="img" aria-label={nameOf(playerId)} title={nameOf(playerId)} style={`background:${faceColor(playerId)}`}>
                 <span aria-hidden="true">{playerIconOf(playerId)}</span>
               </span>
             {/each}
@@ -147,11 +150,11 @@
     border-radius: var(--radius-tile);
     padding: 0.5rem 0.6rem;
   }
+  /* 黄の輪郭は「いまやること」の案内だけに使う（ビジュアルデザイン.md）。選択中は背景の膜で示す */
   li.mine {
-    border-color: var(--yellow);
+    background: linear-gradient(var(--yellow-veil), var(--yellow-veil)), var(--panel);
   }
   li.solved {
-    border-color: var(--yellow);
     background: #fff7d6;
   }
   li.avoid {
@@ -176,6 +179,7 @@
   .en {
     font-size: 0.95rem;
     line-height: 1.35;
+    overflow-wrap: anywhere;
   }
   .ja {
     font-size: 0.74rem;

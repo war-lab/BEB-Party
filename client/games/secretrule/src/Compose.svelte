@@ -279,7 +279,7 @@
   .starters {
     margin: 0.4rem 0 0.9rem;
     background: var(--ground-2);
-    border: 2px solid rgba(255, 255, 255, 0.14);
+    border: 2px solid var(--outline-neutral);
     border-radius: var(--radius-tile);
     padding: 0.5rem 0.7rem;
   }
@@ -320,7 +320,7 @@
   }
   .players li {
     background: var(--ground-2);
-    border: 2px solid rgba(255, 255, 255, 0.14);
+    border: 2px solid var(--outline-neutral);
     border-radius: var(--radius-tile);
     padding: 0.2rem 0.5rem;
     font-size: 0.76rem;

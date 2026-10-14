@@ -32,7 +32,23 @@
   $effect(() => acquireWakeLock());
 
   const myLevel = $derived(room.players.find((player) => player.id === ui.myPlayerId)?.level ?? 1);
-  const myMarks = $derived(publicState.marks.find((mark) => mark.playerId === ui.myPlayerId)?.draftPlayerIds ?? []);
+  const serverMarks = $derived(
+    publicState.marks.find((mark) => mark.playerId === ui.myPlayerId)?.draftPlayerIds ?? [],
+  );
+  // 送信してサーバの状態が返るまでの自分の印。mark は置き換え方式のため、返る前に続けて押すと
+  // 古い印を元に配列を作り、先に付けた印が消える。送った印を手元に持ち、次の送信はこれを元に作る
+  let pendingMarks = $state<string[] | null>(null);
+  const myMarks = $derived(pendingMarks ?? serverMarks);
+  $effect(() => {
+    const pending = pendingMarks;
+    if (pending !== null && sameMembers(pending, serverMarks)) {
+      pendingMarks = null;
+    }
+  });
+
+  function sameMembers(a: readonly string[], b: readonly string[]): boolean {
+    return a.length === b.length && a.every((id) => b.includes(id));
+  }
   const isReady = $derived(ui.myPlayerId !== null && publicState.readyPlayerIds.includes(ui.myPlayerId));
   const connectedCount = $derived(room.players.filter((player) => player.connected).length);
   const eliminatedIds = $derived(
@@ -47,7 +63,8 @@
     const next = myMarks.includes(draftPlayerId)
       ? myMarks.filter((id) => id !== draftPlayerId)
       : [...myMarks, draftPlayerId].slice(-MARKS_PER_PLAYER);
-    sendAction(ACTIONS.mark, { roundIndex: publicState.roundIndex, draftPlayerIds: next });
+    // 未接続で送れなかったときは手元の印を持たない。サーバの印と画面が食い違わないようにする
+    pendingMarks = sendAction(ACTIONS.mark, { roundIndex: publicState.roundIndex, draftPlayerIds: next }) ? next : null;
   }
 
   function nameOf(playerId: string): string {
@@ -75,11 +92,12 @@
                 <span aria-hidden="true">{playerIconOf(draft.playerId)}</span>
               </span>
               <span>{nameOf(draft.playerId)}</span>
+              {#if draft.playerId === ui.myPlayerId}<span class="beb-pill self">あなた</span>{/if}
             </span>
             <span class="text">{draft.text}</span>
             <span class="markers">
               {#each markersOf(draft.playerId) as playerId (playerId)}
-                <span class="face small" style={`background:${faceColor(playerId)}`}>
+                <span class="face small" role="img" aria-label={nameOf(playerId)} title={nameOf(playerId)} style={`background:${faceColor(playerId)}`}>
                   <span aria-hidden="true">{playerIconOf(playerId)}</span>
                 </span>
               {/each}
@@ -148,8 +166,9 @@
     border-radius: var(--radius-tile);
     padding: 0.5rem 0.6rem;
   }
+  /* 黄の輪郭は「いまやること」の案内だけに使う（ビジュアルデザイン.md）。印は背景の膜で示す */
   li.marked {
-    border-color: var(--yellow);
+    background: linear-gradient(var(--yellow-veil), var(--yellow-veil)), var(--panel);
   }
   .who {
     grid-column: 1 / 3;
@@ -177,6 +196,7 @@
     grid-column: 1 / 3;
     font-size: 1rem;
     line-height: 1.4;
+    overflow-wrap: anywhere;
   }
   .markers {
     display: flex;
