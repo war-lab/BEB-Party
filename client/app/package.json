@@ -17,6 +17,7 @@
     "@beb/client-dontsayit": "workspace:*",
     "@beb/client-escapecall": "workspace:*",
     "@beb/client-ranking": "workspace:*",
+    "@beb/client-secretrule": "workspace:*",
     "@beb/client-whowrotethis": "workspace:*"
   },
   "devDependencies": {

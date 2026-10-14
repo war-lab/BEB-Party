@@ -91,7 +91,7 @@ function collectContentJapanese() {
   if (!existsSync(contentRoot)) {
     return "";
   }
-  const fields = ["ja", "hintJa", "meaningJa", "briefingJa", "titleJa", "introJa"];
+  const fields = ["ja", "title", "hintJa", "meaningJa", "briefingJa", "titleJa", "introJa"];
   let text = "";
   const gameDirs = readdirSync(contentRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
