@@ -10,7 +10,12 @@ describe("normalizeSubmission", () => {
   });
 
   it("曲がった引用符を直線の引用符へ置き換える", () => {
-    expect(normalizeSubmission("I’m “happy”")).toBe(`I'm "happy"`);
+    expect(normalizeSubmission("I\u2019m \u201Chappy\u201D")).toBe(`I'm "happy"`);
+  });
+
+  it("書式制御文字（ゼロ幅空白など）を取り除く", () => {
+    expect(normalizeSubmission("I like ca\u200Bts.")).toBe("I like cats.");
+    expect(normalizeSubmission("\u202EI like cats.")).toBe("I like cats.");
   });
 
   it("全角空白・改行・連続空白を半角空白1つへ畳み、前後を落とす", () => {
