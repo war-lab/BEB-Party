@@ -1,4 +1,4 @@
-// 6ゲームの全ステージの素材を撮る。
+// 7ゲームの全ステージの素材を撮る。
 //
 // 実アプリを実際にプレイして撮る（モックを描かない）。素材は movies/assets/shots/ へ出す。
 // 各ゲームを1テストにするのは、途中で失敗しても他のゲームの素材が残るようにするためである。
@@ -8,6 +8,16 @@
 import { expect, test } from "@playwright/test";
 import { collectPieces, enterCode, solve, waitForLock, wrongCodeFor } from "../../e2e/support/escapecall";
 import { openTable, startGame, voteAll } from "../../e2e/support/room";
+import {
+  BANK,
+  PREDICATES,
+  collectVerdicts,
+  consistentCandidates,
+  pickTests,
+  readCandidates,
+  submitText,
+  waitForStage,
+} from "../../e2e/support/secretrule";
 import { confirmGoalsTolerant, findPageBy, readyAllTolerant, shoot, startWith } from "./support";
 
 const LEVELS = [3, 1, 2, 4, 5, 5];
@@ -338,6 +348,124 @@ test("ESCAPE CALL", async ({ browser, baseURL }) => {
     // debrief: 成否とランク、3つの錠の答えと断片
     await expect(host.locator("[data-testid='outcome']")).toBeVisible({ timeout: 30_000 });
     await shoot(host, "escapecall-debrief");
+  } finally {
+    await table.close();
+  }
+});
+
+/**
+ * SECRET RULE ENGLISHは4人で撮る。3人以上で「試す英文を選ぶ」画面が出るため、それが写る最小の人数にする。
+ *
+ * ホストをレベル1にするのは、候補の日本語の補足が開いた状態（レベル1〜2）を候補の確認で写すためである。
+ * 規則の絞り方はE2Eと共用する（e2e/support/secretrule.ts）。
+ */
+const SECRET_RULE_LEVELS = [1, 3, 5, 2];
+
+test("SECRET RULE ENGLISH", async ({ browser, baseURL }) => {
+  const table = await openTable(browser, baseURL!, SECRET_RULE_LEVELS, { testTitle: "secretrule" });
+  try {
+    const pages = table.pages;
+    const host = pages[0]!;
+    await startWith(host, "SECRET RULE ENGLISH", "はじめての規則");
+
+    // briefing: 遊び方、語の数え方、候補6件（レベル1なので日本語つき）
+    await waitForStage(pages, "候補の確認");
+    const candidates = await readCandidates(host);
+    await shoot(host, "secretrule-briefing");
+    for (const page of pages) {
+      await page.click("[data-testid='ready']");
+    }
+
+    let consistent = [...candidates.keys()];
+    const used = new Set<string>();
+    for (let round = 1; round <= 4; round += 1) {
+      await waitForStage(pages, `下書き ${round} / 4`);
+      const [first, second] = pickTests(consistent, used);
+      used.add(first);
+      used.add(second);
+
+      if (round === 1) {
+        // 下書き: 入力欄に書いた状態を撮る
+        await host.fill("[data-testid='submission-input']", first);
+        await host.locator("[data-testid='submission-input']").evaluate((element) =>
+          element.scrollIntoView({ block: "center" }),
+        );
+        await shoot(host, "secretrule-writing");
+      }
+      await submitText(pages[0]!, first);
+      await submitText(pages[1]!, second);
+      for (const page of pages.slice(2)) {
+        const filler = BANK.find((text) => !used.has(text))!;
+        used.add(filler);
+        await submitText(page, filler);
+      }
+
+      await waitForStage(pages, "試す英文を選ぶ");
+      for (const page of pages) {
+        for (const text of [first, second]) {
+          await page.locator("[data-testid='draft']").filter({ hasText: text }).locator("[data-testid='mark-draft']").click();
+        }
+      }
+      for (const page of pages) {
+        await expect(page.locator("[data-testid='draft'].marked")).toHaveCount(2);
+      }
+      if (round === 1) {
+        await shoot(pages[2]!, "secretrule-choosing");
+      }
+      for (const page of pages) {
+        await page.click("[data-testid='ready']");
+      }
+
+      await waitForStage(pages, "報告と回答");
+      if (round === 1) {
+        // 試した英文の作者の画面。自分の英文の成否だけが出ている
+        await shoot(host, "secretrule-checking-author");
+      }
+      consistent = consistentCandidates(consistent, await collectVerdicts(pages));
+      if (consistent.length === 1) {
+        for (const page of pages) {
+          await page
+            .locator(`[data-testid='candidate'][data-candidate-id='${consistent[0]}'] [data-testid='select-candidate']`)
+            .click();
+        }
+        // 判定にかからなかった人の画面。候補を選んだ顔と、揃っている表示が写る位置まで送る
+        const listener = pages[2]!;
+        await expect(listener.locator("[data-testid='answer-status']")).toContainText("揃っています");
+        // 上端に固定のタイマーバーがあるため、説明文が隠れないよう、送った後に少し戻す
+        await listener.locator("[data-testid='answer-timing']").evaluate((element) => {
+          element.scrollIntoView({ block: "start" });
+          window.scrollBy(0, -80);
+        });
+        await shoot(listener, "secretrule-checking-listener");
+        for (const page of pages) {
+          await page.click("[data-testid='ready']");
+        }
+        break;
+      }
+      for (const page of pages) {
+        await page.click("[data-testid='ready']");
+      }
+    }
+
+    // proving: 正解の規則と避ける候補、入力欄に書いた状態。
+    // 全員が通る英文を出し、結果の画面に正しく遊んだときのランクが写るようにする
+    await waitForStage(pages, "規則を使って書く");
+    const avoidText = ((await host.locator("[data-testid='proving-target'] .en").nth(1).textContent()) ?? "").trim();
+    const avoid = [...candidates].find(([, text]) => text === avoidText)?.[0];
+    const rule = consistent[0]!;
+    const passing = BANK.filter(
+      (text) => !used.has(text) && PREDICATES[rule]!(text) && avoid !== undefined && !PREDICATES[avoid]!(text),
+    );
+    const unused = [...passing, ...BANK.filter((text) => !used.has(text) && !passing.includes(text))];
+    await host.fill("[data-testid='submission-input']", unused[0]!);
+    await shoot(host, "secretrule-proving");
+    for (const [index, page] of pages.entries()) {
+      await submitText(page, unused[index]!);
+    }
+
+    // debrief: 成否とランク、秘密の規則、全ラウンドの英文
+    await expect(host.locator("[data-testid='outcome']")).toBeVisible({ timeout: 30_000 });
+    await shoot(host, "secretrule-debrief");
   } finally {
     await table.close();
   }

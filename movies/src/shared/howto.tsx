@@ -28,8 +28,10 @@ export function* howTo(view: View2D, script: MovieScript): ThreadGenerator {
   yield* showList(view, "どんなゲーム？", [script.purpose], accent);
   yield* showBeats(view, script, accent);
   yield* showList(view, "得点", script.scoring, accent);
-  yield* showList(view, "守ること", script.promises, COLOR.red);
-  yield* waitFor(0.6);
+  // 最後の札は余韻の指定（script.outro）に従って長く残し、ゆっくり消す。指定が無ければ他の札と同じ
+  const outro = script.outro ?? { extraHold: 0, fade: 0.4, tail: 0.6 };
+  yield* showList(view, "守ること", script.promises, COLOR.red, outro.extraHold, outro.fade);
+  yield* waitFor(outro.tail);
 }
 
 /** 冒頭。ゲーム名を出す */
@@ -87,12 +89,19 @@ function* showBeats(view: View2D, script: MovieScript, accent: string): ThreadGe
 }
 
 /** 箇条書きを1枚に出す。行数に応じて表示時間を伸ばす */
-function* showList(view: View2D, heading: string, items: readonly Lines[], accent: string): ThreadGenerator {
+function* showList(
+  view: View2D,
+  heading: string,
+  items: readonly Lines[],
+  accent: string,
+  extraHold = 0,
+  fadeOut = 0.4,
+): ThreadGenerator {
   const holder = createRef<Layout>();
   view.add(<ListCard ref={holder} heading={heading} items={items} accent={accent} />);
   fitWithin(holder(), CARD_MAX_WIDTH);
   yield* holder().opacity(1, 0.5);
-  yield* waitFor(1.2 + items.reduce((total, lines) => total + lines.length, 0) * 0.9);
-  yield* holder().opacity(0, 0.4);
+  yield* waitFor(1.2 + items.reduce((total, lines) => total + lines.length, 0) * 0.9 + extraHold);
+  yield* holder().opacity(0, fadeOut);
   holder().remove();
 }

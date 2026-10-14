@@ -43,6 +43,8 @@ export const GAME_ACCENT = {
   // 協力型で「開く」ことが主題のため、解錠の演出と同じ黄の濃い側ではなく赤の濃い側を当てる。
   // red（DON'T SAY IT）とは明度で分かれる
   escapecall: COLOR.redDeep,
+  // 残りの色のうち、どのゲームにも当たっていない濃い青。blue（WHO WROTE THIS?）とは明度で分かれる
+  secretrule: COLOR.blueDeep,
 } as const;
 
 export type GameId = keyof typeof GAME_ACCENT;

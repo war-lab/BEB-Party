@@ -1,4 +1,4 @@
-// 6本の台本。数値はすべて各ゲームのshared定数を出典とし、ここでは写しを持つ。
+// 7本の台本。数値はすべて各ゲームのshared定数を出典とし、ここでは写しを持つ。
 //
 // 写しを持つ理由は、動画が「収録時点の仕様」を映すものであり、定数を変えたときに
 // 動画が自動で追従してはまずいからである（古い動画と新しいアプリの食い違いに気づけない）。
@@ -36,6 +36,13 @@ export interface MovieScript {
   scoring: Lines[];
   /** 締めに出す約束。守らないとゲームが成立しないものだけ */
   promises: Lines[];
+  /**
+   * 締めの余韻。省略すると他の動画と同じ短い締めになる。
+   *
+   * extraHold は最後の札（守ること）をいつもより長く残す秒数、fade はその札が消える秒数、
+   * tail は消えた後に何も出さずに置く秒数である。
+   */
+  outro?: { extraHold: number; fade: number; tail: number };
 }
 
 /** gameIdから台本を引く。シーンファイルはこれだけを使う */
@@ -393,5 +400,67 @@ export const SCRIPTS: MovieScript[] = [
       ["手がかりは英語で伝える"],
       ["入力する前に", "答えを読み上げて確かめる"],
     ],
+  },
+  {
+    // 数値の出典: shared/games/secretrule/src/game.ts（STAGE_DEADLINE_SECONDS・WRITING_SECONDS・
+    // CANDIDATE_COUNT・TESTS_PER_ROUND・MAX_ROUNDS・RANK_THRESHOLDS）。2〜6人のゲームであり、
+    // 下書きを選ぶ画面も写るよう素材は4人の卓で撮る
+    id: "secretrule",
+    icon: "\u{1F9EA}",
+    title: ["SECRET RULE", "ENGLISH"],
+    tagline: ["英文を書いて試し、", "隠れた規則を全員で見抜く"],
+    purpose: ["2〜6人で協力して、", "英文が「通る」秘密の規則を", "6つの候補から当てる"],
+    beats: [
+      {
+        shot: "secretrule-briefing",
+        stage: "候補の確認（90秒）",
+        caption: ["6つの候補のうち", "1つだけが秘密の規則"],
+        hold: 3.4,
+      },
+      {
+        shot: "secretrule-writing",
+        stage: "下書き（既定60秒）",
+        caption: ["候補を見分けられそうな英文を", "全員が1つずつ書く"],
+        hold: 3.4,
+      },
+      {
+        shot: "secretrule-choosing",
+        stage: "試す英文を選ぶ（45秒）",
+        caption: ["試せるのは2つだけ", "どれを試すか英語で相談する"],
+        hold: 3.6,
+      },
+      {
+        shot: "secretrule-checking-author",
+        stage: "報告と回答（120秒）",
+        caption: ["通ったかどうかは", "書いた本人にだけ見える"],
+        hold: 3.6,
+      },
+      {
+        shot: "secretrule-checking-listener",
+        stage: "報告と回答",
+        caption: ["Mine passed. の報告を聞いて", "規則だと思う候補を選ぶ"],
+        hold: 3.8,
+      },
+      {
+        shot: "secretrule-proving",
+        stage: "規則を使って書く",
+        caption: ["正解したら、規則を満たし", "もう1つは満たさない英文を書く"],
+        hold: 3.8,
+      },
+      {
+        shot: "secretrule-debrief",
+        stage: "結果",
+        caption: ["秘密の規則と", "試した英文の結果が出る"],
+        hold: 3.8,
+      },
+    ],
+    scoring: [
+      ["選んだ人の選択が揃ったまま", "ラウンドを終えると答えになる"],
+      ["最大4ラウンド", "まちがえた候補はもう選べない"],
+      ["正解したラウンド・まちがい・", "最後の英文でランクがS〜Cに決まる"],
+    ],
+    promises: [["自分の画面を他の人に見せない"], ["通ったかどうかは英語で伝える"]],
+    // 余韻を多めに取る（2026-10-14の依頼）。最後の札を長く残し、ゆっくり消し、消えた後も間を置く
+    outro: { extraHold: 1.6, fade: 1.1, tail: 1.8 },
   },
 ];
