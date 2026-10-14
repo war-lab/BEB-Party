@@ -18,6 +18,7 @@
     "@beb/server-dontsayit": "workspace:*",
     "@beb/server-escapecall": "workspace:*",
     "@beb/server-ranking": "workspace:*",
+    "@beb/server-secretrule": "workspace:*",
     "@beb/server-whowrotethis": "workspace:*",
     "@beb/shared-core": "workspace:*"
   },

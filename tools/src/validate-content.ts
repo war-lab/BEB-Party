@@ -18,6 +18,10 @@ import {
 } from "@beb/server-escapecall";
 import { formatFinding as formatPackFinding, validatePack } from "@beb/server-ranking";
 import {
+  formatFinding as formatRuleFinding,
+  validatePack as validateRulePack,
+} from "@beb/server-secretrule";
+import {
   formatFinding as formatQuestionFinding,
   validatePack as validateQuestionPack,
 } from "@beb/server-whowrotethis";
@@ -46,6 +50,10 @@ const validators: GameValidator[] = [
   {
     contentPath: "content/ranking",
     validate: (content) => toGameReport(validatePack(content), formatPackFinding),
+  },
+  {
+    contentPath: "content/secretrule",
+    validate: (content) => toGameReport(validateRulePack(content), formatRuleFinding),
   },
   {
     contentPath: "content/whowrotethis",
