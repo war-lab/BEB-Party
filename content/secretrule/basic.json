@@ -1,0 +1,55 @@
+{
+  "id": "basic",
+  "title": "はじめての規則",
+  "keyExpressions": [
+    { "en": "Mine passed.", "ja": "私のは通った" },
+    { "en": "Mine failed.", "ja": "私のはだめだった" },
+    { "en": "Did yours pass?", "ja": "あなたのは通った？" },
+    { "en": "Say it again, please.", "ja": "もう一度言って" },
+    { "en": "Let's test yours.", "ja": "あなたのを試そう" },
+    { "en": "Let's test Ken's.", "ja": "（名前）さんのを試そう" },
+    { "en": "Let's write a question.", "ja": "疑問文を書いて試そう" },
+    { "en": "Maybe the rule is number three.", "ja": "規則は3番かも" },
+    { "en": "Number two is out.", "ja": "2番は違う" },
+    { "en": "Number one or number four?", "ja": "1番か4番か？" },
+    { "en": "Let's choose number three.", "ja": "3番にしよう" },
+    { "en": "I agree.", "ja": "賛成" },
+    { "en": "Wait. I'm not sure.", "ja": "待って、自信がない" }
+  ],
+  "starters": [
+    { "en": "I like ... a lot.", "ja": "…がとても好き" },
+    { "en": "I went to the ... with my family.", "ja": "家族と…へ行った" },
+    { "en": "Do you like ...?", "ja": "…は好き？" },
+    { "en": "My friend and I want to go to the ...", "ja": "友だちと私は…へ行きたい" }
+  ],
+  "candidates": [
+    { "id": "question", "ruleId": "ends_with", "params": { "mark": "?" } },
+    { "id": "no_n", "ruleId": "no_letter", "params": { "letter": "n" } },
+    { "id": "max5", "ruleId": "max_words", "params": { "n": 5 } },
+    { "id": "min8", "ruleId": "min_words", "params": { "n": 8 } },
+    { "id": "long8", "ruleId": "long_word", "params": { "n": 8 } },
+    { "id": "the", "ruleId": "has_word", "params": { "words": ["the"] } },
+    {
+      "id": "time_words",
+      "ruleId": "has_word",
+      "params": {
+        "words": ["today", "tomorrow", "yesterday", "now", "tonight", "weekend", "week", "year", "month", "morning"]
+      }
+    },
+    { "id": "has_f", "ruleId": "has_letter", "params": { "letter": "f" } },
+    { "id": "no_h", "ruleId": "no_letter", "params": { "letter": "h" } },
+    { "id": "start_i", "ruleId": "starts_with", "params": { "letter": "i" } }
+  ],
+  "rulePhrases": {
+    "min_words": { "en": "Use {n} or more words.", "ja": "{n}語以上で書く" },
+    "max_words": { "en": "Use {n} or fewer words.", "ja": "{n}語以下で書く" },
+    "has_word": { "en": "Use one of these words: {words}.", "ja": "次のどれかの語を使う: {words}" },
+    "no_word": { "en": "Do not use these words: {words}.", "ja": "次の語を使わない: {words}" },
+    "has_letter": { "en": "Use the letter {letter}.", "ja": "{letter} の文字を使う（大文字でもよい）" },
+    "no_letter": { "en": "Do not use the letter {letter}.", "ja": "{letter} の文字を使わない（大文字も使わない）" },
+    "ends_with": { "en": "Put {mark} at the very end.", "ja": "いちばん最後の文字を {mark} にする" },
+    "long_word": { "en": "Use a word with {n} or more letters.", "ja": "{n}文字以上の語を使う" },
+    "short_words": { "en": "Use only words with {n} letters or fewer.", "ja": "どの語も{n}文字以下にする" },
+    "starts_with": { "en": "Start with a word that begins with {letter}.", "ja": "{letter} で始まる語から書き始める（大文字でもよい）" }
+  }
+}
