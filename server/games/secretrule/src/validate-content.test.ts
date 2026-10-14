@@ -3,6 +3,7 @@
 // 1項目だけを壊したパックで、その項目が落ちることを確かめる。
 // 検証6・7・12は文例集の構成で決まるため、テスト用の文例集を渡して確かめる。
 import { describe, expect, it } from "vitest";
+import { CORPUS, readCorpus } from "./corpus";
 import { validCandidates, validPack } from "./test-support/fixtures";
 import { THRESHOLDS, measurePack, validatePack, type ValidationItem } from "./validate-content";
 
@@ -118,14 +119,19 @@ describe("文例集に依存する検証（6・7・8・12）", () => {
     expect(findings.some((finding) => finding.item === 6 && finding.candidateId === "no_i")).toBe(true);
   });
 
-  it("検証7: 一方が他方を含む組（min_words の5と7）を落とす", () => {
+  it("検証7: 一方が他方を含む組（min_words の6と7）を足すと、その組の指摘が新しく出る", () => {
     const pack = validPack();
-    const candidates = [...pack.candidates.slice(0, 7), { id: "min5", ruleId: "min_words", params: { n: 5 } }];
-    // min7 を満たす文は必ず min5 を満たすため、min7>min5 の割合は0になる
-    const measured = measurePack(candidates as never, { sentences: ["I like big red cats very much today."] });
-    expect(measured.separations["min7>min5"]).toBe(0);
-    const findings = validatePack({ ...pack, candidates }, { sentences: ["I like big red cats very much today."] }).findings;
-    expect(findings.some((finding) => finding.item === 7 && finding.candidateId === "min7")).toBe(true);
+    const corpus = readCorpus(CORPUS);
+    const pairMessage = (content: unknown) =>
+      validatePack(content, corpus)
+        .findings.filter((finding) => finding.item === 7)
+        .map((finding) => finding.message)
+        .filter((message) => message.includes("min6"));
+    // min6 を持たない基準のパックでは、min6 に関わる指摘は出ない
+    expect(pairMessage(pack)).toEqual([]);
+    // min7 を満たす文は必ず min6 を満たすため、min7>min6 の割合は0になる
+    const withMin6 = { ...pack, candidates: [...pack.candidates, { id: "min6", ruleId: "min_words", params: { n: 6 } }] };
+    expect(pairMessage(withMin6)).toContain("min7を満たしmin6を満たさない文の割合は5.0%以上である必要がある");
   });
 
   it("検証8: 文例集の件数、提出条件、比較キーの重複", () => {

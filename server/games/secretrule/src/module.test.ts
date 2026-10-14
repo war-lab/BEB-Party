@@ -39,6 +39,26 @@ vi.mock("./packs", async () => {
 const { secretRuleModule } = await import("./module");
 
 const PACK_ID = "fixture_pack";
+
+/** 公開状態に置いてよいキー（14の公開状態）。足すときは秘密を載せないことを確かめてから足す */
+const PUBLIC_KEYS = [
+  "packId",
+  "candidates",
+  "roundIndex",
+  "maxRounds",
+  "readyPlayerIds",
+  "submittedPlayerIds",
+  "drafts",
+  "marks",
+  "entries",
+  "selections",
+  "answers",
+  "solvedCandidateId",
+  "avoidCandidateId",
+  "keyExpressions",
+  "starters",
+  "writingSeconds",
+] as const;
 const SEED = 4242;
 
 type Transition = GameTransition<SecretRulePublic, SecretRuleResult, SecretRuleGameSecret>;
@@ -65,6 +85,8 @@ class Session {
   gameSecret: SecretRuleGameSecret;
   deadlineSeconds: number | undefined;
   readonly stored = new Map<string, SecretRuleSecret>();
+  /** 直前の遷移が返した秘密情報。送らなかった遷移では undefined */
+  lastSecrets: Map<string, unknown> | undefined;
   result: SecretRuleResult | undefined;
   disconnected: string[] = [];
   /** 使った英文の比較キー。在庫から重複しない英文を選ぶために持つ */
@@ -141,6 +163,7 @@ class Session {
       this.gameSecret = transition.gameSecret;
     }
     this.deadlineSeconds = transition.deadlineSeconds;
+    this.lastSecrets = transition.secrets;
     for (const [id, secret] of transition.secrets ?? []) {
       this.stored.set(id, secret as SecretRuleSecret);
     }
@@ -164,12 +187,41 @@ class Session {
     for (const player of this.players) {
       expect(this.rebuild(player.id), `rebuild ${player.id} at ${this.stage}`).toEqual(this.stored.get(player.id));
     }
+    // 公開状態のキーを許可リストで照合する。名前を変えた漏洩もここで落ちる
+    expect(Object.keys(this.publicState).sort()).toEqual([...PUBLIC_KEYS].sort());
+    // 配列の要素のキーも照合する。要素に足した欄から漏れる経路を塞ぐ
+    const shapes: [string, readonly object[], string[]][] = [
+      ["entries", this.publicState.entries, ["playerId", "roundIndex", "text"]],
+      ["drafts", this.publicState.drafts, ["playerId", "text"]],
+      ["marks", this.publicState.marks, ["draftPlayerIds", "playerId"]],
+      ["selections", this.publicState.selections, ["candidateId", "playerId"]],
+      ["answers", this.publicState.answers, ["candidateId", "correct", "roundIndex"]],
+      ["candidates", this.publicState.candidates, ["id", "textEn", "textJa"]],
+    ];
+    for (const [name, items, keys] of shapes) {
+      for (const item of items) {
+        expect(Object.keys(item).sort(), `${name} の要素のキー`).toEqual(keys);
+      }
+    }
     const text = JSON.stringify(this.publicState);
     expect(text).not.toContain('"passed"');
     expect(text).not.toContain("ruleCandidateId");
     if (this.stage !== STAGES.proving && this.stage !== STAGES.debrief) {
       expect(this.publicState.solvedCandidateId).toBeNull();
       expect(this.publicState.avoidCandidateId).toBeNull();
+    }
+    // writing / proving 中の提出テキストは公開状態に出さない
+    if (this.stage === STAGES.writing || this.stage === STAGES.proving) {
+      for (const draft of Object.values(this.gameSecret.currentDrafts)) {
+        expect(text, `提出が公開状態に出ている: ${draft}`).not.toContain(JSON.stringify(draft));
+      }
+    }
+    // 各自の秘密の成否は、本人が書いた判定済みの英文だけである（ADR-0031）
+    for (const [id, secret] of this.stored) {
+      const own = this.gameSecret.tested.filter((entry) => entry.playerId === id);
+      expect(secret.results, `results of ${id}`).toEqual(
+        own.map((entry) => ({ roundIndex: entry.roundIndex, text: entry.text, passed: entry.passed })),
+      );
     }
   }
 
@@ -392,6 +444,15 @@ describe("submit", () => {
 });
 
 describe("下書きの選択", () => {
+  it("2人の卓は毎ラウンド choosing を飛ばす", () => {
+    const session = startedAt(STAGES.writing, new Session(2));
+    for (let round = 0; round < 3; round += 1) {
+      session.submitAll();
+      expect(session.stage, `round ${round}`).toBe(STAGES.checking);
+      session.readyAll();
+    }
+  });
+
   it("2人の卓は choosing を飛ばし、2人の下書きをそのまま判定する", () => {
     const session = startedAt(STAGES.writing, new Session(2));
     session.submitAll();
@@ -414,6 +475,18 @@ describe("下書きの選択", () => {
     session.readyAll();
     expect(session.stage).toBe(STAGES.checking);
     expect(session.publicState.entries.map((entry) => entry.playerId)).toEqual([last, third]);
+  });
+
+  it("印の数が同じ下書きは当番順で選ぶ（印1つずつの3件から当番順の先2件）", () => {
+    const session = startedAt(STAGES.writing, new Session(4));
+    session.submitAll();
+    const turn = session.gameSecret.turnOrder;
+    // 当番順の2番目・3番目・4番目に1つずつ印を付ける。提出順（p1から）とは無関係に当番順で決まる
+    session.must("p1", ACTIONS.mark, { roundIndex: 0, draftPlayerIds: [turn[3]] });
+    session.must("p2", ACTIONS.mark, { roundIndex: 0, draftPlayerIds: [turn[1]] });
+    session.must("p3", ACTIONS.mark, { roundIndex: 0, draftPlayerIds: [turn[2]] });
+    session.readyAll();
+    expect(session.publicState.entries.map((entry) => entry.playerId)).toEqual([turn[1], turn[2]]);
   });
 
   it("印が無いときは当番順で2件を選び、当番順はラウンドごとに2人ずつずれる", () => {
@@ -514,15 +587,26 @@ describe("select と回答", () => {
     expect(session.publicState.selections).toEqual([]);
   });
 
-  it("選択が揃った時点では判定せず、ステージも締切も変わらない。選択が変わると全員の ready が解除される", () => {
+  it("選択が揃った時点では判定せず、ステージも締切も変わらない", () => {
     const session = startedAt(STAGES.writing, new Session(2));
     session.toChecking();
-    session.must("p2", ACTIONS.ready);
     session.selectAll(session.gameSecret.ruleCandidateId);
     expect(session.stage).toBe(STAGES.checking);
     expect(session.deadlineSeconds).toBeUndefined();
-    expect(session.publicState.readyPlayerIds).toEqual([]);
     expect(session.publicState.answers).toEqual([]);
+  });
+
+  it("誰かの選択が変わると、選んでいない人の ready も含めて全員の ready が解除される", () => {
+    const session = startedAt(STAGES.writing, new Session(3));
+    session.toChecking();
+    session.must("p2", ACTIONS.ready);
+    session.must("p3", ACTIONS.ready);
+    session.must("p1", ACTIONS.select, { roundIndex: 0, candidateId: session.gameSecret.ruleCandidateId });
+    expect(session.publicState.readyPlayerIds).toEqual([]);
+    // 同じ候補を選び直しても変化は無いので解除しない
+    session.must("p2", ACTIONS.ready);
+    session.must("p1", ACTIONS.select, { roundIndex: 0, candidateId: session.gameSecret.ruleCandidateId });
+    expect(session.publicState.readyPlayerIds).toEqual(["p2"]);
   });
 
   it("全員の ready で、選んだ全員が同じ正解の候補なら正解して proving へ進む", () => {
@@ -657,7 +741,7 @@ describe("proving と結果", () => {
     const session = provingSession(3);
     session.must("p1", ACTIONS.submit, { text: proofPassing(session) });
     session.must("p2", ACTIONS.submit, {
-      text: session.sentence((text) => satisfies(session.avoidSpec(), text)),
+      text: session.sentence((text) => satisfies(session.ruleSpec(), text) && satisfies(session.avoidSpec(), text)),
     });
     session.deadline();
     expect(session.stage).toBe(STAGES.debrief);
@@ -685,6 +769,36 @@ describe("proving と結果", () => {
     expect(run(2)).toMatchObject({ rank: "B", wrongCount: 2, solvedRound: 3 });
   });
 
+  it("ランクの境界: 2ラウンド目の正解・誤答0・全員通過はS", () => {
+    const session = startedAt(STAGES.writing, new Session(2));
+    session.toChecking();
+    session.readyAll();
+    session.toChecking();
+    session.selectAll(session.gameSecret.ruleCandidateId);
+    session.readyAll();
+    for (const id of session.ids()) {
+      session.must(id, ACTIONS.submit, { text: proofPassing(session) });
+    }
+    expect(session.result).toMatchObject({ rank: "S", solvedRound: 2, wrongCount: 0, proofPassedCount: 2 });
+  });
+
+  it("ランクの境界: 通過がちょうど半数ならAにならない（過半数が要る）", () => {
+    const session = provingSession(2);
+    session.must("p1", ACTIONS.submit, { text: proofPassing(session) });
+    session.must("p2", ACTIONS.submit, {
+      text: session.sentence((text) => !satisfies(session.ruleSpec(), text)),
+    });
+    expect(session.result).toMatchObject({ rank: "B", proofPassedCount: 1, playerCount: 2 });
+  });
+
+  it("ランクの境界: 未提出者がいると、提出した全員が通過してもSにならない", () => {
+    const session = provingSession(3);
+    session.must("p1", ACTIONS.submit, { text: proofPassing(session) });
+    session.must("p2", ACTIONS.submit, { text: proofPassing(session) });
+    session.deadline();
+    expect(session.result).toMatchObject({ rank: "A", proofPassedCount: 2, playerCount: 3 });
+  });
+
   it("3ラウンド目の正解は、誤答0回・全員通過でもSにならない", () => {
     const session = startedAt(STAGES.writing, new Session(2));
     for (let round = 0; round < 2; round += 1) {
@@ -698,6 +812,66 @@ describe("proving と結果", () => {
       session.must(id, ACTIONS.submit, { text: proofPassing(session) });
     }
     expect(session.result).toMatchObject({ rank: "A", solvedRound: 3, wrongCount: 0 });
+  });
+});
+
+describe("秘密の配布表（14の「送るときと値」）", () => {
+  it("writing へ入るときは全員へ draft なしの writing の値を送る", () => {
+    const session = startedAt(STAGES.writing, new Session(3));
+    expect(session.lastSecrets?.size).toBe(3);
+    for (const id of session.ids()) {
+      expect(session.lastSecrets?.get(id)).toEqual({ phase: "writing", roundIndex: 0, results: [] });
+    }
+  });
+
+  it("writing と proving の submit は、本人にだけ draft を含む値を返す", () => {
+    const session = startedAt(STAGES.writing, new Session(3));
+    session.must("p1", ACTIONS.submit, { text: "We play soccer on Sundays." });
+    expect([...(session.lastSecrets?.keys() ?? [])]).toEqual(["p1"]);
+    expect(session.lastSecrets?.get("p1")).toEqual({
+      phase: "writing",
+      roundIndex: 0,
+      draft: "We play soccer on Sundays.",
+      results: [],
+    });
+
+    const proving = startedAt(STAGES.writing, new Session(2));
+    proving.toChecking();
+    proving.selectAll(proving.gameSecret.ruleCandidateId);
+    proving.readyAll();
+    expect(proving.stage).toBe(STAGES.proving);
+    const text = proving.sentence(() => true);
+    proving.must("p1", ACTIONS.submit, { text });
+    expect([...(proving.lastSecrets?.keys() ?? [])]).toEqual(["p1"]);
+    expect(proving.lastSecrets?.get("p1")).toMatchObject({ phase: "proving", draft: normalizeSubmission(text) });
+  });
+
+  it("choosing へ入るときは秘密を送らない", () => {
+    const session = startedAt(STAGES.writing, new Session(3));
+    for (const id of ["p1", "p2"]) {
+      session.must(id, ACTIONS.submit, { text: session.passing() });
+    }
+    session.must("p3", ACTIONS.submit, { text: session.passing() });
+    expect(session.stage).toBe(STAGES.choosing);
+    // 最後の提出者の本人分だけが載り、全員分は載らない
+    expect([...(session.lastSecrets?.keys() ?? [])]).toEqual(["p3"]);
+  });
+
+  it("checking と proving へ入るときは全員へ draft なしの値を送る", () => {
+    const session = startedAt(STAGES.writing, new Session(2));
+    session.submitAll();
+    expect(session.stage).toBe(STAGES.checking);
+    for (const id of session.ids()) {
+      const secret = session.lastSecrets?.get(id) as SecretRuleSecret;
+      expect(secret.phase).toBe("checking");
+      expect(secret.draft).toBeUndefined();
+    }
+    session.selectAll(session.gameSecret.ruleCandidateId);
+    session.readyAll();
+    for (const id of session.ids()) {
+      expect(session.lastSecrets?.get(id)).toMatchObject({ phase: "proving", roundIndex: 0 });
+      expect((session.lastSecrets?.get(id) as SecretRuleSecret).draft).toBeUndefined();
+    }
   });
 });
 

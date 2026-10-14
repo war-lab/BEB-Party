@@ -40,13 +40,15 @@ export function lastMeaningfulCharOf(normalized: string): string {
 }
 
 /**
- * 最初の語から先頭の英数字以外の文字を除いた最初の文字（小文字）。
+ * 最初の語の最初の英字か数字（小文字）。
  *
- * 照合語ではなく最初の語で見る。`123 is my number.` の最初の語を、卓は `123` と読む（14の判定関数）。
- * 先頭の記号を除くのは、`"Today` や `(Today` や `...Today` を、卓は t で始まる文と読むためである。
+ * 最初の語は、半角空白で区切った要素のうち英字か数字を含む最初の要素とする。語数の数え方と同じく、
+ * 記号だけの要素（`... Today` の `...`）は語に数えない（14の「語の数え方」）。
+ * 照合語ではなく最初の語で見るのは、`123 is my number.` の最初の語を卓は `123` と読むためである。
+ * 要素の先頭の記号を飛ばすのは、`"Today` や `(Today` を卓は t で始まる文と読むためである。
  */
 export function firstCharOf(normalized: string): string {
-  const first = normalized.split(" ")[0] ?? "";
+  const first = normalized.split(" ").find((element) => /[A-Za-z0-9]/u.test(element)) ?? "";
   const match = first.match(/[A-Za-z0-9]/u);
   return match === null ? "" : match[0].toLowerCase();
 }
@@ -93,12 +95,14 @@ export function satisfies(spec: RuleSpec, normalized: string): boolean {
 /**
  * 重複の判定に使う比較キー（14の「重複する英文を拒否する」）。
  *
- * 照合語と数字の連続を出現順に並べた列と、末尾の記号の組とする。
+ * 照合語と数字の連続を出現順に並べた列、末尾の記号、語数の組とする。
  * 句点の有無や大文字と小文字の違いだけの英文は成否が同じであり、出し直しても情報が増えない。
+ * 語数を含めるのは、`cats,dogs` と `cats, dogs` のように照合語が同じでも語数が違い、
+ * 語数の規則で成否が分かれる英文を同じとみなさないためである。
  */
 export function comparisonKeyOf(normalized: string): string {
   const tokens = (normalized.match(/[A-Za-z]+(?:['-][A-Za-z]+)*|[0-9]+/gu) ?? []).map((token) => token.toLowerCase());
   const last = lastMeaningfulCharOf(normalized);
   const endMark = last === "?" || last === "!" ? last : "";
-  return `${tokens.join(" ")}|${endMark}`;
+  return `${tokens.join(" ")}|${endMark}|${countWords(normalized)}`;
 }
