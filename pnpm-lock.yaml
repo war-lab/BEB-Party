@@ -59,6 +59,9 @@ importers:
       '@beb/client-ranking':
         specifier: workspace:*
         version: link:../games/ranking
+      '@beb/client-secretrule':
+        specifier: workspace:*
+        version: link:../games/secretrule
       '@beb/client-whowrotethis':
         specifier: workspace:*
         version: link:../games/whowrotethis
@@ -199,6 +202,25 @@ importers:
         specifier: 4.7.5
         version: 4.7.5(picomatch@4.0.5)(svelte@5.56.9(@typescript-eslint/types@8.67.0))(typescript@6.0.3)
 
+  client/games/secretrule:
+    dependencies:
+      '@beb/client-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../../shared/core
+      '@beb/shared-secretrule':
+        specifier: workspace:*
+        version: link:../../../shared/games/secretrule
+      svelte:
+        specifier: 5.56.9
+        version: 5.56.9(@typescript-eslint/types@8.67.0)
+    devDependencies:
+      svelte-check:
+        specifier: 4.7.5
+        version: 4.7.5(picomatch@4.0.5)(svelte@5.56.9(@typescript-eslint/types@8.67.0))(typescript@6.0.3)
+
   client/games/whowrotethis:
     dependencies:
       '@beb/client-core':
@@ -260,6 +282,9 @@ importers:
       '@beb/server-ranking':
         specifier: workspace:*
         version: link:../games/ranking
+      '@beb/server-secretrule':
+        specifier: workspace:*
+        version: link:../games/secretrule
       '@beb/server-whowrotethis':
         specifier: workspace:*
         version: link:../games/whowrotethis
@@ -322,6 +347,15 @@ importers:
         specifier: workspace:*
         version: link:../../../shared/games/ranking
 
+  server/games/secretrule:
+    dependencies:
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../../shared/core
+      '@beb/shared-secretrule':
+        specifier: workspace:*
+        version: link:../../../shared/games/secretrule
+
   server/games/whowrotethis:
     dependencies:
       '@beb/shared-core':
@@ -365,6 +399,12 @@ importers:
         specifier: workspace:*
         version: link:../../core
 
+  shared/games/secretrule:
+    dependencies:
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../core
+
   shared/games/whowrotethis:
     dependencies:
       '@beb/shared-core':
@@ -391,6 +431,9 @@ importers:
       '@beb/server-ranking':
         specifier: workspace:*
         version: link:../server/games/ranking
+      '@beb/server-secretrule':
+        specifier: workspace:*
+        version: link:../server/games/secretrule
       '@beb/server-whowrotethis':
         specifier: workspace:*
         version: link:../server/games/whowrotethis
