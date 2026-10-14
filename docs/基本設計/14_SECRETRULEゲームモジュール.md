@@ -108,7 +108,7 @@ gameIdは `secretrule` とする。
 | `ends_with` | `mark`（`?` / `!`） | 末尾の閉じ引用符と閉じ括弧（`"` `'` `)` `]`）を除いた最後の文字がその記号 |
 | `long_word` | `n`（7〜9） | 文字数が `n` 以上の照合語を含む |
 | `short_words` | `n`（4〜6） | すべての照合語の文字数が `n` 以下。照合語が無い文は満たす |
-| `starts_with` | `letter`（a〜z） | 最初の語から先頭の開き引用符と開き括弧（`"` `'` `(` `[`）を除いた最初の文字がその英字（大文字と小文字を区別しない） |
+| `starts_with` | `letter`（a〜z） | 最初の語のうち、最初の英字か数字がその英字（大文字と小文字を区別しない） |
 
 パラメータの範囲は、自然な英文で満たす割合が極端にならない値に絞った。
 判定のレビューで、自作の英文62件に対する通過率を測った結果による（`min_words` の8以上、`max_words` の7、`long_word` の10は、通過率が2%以下か98%に達した）。
@@ -118,7 +118,7 @@ gameIdは `secretrule` とする。
 `n` が3なら、満たす英文はちょうど3語に限られ、規則が実質「3語で書く」になる。
 
 `ends_with` で末尾の閉じ引用符と閉じ括弧を除くのは、`(Do you like cats?)` や `He said "Really?"` を卓は疑問符で終わる文と読むためである。
-`starts_with` で先頭の開き引用符と開き括弧を除くのも同じ理由による。`(Do you like cats?)` は `d` で始まる文として判定する。
+`starts_with` で最初の語の先頭にある英数字以外の文字（引用符、括弧、`...` など）を飛ばすのも同じ理由による。`(Do you like cats?)` は `d` で、`...Today is good.` は `t` で始まる文として判定する。
 
 `starts_with` を照合語ではなく最初の語で見るのは、`123 is my number.` の最初の語を卓は `123` と読むためである。
 照合語で見ると `is` が最初になり、`i` で始まる文として判定される。
@@ -723,13 +723,18 @@ interface ProofEntry {
 * 誤答の候補は打ち消し線で示し、選べなくする
 * `writing` と `proving` の入力欄は、正規化後の語数が3語未満のとき送信させない。文字数は入力したままの文字列で数え、140文字で止める。正規化の前に止めるのは、空白の多い入力でペイロードが `ACTION_MAX_CHARS` を超える経路を作らないためである
 * 最終ラウンドの各ステージには「最後のラウンド」と出す
+* 報告と相談の言い回し（`keyExpressions`）は `writing`、`choosing`、`checking` に出し、自分のレベルが1〜2なら開いて出す
+* `proving` では、避ける候補の文の下に「『満たさない』の条件は守らずに書く」ことを例つきで添える。避ける候補が否定の規則（`no_letter` など）のとき、二重否定で読み誤らないようにするためである
 * `debrief` の英文の一覧には、規則で通った理由を示さない。照合語の分解や語数を添えると読み比べる工程が消えるため、規則の文と英文と成否だけを並べる
 
-`briefing` に出す語の数え方の例は次の3つとする。
+`briefing` に出す語の数え方の例は次の4つとする。
 
-* `I'm happy.` は2語。`I'm` は `I` とは別の語として扱う
+* `I'm happy.` は2語。`I'm` や `I've` は `I` とは別の語として扱う
 * `I have 3 cats!` は4語。数字も1語に数える
 * `I couldn't sleep.` の `couldn't` は7文字。記号は文字に数えない
+* `black-and-white` は1語で13文字。`black` とは別の語として扱う
+
+ハイフンでつないだ語の例を置くのは、`has_word` で一覧の語を含む複合語（`black-and-white` の `black`）が一覧の語として数えられないことを、卓が判定と同じように読めるようにするためである。
 
 ## 所要時間の見積り
 
@@ -760,6 +765,8 @@ interface ProofEntry {
 
 ## コンテンツ形式
 
+収録パック `basic` を例に示す。
+
 ```json
 {
   "id": "basic",
@@ -768,42 +775,58 @@ interface ProofEntry {
     { "en": "Mine passed.", "ja": "私のは通った" },
     { "en": "Mine failed.", "ja": "私のはだめだった" },
     { "en": "Did yours pass?", "ja": "あなたのは通った？" },
-    { "en": "Let's test this one.", "ja": "これを試そう" },
+    { "en": "Say it again, please.", "ja": "もう一度言って" },
+    { "en": "Let's test yours.", "ja": "あなたのを試そう" },
+    { "en": "Let's test Ken's.", "ja": "（名前）さんのを試そう" },
+    { "en": "Let's write a question.", "ja": "疑問文を書いて試そう" },
     { "en": "Maybe the rule is number three.", "ja": "規則は3番かも" },
-    { "en": "Number two is out.", "ja": "2番は違う" }
+    { "en": "Number two is out.", "ja": "2番は違う" },
+    { "en": "Number one or number four?", "ja": "1番か4番か？" },
+    { "en": "Let's choose number three.", "ja": "3番にしよう" },
+    { "en": "I agree.", "ja": "賛成" },
+    { "en": "Wait. I'm not sure.", "ja": "待って、自信がない" }
   ],
   "starters": [
-    { "en": "My favorite food is ...", "ja": "好きな食べ物は…" },
-    { "en": "Yesterday I went to ...", "ja": "昨日…へ行った" },
-    { "en": "Do you like ...?", "ja": "…は好き？" }
+    { "en": "I like ... a lot.", "ja": "…がとても好き" },
+    { "en": "I went to the ... with my family.", "ja": "家族と…へ行った" },
+    { "en": "Do you like ...?", "ja": "…は好き？" },
+    { "en": "My friend and I want to go to the ...", "ja": "友だちと私は…へ行きたい" }
   ],
   "candidates": [
-    { "id": "no_i", "ruleId": "no_word", "params": { "words": ["I"] } },
-    { "id": "min6", "ruleId": "min_words", "params": { "n": 6 } },
     { "id": "question", "ruleId": "ends_with", "params": { "mark": "?" } },
-    { "id": "colors", "ruleId": "has_word", "params": { "words": ["red", "blue", "green", "yellow", "black", "white"] } },
-    { "id": "no_e", "ruleId": "no_letter", "params": { "letter": "e" } },
-    { "id": "long7", "ruleId": "long_word", "params": { "n": 7 } },
-    { "id": "short4", "ruleId": "short_words", "params": { "n": 4 } },
-    { "id": "start_t", "ruleId": "starts_with", "params": { "letter": "t" } }
+    { "id": "no_n", "ruleId": "no_letter", "params": { "letter": "n" } },
+    { "id": "max5", "ruleId": "max_words", "params": { "n": 5 } },
+    { "id": "min8", "ruleId": "min_words", "params": { "n": 8 } },
+    { "id": "long8", "ruleId": "long_word", "params": { "n": 8 } },
+    { "id": "the", "ruleId": "has_word", "params": { "words": ["the"] } },
+    {
+      "id": "time_words",
+      "ruleId": "has_word",
+      "params": {
+        "words": ["today", "tomorrow", "yesterday", "now", "tonight", "weekend", "week", "year", "month", "morning"]
+      }
+    },
+    { "id": "has_f", "ruleId": "has_letter", "params": { "letter": "f" } },
+    { "id": "no_h", "ruleId": "no_letter", "params": { "letter": "h" } },
+    { "id": "start_i", "ruleId": "starts_with", "params": { "letter": "i" } }
   ],
   "rulePhrases": {
     "min_words": { "en": "Use {n} or more words.", "ja": "{n}語以上で書く" },
-    "max_words": { "en": "Use {n} words or fewer.", "ja": "{n}語以下で書く" },
-    "has_word": { "en": "Use at least one of these words: {words}.", "ja": "次の語のどれかを使う: {words}" },
+    "max_words": { "en": "Use {n} or fewer words.", "ja": "{n}語以下で書く" },
+    "has_word": { "en": "Use one of these words: {words}.", "ja": "次のどれかの語を使う: {words}" },
     "no_word": { "en": "Do not use these words: {words}.", "ja": "次の語を使わない: {words}" },
-    "has_letter": { "en": "Use the letter {letter}.", "ja": "{letter}の文字を使う" },
-    "no_letter": { "en": "Do not use the letter {letter}.", "ja": "{letter}の文字を使わない" },
-    "ends_with": { "en": "End the sentence with {mark}", "ja": "文の最後を{mark}にする" },
+    "has_letter": { "en": "Use the letter {letter}.", "ja": "{letter} の文字を使う（大文字でもよい）" },
+    "no_letter": { "en": "Do not use the letter {letter}.", "ja": "{letter} の文字を使わない（大文字も使わない）" },
+    "ends_with": { "en": "Put {mark} at the very end.", "ja": "いちばん最後の文字を {mark} にする" },
     "long_word": { "en": "Use a word with {n} or more letters.", "ja": "{n}文字以上の語を使う" },
-    "short_words": { "en": "Every word has {n} letters or fewer.", "ja": "どの語も{n}文字以下にする" },
-    "starts_with": { "en": "The first word starts with {letter}.", "ja": "最初の語を{letter}で始める" }
+    "short_words": { "en": "Use only words with {n} letters or fewer.", "ja": "どの語も{n}文字以下にする" },
+    "starts_with": { "en": "Start with a word that begins with {letter}.", "ja": "{letter} で始まる語から書き始める（大文字でもよい）" }
   }
 }
 ```
 
-上の候補8件は形式の例であり、検証6と検証7を満たすかは文例集を作った段階で確かめる。
-レビューでは、自作の英文62件に対して `colors` の通過率が約10%、`no_i` が約74%となり、検証6の範囲を外れた。
+収録した候補は、パックに依存せずに書いた文例集（後述）の上で測って選んだ。
+設計の初版で例に置いた候補のうち、`no_e`（e を使わない）と `colors`（色の語を使う）は自然な英文での通過率が検証6の下限を割り、`no_i`（I を使わない）は「? で終わり I を含む文」が文例集に無いため `question` と見分けられなかった（[お題レビュー/basic.md](../お題レビュー/basic.md)）。
 
 1ファイルが1パックであり、ロビーで選ぶ単位はパックである（収録6本と同じ形）。
 
@@ -836,10 +859,14 @@ interface ProofEntry {
 
 文例集は、卓が実際に書きそうな英文の代わりとして使う。
 検証6と検証7の結果は文例集の構成で決まるため、パックの作者が文例集を寄せれば検証を通せてしまう。
-これを防ぐため、次の2つを置く。
+これを防ぐため、次の3つを置く。
 
-* 文例集の構成を機械で検査する（検証12）
-* 文例集の変更はパックの変更と別のPRで行い、PRには全パックの通過率と分離の割合の変化を載せる
+* 文例集は、パックと判定関数を見ない書き手が書く。収録の文例集は、`content/secretrule/`・`server/games/secretrule/`・設計文書を読ませずに、学習者が会話の中で書きそうな英文100件として書かせた
+* 文例集の変更はパックの変更と別のPRで行い、PRには全パックの通過率と分離の割合の変化を載せる。パックが検証を通らないときは、文例集ではなくパックの候補を直す
+* 文例集の構成（文末の記号と語数の帯）を機械で検査する（検証12）
+
+検証12が見るのは文末の記号と語数だけであり、文の中身（特定の英字を避けた文、特定の語を含む文の割合）を寄せる手は検出できない。
+寄せを防ぐ主な歯止めは、前の2つの手順である。
 
 文例集は全パックで共有する1ファイルであり、文を足すと他のパックの検証結果も変わる。
 別のPRにするのは、その影響をパックの追加と切り離して確かめるためである。
@@ -874,6 +901,9 @@ interface ProofEntry {
 
 検証6、7、12の閾値は**未検証**の仮置きである。
 検証は、母集団の各候補の通過率と全順序対の割合を出力し、閾値の見直しに使えるようにする。
+
+検証6・7の値が閾値に近い（通過率が範囲の端から3pt以内、分離の割合が8%未満）ときは、合否を変えずに警告を出す。
+文例集の1〜2件の増減で結果が反転する状態を、閾値を見直す材料として見えるようにするためである。
 
 検証10を置くのは、`starters` をそのまま書き写した提出を作らせないためである（[11](./11_WHOWROTETHISゲームモジュール.md) の検証10と同じ目的）。
 
