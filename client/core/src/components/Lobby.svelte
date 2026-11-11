@@ -14,8 +14,6 @@
 }
   let { code, onShowGuide }: Props = $props();
 
-  const MAX_TILES = 6;
-
   let catalog = $state<GameSummary[]>([]);
   let qrSvg = $state<string | null>(null);
   // ゲーム固有の設定名を共通コアが持たない。カタログが配る記述子から組み立てる（不変条件4）
@@ -45,7 +43,12 @@
   const isHost = $derived(room?.players.find((p) => p.id === ui.myPlayerId)?.isHost ?? false);
   const selectedGame = $derived(catalog.find((game) => game.id === room?.gameId));
   const contents = $derived(selectedGame?.contents ?? []);
-  const emptySlots = $derived(Math.max(0, MAX_TILES - (room?.players.length ?? 0)));
+  // 参加者タイルの枠数。選択中のゲームの上限、未選択ならカタログ内の上限の最大値とする。
+  // サーバのroomCapacityと同じ決め方であり、入室できる人数と枠の数をそろえる（ADR-0033）
+  const capacity = $derived(
+    selectedGame?.playerCount[1] ?? catalog.reduce((max, game) => Math.max(max, game.playerCount[1]), 0),
+  );
+  const emptySlots = $derived(Math.max(0, capacity - (room?.players.length ?? 0)));
   const orderedGames = $derived(orderGamesByPlayerCount(catalog, room?.players.length ?? 0));
 
   function selectGame(gameId: string): void {

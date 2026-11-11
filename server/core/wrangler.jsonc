@@ -36,10 +36,10 @@
       "simple": { "limit": 5, "period": 60 }
     },
     {
-      // GET /room/:code/ws: 60回/60秒（01_サーバ.md レート制限の表）
+      // GET /room/:code/ws: 80回/60秒（01_サーバ.md レート制限の表、ADR-0033）
       "name": "WS_RATE_LIMITER",
       "namespace_id": "1002",
-      "simple": { "limit": 60, "period": 60 }
+      "simple": { "limit": 80, "period": 60 }
     }
   ],
   "observability": {

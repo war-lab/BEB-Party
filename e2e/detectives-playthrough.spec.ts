@@ -147,7 +147,7 @@ test("遊び方から収録ゲームのルールを読める", async ({ page, ba
 
   const sheet = page.locator("[data-testid='how-to-play']");
   await expect(sheet).toBeVisible();
-  await expect(sheet).toContainText("同じ部屋にいる5〜6人で遊ぶ");
+  await expect(sheet).toContainText("同じ部屋にいる2〜8人で遊ぶ");
   // ゲームごとのルールは動的importで読み込まれる
   await expect(sheet).toContainText("ENGLISH DETECTIVES", { timeout: 10_000 });
   await expect(sheet).toContainText("嘘は1人の証言だけでは割れない");
