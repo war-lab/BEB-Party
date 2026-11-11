@@ -20,6 +20,8 @@ export {
 } from "./player-icon";
 // シード付き乱数。ゲームモジュールが共通コアから注入されたseedで使う（基本設計/05）
 export { createRandom, shuffle } from "./rng";
+// チーム編成。自己申告レベルで偏りを抑えて抽選する（ADR-0032）
+export { formBalancedTeams, TEAM_BALANCE_TOLERANCE } from "./teams";
 export * from "./protocol";
 export * from "./game-module";
 export * from "./validate";
