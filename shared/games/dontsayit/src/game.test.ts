@@ -130,7 +130,8 @@ describe("1ラウンドの消費回数", () => {
   it("山札の下限は1ラウンドの最大消費を、上限の人数と周回数の分だけ満たす", () => {
     // 上限に達したラウンドはその場で終わるため、1ラウンドの最大消費は上限と等しい。
     // 実際に消費が上限を超えないことは server/games/dontsayit のモジュールテストが固定する
-    expect(MIN_CARDS).toBeGreaterThanOrEqual(6 * MAX_LAPS * MAX_CARD_ADVANCES_PER_ROUND);
+    // 8は対応人数の上限（09のカタログ）。モジュールの playerCount との一致は server 側のテストが固定する
+    expect(MIN_CARDS).toBeGreaterThanOrEqual(8 * MAX_LAPS * MAX_CARD_ADVANCES_PER_ROUND);
   });
 });
 

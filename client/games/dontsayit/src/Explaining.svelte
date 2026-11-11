@@ -372,6 +372,12 @@
     border-radius: var(--radius-card) var(--radius-card) 0 0;
     padding: 0.9rem 0.9rem calc(0.9rem + var(--footer-clearance));
     box-shadow: var(--shadow-hard);
+    /* 8人では回答者が6人になり、低い画面では「閉じる」が画面外へ出る。シートの中だけをスクロールさせる（基本設計/09） */
+    /* dvh を解釈しない古いブラウザは vh の宣言に落ちる */
+    max-height: 85vh;
+    max-height: 85dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .sheet-title {
     margin: 0 0 0.6rem;

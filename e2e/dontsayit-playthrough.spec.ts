@@ -249,6 +249,70 @@ test("3人・2周でDON'T SAY ITの結果まで進め、全員が2回ずつ説�
   }
 });
 
+// 対応人数の上限（ADR-0033、基本設計/09の「だれが当てた？」のシート）。
+// 回答者が6人になり、低い画面ではシートが画面の上へはみ出す。シートの中だけがスクロールすることを確かめる
+test("8人でDON'T SAY ITの結果まで進め、回答者6人のシートが低い画面に収まる", async ({ browser, baseURL }) => {
+  // 8ラウンド × 上限5枚を回し、ブラウザも8つ開くため、6人の通しより長く取る
+  test.setTimeout(300_000);
+  const table = await openTable(browser, baseURL!, [5, 4, 3, 3, 2, 2, 1, 1], { testTitle: test.info().title });
+
+  try {
+    const host = table.pages[0]!;
+    await startDontSayIt(host);
+
+    for (const page of table.pages) {
+      await expect(page.locator(".roles")).toBeVisible({ timeout: 10_000 });
+      await expect(page.locator(".order li")).toHaveCount(8);
+      await expect(page.locator("[data-testid='score-board'] li")).toHaveCount(8);
+    }
+    for (const page of table.pages) {
+      await page.click(".beb-btn:has-text('準備できた')");
+    }
+
+    const claimsPerRound = 5;
+    const rounds = 8;
+    const spoke = new Map<Page, number>();
+    for (let round = 1; round <= rounds; round += 1) {
+      const speaker = await findPageBy(table.pages, "[data-testid='speaker-cover']", 15_000);
+      spoke.set(speaker, (spoke.get(speaker) ?? 0) + 1);
+      await openCardAndStart(speaker);
+      await expect(speaker.locator("[data-testid='answer']")).toBeVisible({ timeout: 10_000 });
+
+      if (round === 1) {
+        // iPhone SE（第1世代）相当の高さ。回答者6人分のボタンと「閉じる」を並べると画面より高くなる
+        await speaker.setViewportSize({ width: 320, height: 568 });
+        await speaker.click(".beb-btn:has-text('正解')");
+        const sheet = speaker.locator("[data-testid='claim-sheet']");
+        await expect(sheet.locator(".beb-btn.blue")).toHaveCount(6);
+        const box = await sheet.boundingBox();
+        expect(box).not.toBeNull();
+        // シートの上端が画面内にあれば、見出しを含めて上へはみ出していない
+        expect(box!.y).toBeGreaterThanOrEqual(0);
+        // 「閉じる」はシート内のスクロールで届く。clickは自動でスクロールして押す
+        await sheet.locator(".beb-btn:has-text('閉じる')").click();
+        await expect(sheet).toHaveCount(0);
+      }
+
+      for (let claimed = 1; claimed <= claimsPerRound; claimed += 1) {
+        await speaker.click(".beb-btn:has-text('正解')");
+        await expect(speaker.locator("[data-testid='claim-sheet'] .beb-btn.blue")).toHaveCount(6);
+        await speaker.locator("[data-testid='claim-sheet'] .beb-btn.blue").first().click();
+        if (claimed < claimsPerRound) {
+          await expect(speaker.locator("[data-testid='solved-count']")).toHaveText(`成立 ${claimed}枚`);
+        }
+      }
+    }
+    expect([...spoke.values()]).toEqual([1, 1, 1, 1, 1, 1, 1, 1]);
+
+    for (const page of table.pages) {
+      await expect(page.locator("[data-testid='stage-timer']:has-text('結果')")).toBeVisible({ timeout: 10_000 });
+      await expect(page.locator(".cards > li")).toHaveCount(claimsPerRound * rounds);
+    }
+  } finally {
+    await table.close();
+  }
+});
+
 test("DETECTIVESを完走したあとロビーへ戻ってDON'T SAY ITを始められる", async ({ browser, baseURL }) => {
   // 1テストで2ゲーム分の導線を通すため、slow()の3倍でも足りない
   test.setTimeout(240_000);

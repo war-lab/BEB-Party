@@ -7,6 +7,8 @@ import {
   DEFAULT_LAPS_ID,
   LAPS_IDS,
   MAX_CARD_ADVANCES_PER_ROUND,
+  MAX_LAPS,
+  MIN_CARDS,
   ROUND_SECONDS,
   STAGES,
   type DontSayItPublic,
@@ -149,6 +151,8 @@ function currentCardId(live: Live): string {
 }
 
 const SIX = [1, 2, 3, 3, 4, 5] as Level[];
+// 対応人数の上限（ADR-0033）
+const EIGHT = [1, 1, 2, 3, 3, 4, 5, 5] as Level[];
 
 describe("start", () => {
   it("同じseedと同じ参加者から同じ説明者順と同じ山札が得られる", () => {
@@ -608,7 +612,13 @@ describe("カタログ", () => {
     expect(dontSayItModule.title).toBe("DON'T SAY IT");
     expect(dontSayItModule.tagline.length).toBeGreaterThan(0);
     expect(dontSayItModule.icon.length).toBeGreaterThan(0);
-    expect(dontSayItModule.playerCount).toEqual([3, 6]);
+    expect(dontSayItModule.playerCount).toEqual([3, 8]);
+  });
+
+  it("山札の下限が、対応人数の上限と周回数の上限で毎ラウンド消費上限まで使う枚数を満たす", () => {
+    // 上限人数だけを上げて MIN_CARDS を据え置くと、最後の説明者に順番が回らない山札が検証を通るのを防ぐ
+    const maxPlayers = dontSayItModule.playerCount[1];
+    expect(MIN_CARDS).toBeGreaterThanOrEqual(maxPlayers * MAX_LAPS * MAX_CARD_ADVANCES_PER_ROUND);
   });
 
   it("周回数の記述子が、選べる周回数と既定を載せ、validateSettingsと一致する", () => {
@@ -720,6 +730,46 @@ describe("少人数と周回", () => {
     }
     expect(live.stage).toBe(STAGES.debrief);
     expect(live.publicState.rounds).toHaveLength(12);
+  });
+
+  it("8人・1周では8ラウンドで終局し、全員が説明者と監視役を1回ずつ務め、各ラウンドの回答者が6人になる", () => {
+    // 上限の8人で start から終局まで進むことの確認（ADR-0033）。上限を上げても1周の構造が崩れないことを固定する
+    const { live, roles } = playAllRounds(EIGHT, undefined);
+    const ids = EIGHT.map((_, index) => `p${index + 1}`);
+    expect(roles).toHaveLength(8);
+    expect(roles.map((role) => role.speaker).sort()).toEqual(ids);
+    expect(roles.map((role) => role.watcher).sort()).toEqual(ids);
+    expect(roles.every((role) => role.answerers.length === 6)).toBe(true);
+    expect(live.stage).toBe(STAGES.debrief);
+    expect(live.publicState.rounds).toHaveLength(8);
+    expect(live.publicState.scores).toHaveLength(8);
+    expect(live.result).toBeDefined();
+  });
+
+  it("8人・2周の16ラウンドで、毎ラウンド上限まで消費しても下限ちょうどの山札で終局まで回る", () => {
+    // 検証4の下限（MIN_CARDS）が8人・2周の最大消費を満たすことの実地の確認。
+    // フィクスチャのセットは MIN_CARDS 枚ちょうどのため、下限が1枚でも足りなければ途中で山札が尽きる
+    let live = readyAll(start(EIGHT, SEED, { laps: "2" }));
+    expect(live.publicState.speakerOrder).toHaveLength(16);
+    for (let round = 0; round < 16; round += 1) {
+      const speaker = speakerOf(live);
+      live = send(live, ACTIONS.startRound, speaker);
+      for (let advance = 0; advance < MAX_CARD_ADVANCES_PER_ROUND; advance += 1) {
+        if (live.stage !== STAGES.explaining) {
+          break;
+        }
+        live = send(live, ACTIONS.claimCorrect, speaker, { playerId: answererOf(live), cardId: currentCardId(live) });
+        expect(live.reject).toBeUndefined();
+      }
+      if (round < 15) {
+        expect(live.stage).toBe(STAGES.handoff);
+      }
+    }
+    expect(live.stage).toBe(STAGES.debrief);
+    expect(live.publicState.rounds).toHaveLength(16);
+    expect(live.publicState.rounds.every((round) => round.solved === MAX_CARD_ADVANCES_PER_ROUND)).toBe(true);
+    expect(live.gameSecret.usedCardIds).toHaveLength(MIN_CARDS);
+    expect(live.result).toBeDefined();
   });
 });
 

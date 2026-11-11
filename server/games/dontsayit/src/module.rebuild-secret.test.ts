@@ -52,6 +52,8 @@ afterEach(() => {
 
 const SIX = [1, 2, 3, 3, 4, 5] as Level[];
 const THREE = [1, 3, 5] as Level[];
+// 対応人数の上限（ADR-0033）
+const EIGHT = [1, 1, 2, 3, 3, 4, 5, 5] as Level[];
 
 interface Live {
   lifecycle: Room["lifecycle"];
@@ -282,6 +284,12 @@ describe("rebuildSecret: 最後に送った値との一致", () => {
   it("6人・2周で、12ラウンドを通して一致する", () => {
     const live = playToEnd(readyAll(start(SIX, { settings: { laps: "2" } })));
     expect(live.publicState.rounds).toHaveLength(12);
+  });
+
+  it("8人・2周で、16ラウンドを通して一致する", () => {
+    // 上限の人数で役の切り替えが増えても、作り直した秘密が送った値とずれないことを固定する
+    const live = playToEnd(readyAll(start(EIGHT, { settings: { laps: "2" } })));
+    expect(live.publicState.rounds).toHaveLength(16);
   });
 
   it("3人・2周で、周の境目をまたいでも一致する", () => {
