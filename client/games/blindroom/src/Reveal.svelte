@@ -43,6 +43,10 @@
   );
   const isReady = $derived(ui.myPlayerId !== null && publicState.readyPlayerIds.includes(ui.myPlayerId));
   const isHost = $derived(room.players.some((player) => player.id === ui.myPlayerId && player.isHost));
+  // 聞き手の盤面が DENSE_BOARD_COUNT 件以上（7〜8人の卓）なら2列に詰める（12の答え合わせの表示、ADR-0033）。
+  // 1列のまま7件を縦に並べると、4×4で約1700pxになり、見本と見比べるたびに大きくスクロールを往復する
+  const DENSE_BOARD_COUNT = 6;
+  const dense = $derived((latest?.boards.length ?? 0) >= DENSE_BOARD_COUNT);
 
   function nameOf(playerId: string): string {
     return room.players.find((player) => player.id === playerId)?.name ?? playerId;
@@ -68,7 +72,7 @@
           testId="sample-board"
         />
 
-        <ul class="boards">
+        <ul class="boards" class:dense data-testid="listener-boards">
           {#each latest.boards as board, index (board.playerId)}
             <li class="beb-zoom-in" style={`animation-delay:${index * 60}ms`} data-testid="listener-board">
               <div class="who">
@@ -178,6 +182,22 @@
     border-radius: var(--radius-tile);
     padding: 0.4rem 0.5rem;
   }
+  /* 2列に詰めた盤面。名前と一致数を上段、盤面を下段に置き、盤面を列の幅いっぱいに描く。
+     minmax(0, 1fr) と min-width: 0 で、長い名前があっても列が画面幅を超えない */
+  .boards.dense {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+  .boards.dense li {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.3rem;
+    min-width: 0;
+    padding: 0.35rem;
+  }
+  .boards.dense .who {
+    flex: none;
+  }
   .who {
     display: flex;
     align-items: center;
@@ -197,6 +217,9 @@
     white-space: nowrap;
   }
   .matched {
+    /* 名前が長くても一致数を折り返さない。縮めるのは名前の側（省略記号） */
+    flex: none;
+    white-space: nowrap;
     margin-left: auto;
     font-variant-numeric: tabular-nums;
     color: var(--yellow);

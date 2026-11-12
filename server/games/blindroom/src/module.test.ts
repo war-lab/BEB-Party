@@ -635,8 +635,9 @@ describe("ラウンドの進行", () => {
     expect(started.publicState.totalRounds).toBe(5);
   });
 
-  it("対応人数は3〜6人である", () => {
-    expect(blindRoomModule.playerCount).toEqual([3, 6]);
+  it("対応人数は3〜8人である", () => {
+    // 上限は ADR-0033 で6人から8人へ上げた
+    expect(blindRoomModule.playerCount).toEqual([3, 8]);
   });
 
   /** 全員が毎ラウンド見本どおりに置いて最後まで進める */
@@ -664,6 +665,27 @@ describe("ラウンドの進行", () => {
     expect(progress.result?.rounds).toHaveLength(3);
     // 聞き手として2ラウンド×5点、説明者として1ラウンド×5点（12の得点）
     expect(progress.result?.scores.map((entry) => entry.points)).toEqual([15, 15, 15]);
+  });
+
+  it("上限の8人でも8ラウンドで最後まで進み、全員が1回ずつ説明者を務め、満点が40点になる", () => {
+    // 上限の人数で start から終局まで進むことの確認（ADR-0033、ADR-0026のテストと動作確認）。
+    // 聞き手7人の平均で説明者の得点が決まる経路も、全員が満点なら5点になる
+    const eight = playersOf([1, 1, 2, 3, 3, 4, 5, 5]);
+    const progress = playPerfectly(eight, {});
+    expect(progress.publicState.totalRounds).toBe(8);
+    expect([...progress.publicState.describerOrder].sort()).toEqual(eight.map((player) => player.id).sort());
+    expect(progress.result?.rounds).toHaveLength(8);
+    const rounds = (progress.result?.rounds ?? []) as { boards: unknown[] }[];
+    expect(rounds.every((round) => round.boards.length === 7)).toBe(true);
+    // 聞き手として7ラウンド×5点、説明者として1ラウンド×5点（12の得点の 5nk）
+    expect(progress.result?.scores.map((entry) => entry.points)).toEqual(Array.from({ length: 8 }, () => 40));
+  });
+
+  it("8人・2周で16ラウンドを最後まで進め、満点が80点になる", () => {
+    const eight = playersOf([2, 2, 3, 3, 4, 4, 5, 5]);
+    const progress = playPerfectly(eight, { laps: "2" });
+    expect(progress.result?.rounds).toHaveLength(16);
+    expect(progress.result?.scores.map((entry) => entry.points)).toEqual(Array.from({ length: 8 }, () => 80));
   });
 
   it("2周ではラウンド数が参加人数×2になり、1周目と同じ順で全員が2回ずつ説明者を務める", () => {

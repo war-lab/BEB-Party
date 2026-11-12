@@ -304,6 +304,28 @@ describe("rebuildSecret: 遷移が送った値との突き合わせ", () => {
     expect(session.listeners().some((playerId) => nonEmpty(listenerBoard(session, playerId)))).toBe(true);
   });
 
+  it("8人・1周。done と締切を交互に使って終局する", () => {
+    // 上限の人数（ADR-0033）。聞き手が7人に増えても、作り直した秘密が送った値とずれないことを固定する
+    const session = new Session(playersOf([1, 1, 2, 3, 3, 4, 5, 5]));
+    expect(session.publicState.totalRounds).toBe(8);
+    session.readyAll();
+    let round = 0;
+    while (session.lifecycle === "playing") {
+      if (round % 2 === 0) {
+        playRoundByDone(session);
+      } else {
+        playRoundByDeadline(session);
+      }
+      if (session.lifecycle === "playing") {
+        session.readyAll();
+      }
+      round += 1;
+    }
+    expect(round).toBe(8);
+    expect(session.publicState.rounds).toHaveLength(8);
+    expect(session.publicState.rounds.every((record) => record.boards.length === 7)).toBe(true);
+  });
+
   it("3人・2周。全ラウンドを done で進めて終局する", () => {
     const session = new Session(playersOf([2, 2, 4]), { laps: "2" });
     session.readyAll();

@@ -572,8 +572,9 @@ export const blindRoomModule: GameModule<
   title: "BLIND ROOM",
   tagline: "見えない部屋の配置を英語で伝え、同じ形を作る",
   icon: "🧩",
-  // 3人から遊べる。2人は説明者と聞き手が1人ずつで、1周が2ラウンドしかない（12のロビーの記述子）
-  playerCount: [3, 6],
+  // 3人から遊べる。2人は説明者と聞き手が1人ずつで、1周が2ラウンドしかない（12のロビーの記述子）。
+  // 上限の8人は ADR-0033。聞き手が増えるだけで、見本・採点・レベル差の吸収は人数に依存しない
+  playerCount: [3, 8],
   contentLabelJa: "部屋を選ぶ",
   settingsFields: [
     {

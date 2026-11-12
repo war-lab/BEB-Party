@@ -2,7 +2,7 @@
 // 部屋作成から結果まで通ることと、見本と聞き手の盤面がstateに載らないことを確かめる。
 //
 // 進行はすべて操作で進む（説明者の開始、聞き手の完了申告）。締切待ちは発生しないが、
-// 6ラウンド分の操作があるためタイムアウトを長く取る。6人・1周と、下限の3人・2周の2通りで通す。
+// 6ラウンド分の操作があるためタイムアウトを長く取る。6人・1周、下限の3人・2周、上限の8人・1周の3通りで通す。
 import { expect, test, type Page } from "@playwright/test";
 import { openTable, readStateMessages } from "./support/room";
 
@@ -20,6 +20,10 @@ interface Scenario {
   /** 周回のチップ。undefined なら既定（1周）のまま開始する */
   lapsLabel?: string;
   laps: number;
+  /** テスト全体のタイムアウト。省略時は360秒 */
+  timeoutMs?: number;
+  /** 1ラウンド目の答え合わせで、スマホ幅に聞き手の盤面が2列で収まることを確かめる */
+  checkNarrowReveal?: boolean;
 }
 
 const SCENARIOS: Scenario[] = [
@@ -40,7 +44,39 @@ const SCENARIOS: Scenario[] = [
     lapsLabel: "2周",
     laps: 2,
   },
+  // 対応人数の上限（ADR-0033）。聞き手7人の盤面を開示で2列に並べる（12の答え合わせの表示）。標準（4×3）で通す
+  {
+    title: "8人でBLIND ROOMの結果まで進め、聞き手7人の盤面がスマホ幅に2列で収まる",
+    levels: [5, 4, 3, 3, 2, 2, 1, 1],
+    boardLabel: "標準 4×3",
+    boardCells: 12,
+    laps: 1,
+    // 8ラウンド × 聞き手7人の配置に加え、ブラウザを8つ開くため、6人の通しより長く取る
+    timeoutMs: 600_000,
+    checkNarrowReveal: true,
+  },
 ];
+
+/** スマホ幅で、聞き手の盤面が2列に並び、横へはみ出さないことを確かめる */
+async function expectNarrowReveal(page: Page, listenerCount: number): Promise<void> {
+  // iPhone SE（第2世代以降）相当の幅
+  await page.setViewportSize({ width: 375, height: 667 });
+  const boards = page.locator("[data-testid='listener-board']");
+  await expect(boards).toHaveCount(listenerCount);
+  const lefts = new Set<number>();
+  for (let index = 0; index < listenerCount; index += 1) {
+    const box = await boards.nth(index).boundingBox();
+    expect(box).not.toBeNull();
+    lefts.add(Math.round(box!.x));
+    // 盤面の右端が画面の内側にある
+    expect(box!.x + box!.width).toBeLessThanOrEqual(375);
+  }
+  // 左右2列に並ぶ。1列のままだと左端が1種類になる
+  expect(lefts.size).toBe(2);
+  // ページ全体が横へスクロールしない
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+}
 
 // 配置の締切は上限にする。テストは完了申告で進めるため締切に依存せず、
 // 全ラウンド分の操作が締切に追い越されないようにする
@@ -108,7 +144,7 @@ async function buildAndFinish(
 
 for (const scenario of SCENARIOS) {
   test(scenario.title, async ({ browser, baseURL }) => {
-    test.setTimeout(360_000);
+    test.setTimeout(scenario.timeoutMs ?? 360_000);
     const playerCount = scenario.levels.length;
     const totalRounds = playerCount * scenario.laps;
     const table = await openTable(browser, baseURL!, scenario.levels, {
@@ -155,6 +191,9 @@ for (const scenario of SCENARIOS) {
           await expect(page.locator("[data-testid='round-record']")).toBeVisible({ timeout: 30_000 });
           await expect(page.locator("[data-testid='listener-board']")).toHaveCount(playerCount - 1);
           await expect(page.locator("[data-testid='score-board'] li")).toHaveCount(playerCount);
+        }
+        if (scenario.checkNarrowReveal && round === 1) {
+          await expectNarrowReveal(table.pages[describerIndex]!, playerCount - 1);
         }
 
         if (round < totalRounds) {
