@@ -5,6 +5,7 @@ import { blindRoomModule } from "@beb/server-blindroom";
 import { detectivesModule } from "@beb/server-detectives";
 import { dontSayItModule } from "@beb/server-dontsayit";
 import { escapeCallModule } from "@beb/server-escapecall";
+import { mindMeldModule } from "@beb/server-mindmeld";
 import { rankingModule } from "@beb/server-ranking";
 import { secretRuleModule } from "@beb/server-secretrule";
 import { whoWroteThisModule } from "@beb/server-whowrotethis";
@@ -18,4 +19,5 @@ export const registry: Record<string, GameModule<unknown, unknown, unknown>> = {
   blindroom: blindRoomModule as unknown as GameModule<unknown, unknown, unknown>,
   escapecall: escapeCallModule as unknown as GameModule<unknown, unknown, unknown>,
   secretrule: secretRuleModule as unknown as GameModule<unknown, unknown, unknown>,
+  mindmeld: mindMeldModule as unknown as GameModule<unknown, unknown, unknown>,
 };

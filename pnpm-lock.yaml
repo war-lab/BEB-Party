@@ -279,6 +279,9 @@ importers:
       '@beb/server-escapecall':
         specifier: workspace:*
         version: link:../games/escapecall
+      '@beb/server-mindmeld':
+        specifier: workspace:*
+        version: link:../games/mindmeld
       '@beb/server-ranking':
         specifier: workspace:*
         version: link:../games/ranking
