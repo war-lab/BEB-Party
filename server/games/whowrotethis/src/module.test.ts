@@ -774,4 +774,60 @@ describe("人数", () => {
     expect(after.publicState.revealedItems).toHaveLength(1);
     expect(after.publicState.revealedItems[0]?.guesses).toHaveLength(4);
   });
+
+  it("記述子の対応人数は5〜8人である（ADR-0033）", () => {
+    // 上限の申告を戻してしまう変更を防ぐテスト
+    expect(whoWroteThisModule.playerCount).toEqual([5, 8]);
+  });
+
+  /** 全員が提出し、作者以外の全員が正解を指名する筋書きで、最終ラウンドの result まで進める */
+  function playToResult(progress: Progress): Progress {
+    let current = progress;
+    for (let round = 0; round < ROUNDS; round += 1) {
+      expect(current.stage).toBe(STAGES.briefing);
+      current = submitAll(readyAll(current));
+      // 開示は参加人数と同じ件数になる
+      expect(current.publicState.presented?.total).toBe(players.length);
+      for (let index = 0; index < players.length; index += 1) {
+        expect(current.stage).toBe(STAGES.guessing);
+        expect(current.publicState.presented?.index).toBe(index);
+        current = guessAll(current, (_, authorId) => authorId);
+        expect(current.stage).toBe(STAGES.judging);
+        current = deadline(current);
+      }
+      expect(current.stage).toBe(STAGES.reveal);
+      if (round < ROUNDS - 1) {
+        current = readyAll(current);
+      }
+    }
+    return current;
+  }
+
+  it.each([5, 8])("%i人で開始から最終ラウンドの result まで進む", (count) => {
+    // 申告範囲の両端で、開示件数・指名の数・得点が人数に応じて決まり、終局まで進むことを確かめる（ADR-0026、ADR-0033）
+    players = playersOf([1, 2, 3, 4, 5, 3, 2, 4].slice(0, count));
+    const started = begin();
+    // 開示順は全員を1回ずつ並べる。slot が参加人数の範囲で重複しない
+    for (const order of started.gameSecret.revealOrders) {
+      expect([...order].sort()).toEqual(players.map((player) => player.id).sort());
+    }
+    const slots = players.map((player) => (started.secrets?.get(player.id) as WhoWroteThisSecret).slot);
+    expect([...slots].sort((a, b) => a - b)).toEqual([...Array(count).keys()]);
+
+    const after = playToResult(started);
+    expect(after.result).toBeDefined();
+    expect(after.publicState.rounds).toHaveLength(ROUNDS);
+    for (const record of after.publicState.rounds) {
+      expect(record.items).toHaveLength(count);
+      for (const item of record.items) {
+        expect(item.guesses).toHaveLength(count - 1);
+      }
+    }
+    // 全員が自分の件以外をすべて当てる筋書きでは、1人あたり (人数 - 1) 点 × ラウンド数になる
+    const scores = after.result?.scores ?? [];
+    expect(scores).toHaveLength(count);
+    for (const entry of scores) {
+      expect(entry.points).toBe((count - 1) * POINTS_PER_CORRECT_GUESS * ROUNDS);
+    }
+  });
 });

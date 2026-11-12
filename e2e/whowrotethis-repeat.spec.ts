@@ -7,7 +7,7 @@
 // 4. 再接続中に指名する（送れていないのに画面だけ操作済みにならないか）
 //
 // 5人卓で回す。開示件数が5件になり、judgingの待ち（12秒×件数）が1ラウンドあたり12秒短くなる。
-// 人数は対応範囲（5〜6人）の下限であり、経路の検証には十分である。
+// 人数は対応範囲（5〜8人）の下限であり、経路の検証には十分である。
 import { expect, test, type WebSocketRoute } from "@playwright/test";
 import { openTable } from "./support/room";
 import {

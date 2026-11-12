@@ -523,7 +523,8 @@ export const whoWroteThisModule: GameModule<
   title: "WHO WROTE THIS?",
   tagline: "英語で書いた1文を並べ、誰が書いたか当てる",
   icon: "✍️",
-  playerCount: [5, 6],
+  // 5〜8人（ADR-0033）。指名の候補が増えるほど当てずっぽうで当たりにくくなり、規則の骨格は変えない（11のロビーの記述子）
+  playerCount: [5, 8],
   contentLabelJa: "お題を選ぶ",
   settingsFields: [
     {
