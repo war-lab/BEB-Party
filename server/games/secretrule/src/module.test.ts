@@ -12,6 +12,7 @@ import {
   MAX_ROUNDS,
   STAGES,
   STAGE_DEADLINE_SECONDS,
+  TESTS_PER_ROUND,
   WRITING_SECONDS,
   normalizeSubmission,
   type SecretRulePublic,
@@ -916,7 +917,12 @@ describe("rebuildSecret", () => {
 });
 
 describe("人数", () => {
-  it.each([2, 6])("%i人で開始から debrief まで進む", (count) => {
+  it("記述子の対応人数は2〜8人である（ADR-0033）", () => {
+    // 上限の申告を戻してしまう変更を防ぐテスト
+    expect(secretRuleModule.playerCount).toEqual([2, 8]);
+  });
+
+  it.each([2, 6, 8])("%i人で開始から debrief まで進む", (count) => {
     const session = startedAt(STAGES.writing, new Session(count));
     session.toChecking();
     session.selectAll(session.gameSecret.ruleCandidateId);
@@ -924,5 +930,26 @@ describe("人数", () => {
     session.deadline();
     expect(session.stage).toBe(STAGES.debrief);
     expect(session.result?.playerCount).toBe(count);
+  });
+
+  it("8人で印なしのまま4ラウンド回すと、全員の下書きが1回ずつ判定にかかって debrief へ進む", () => {
+    // 上限の8人で choosing を毎ラウンド通って終局まで進み、当番順の回転で判定の作者が偏らないことを防ぐテスト
+    const session = startedAt(STAGES.writing, new Session(8));
+    for (let round = 0; round < MAX_ROUNDS; round += 1) {
+      expect(session.stage).toBe(STAGES.writing);
+      const texts = Object.fromEntries(session.ids().map((id) => [id, session.sentence(() => true)]));
+      session.submitAll(texts);
+      // 下書きが8件あり、試す2件を選ぶ工程を通る
+      expect(session.stage).toBe(STAGES.choosing);
+      expect(session.publicState.drafts).toHaveLength(8);
+      session.deadline();
+      expect(session.stage).toBe(STAGES.checking);
+      session.deadline();
+    }
+    expect(session.stage).toBe(STAGES.debrief);
+    expect(session.result).toMatchObject({ outcome: "unsolved", playerCount: 8 });
+    const authors = session.gameSecret.tested.map((entry) => entry.playerId);
+    expect(authors).toHaveLength(MAX_ROUNDS * TESTS_PER_ROUND);
+    expect(new Set(authors)).toEqual(new Set(session.ids()));
   });
 });

@@ -1,6 +1,6 @@
 // SECRET RULE ENGLISHの通し検証（基本設計/14_SECRETRULEゲームモジュール.md のテスト観点）。
 // 部屋作成から結果まで通ること、判定にかからなかった人の画面に成否が出ないこと、印を続けて押しても
-// 両方が残ること、成否と秘密の規則がstateに載らないことを確かめる。対応人数の両端（2人と6人）と4人で通す。
+// 両方が残ること、成否と秘密の規則がstateに載らないことを確かめる。対応人数の両端（2人と8人）と、4人と6人で通す（ADR-0033）。
 //
 // 各ページの画面に出た自分の成否を集めて、テスト側で規則を絞る（support/secretrule.ts）。
 import { expect, test, type Page } from "@playwright/test";
@@ -30,9 +30,11 @@ for (const levels of [
   [1, 4],
   [2, 5, 3, 1],
   [1, 2, 3, 4, 5, 3],
+  [1, 2, 3, 4, 5, 3, 2, 4],
 ]) {
   test(`${levels.length}人で規則を当てて最後の英文まで進み、成否がstateに載らない`, async ({ browser, baseURL }) => {
-    test.setTimeout(240_000);
+    // 8人はブラウザコンテキストが多く、操作の回数も増えるため長めに取る
+    test.setTimeout(levels.length > 6 ? 360_000 : 240_000);
     const table = await openTable(browser, baseURL!, levels, { record: true, testTitle: test.info().title });
 
     try {
@@ -57,10 +59,12 @@ for (const levels of [
         used.add(second);
         await submitText(pages[0]!, first);
         await submitText(pages[1]!, second);
-        for (const page of pages.slice(2)) {
-          const filler = BANK.find((text) => !used.has(text))!;
-          used.add(filler);
-          await submitText(page, filler);
+        // 試さない下書き。判定にかからなかった英文は次のラウンドでも出せるため used に入れない（14の submit）。
+        // 在庫は30件であり、8人で4ラウンド回すと使い捨てでは足りない
+        const fillers = BANK.filter((text) => !used.has(text)).slice(0, pages.length - 2);
+        expect(fillers).toHaveLength(pages.length - 2);
+        for (const [index, page] of pages.slice(2).entries()) {
+          await submitText(page, fillers[index]!);
         }
 
         if (pages.length >= 3) {

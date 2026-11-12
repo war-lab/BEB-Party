@@ -641,7 +641,7 @@ export const secretRuleModule: GameModule<
   tagline: "英文を書いて試し、通る英文の隠れた規則を全員で見抜く",
   // 試験管の絵文字。収録6本のアイコンと重ならないものを選ぶ（14のロビーの記述子）
   icon: "\u{1F9EA}",
-  playerCount: [2, 6],
+  playerCount: [2, 8],
   contentLabelJa: "規則パックを選ぶ",
   settingsFields: [
     {
