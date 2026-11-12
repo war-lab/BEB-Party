@@ -56,6 +56,9 @@ importers:
       '@beb/client-escapecall':
         specifier: workspace:*
         version: link:../games/escapecall
+      '@beb/client-mindmeld':
+        specifier: workspace:*
+        version: link:../games/mindmeld
       '@beb/client-ranking':
         specifier: workspace:*
         version: link:../games/ranking
@@ -175,6 +178,25 @@ importers:
       '@beb/shared-escapecall':
         specifier: workspace:*
         version: link:../../../shared/games/escapecall
+      svelte:
+        specifier: 5.56.9
+        version: 5.56.9(@typescript-eslint/types@8.67.0)
+    devDependencies:
+      svelte-check:
+        specifier: 4.7.5
+        version: 4.7.5(picomatch@4.0.5)(svelte@5.56.9(@typescript-eslint/types@8.67.0))(typescript@6.0.3)
+
+  client/games/mindmeld:
+    dependencies:
+      '@beb/client-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../../shared/core
+      '@beb/shared-mindmeld':
+        specifier: workspace:*
+        version: link:../../../shared/games/mindmeld
       svelte:
         specifier: 5.56.9
         version: 5.56.9(@typescript-eslint/types@8.67.0)

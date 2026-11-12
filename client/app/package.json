@@ -16,6 +16,7 @@
     "@beb/client-detectives": "workspace:*",
     "@beb/client-dontsayit": "workspace:*",
     "@beb/client-escapecall": "workspace:*",
+    "@beb/client-mindmeld": "workspace:*",
     "@beb/client-ranking": "workspace:*",
     "@beb/client-secretrule": "workspace:*",
     "@beb/client-whowrotethis": "workspace:*"

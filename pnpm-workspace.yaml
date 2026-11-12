@@ -23,6 +23,7 @@ packages:
   - client/games/detectives
   - client/games/dontsayit
   - client/games/escapecall
+  - client/games/mindmeld
   - client/games/ranking
   - client/games/secretrule
   - client/games/whowrotethis
