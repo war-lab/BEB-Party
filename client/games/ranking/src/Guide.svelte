@@ -5,7 +5,19 @@
   数値（締切・ラウンド数・得点）を変えるときは正本と揃える。
 -->
 <script lang="ts">
-  import { DISCUSSION_SECONDS, POINTS_PER_GOAL, ROUNDS, STAGE_DEADLINE_SECONDS } from "@beb/shared-ranking";
+  import {
+    DEAL_SHAPES,
+    DISCUSSION_SECONDS,
+    POINTS_PER_GOAL,
+    ROUNDS,
+    STAGE_DEADLINE_SECONDS,
+    countByDifficulty,
+  } from "@beb/shared-ranking";
+
+  // 人数ごとの難しさの配分。サーバの割り当てと同じ表から作り、文言と規則がずれないようにする
+  const dealRows = Object.entries(DEAL_SHAPES)
+    .map(([count, shape]) => ({ count: Number(count), counts: countByDifficulty(shape) }))
+    .sort((a, b) => a.count - b.count);
 </script>
 
 <h3>目的</h3>
@@ -34,6 +46,17 @@
     <tr><td>やさしい</td><td>「AをBより上にする」「Aを2位以内に入れる」</td></tr>
     <tr><td>ふつう</td><td>「Aを1位にする」「Aを最下位にする」</td></tr>
     <tr><td>むずかしい</td><td>「Aをちょうど3位にする」</td></tr>
+  </tbody>
+</table>
+<p>配られる難しさの人数は、卓の人数で決まる。</p>
+<table data-testid="deal-shapes">
+  <thead>
+    <tr><th>人数</th><th>やさしい</th><th>ふつう</th><th>むずかしい</th></tr>
+  </thead>
+  <tbody>
+    {#each dealRows as row (row.count)}
+      <tr><td>{row.count}人</td><td>{row.counts[1]}人</td><td>{row.counts[2]}人</td><td>{row.counts[3]}人</td></tr>
+    {/each}
   </tbody>
 </table>
 <p>レベル1〜2の人には、目標を主張するための英文の例が3つ渡される。</p>

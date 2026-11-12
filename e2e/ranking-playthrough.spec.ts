@@ -57,86 +57,100 @@ async function proposeAndApprove(pages: Page[]): Promise<void> {
   }
 }
 
-test("6人で部屋作成からENGLISH RANKINGの結果まで進める", async ({ browser, baseURL }) => {
-  // 3ラウンド × 議論60秒の締切待ちがあるため、既定の3倍でも足りない
-  test.setTimeout(240_000);
-  const table = await openTable(browser, baseURL!, [5, 4, 3, 3, 2, 1], {
-    testTitle: test.info().title,
-    record: true,
-  });
+/**
+ * 通しで確かめる卓。6人は従来の受入条件、8人は対応人数の上限（ADR-0033、基本設計/10のテスト観点）。
+ *
+ * 8人はブラウザコンテキストが8つになり、全員の操作も増えるため、締切を長めに取る。
+ * 8人での実行時間と安定性は未検証である（ADR-0033の影響）。
+ */
+const TABLES = [
+  { count: 6, levels: [5, 4, 3, 3, 2, 1], timeout: 240_000 },
+  { count: 8, levels: [5, 4, 4, 3, 3, 2, 1, 1], timeout: 360_000 },
+] as const;
 
-  try {
-    const host = table.pages[0]!;
-    await startRanking(host);
+for (const { count, levels, timeout } of TABLES) {
+  test(`${count}人で部屋作成からENGLISH RANKINGの結果まで進める`, async ({ browser, baseURL }) => {
+    // 3ラウンド × 議論60秒の締切待ちがあるため、既定の3倍でも足りない
+    test.setTimeout(timeout);
+    const table = await openTable(browser, baseURL!, [...levels], {
+      testTitle: test.info().title,
+      record: true,
+    });
 
-    for (let round = 1; round <= ROUNDS; round += 1) {
-      // 目標の確認: 伏せ面 → タップ → 溜め → 目標 の順に出る
-      await confirmGoals(table.pages);
+    try {
+      const host = table.pages[0]!;
+      await startRanking(host);
 
-      // 議論: 操作は無い。締切でサーバが順位の確定へ進める
-      for (const page of table.pages) {
-        await expect(page.locator("[data-testid='my-goal']")).toBeVisible({ timeout: 20_000 });
-      }
+      for (let round = 1; round <= ROUNDS; round += 1) {
+        // 目標の確認: 伏せ面 → タップ → 溜め → 目標 の順に出る
+        await confirmGoals(table.pages);
 
-      // 順位の確定: ホストが提案し、全員が承認する
-      await proposeAndApprove(table.pages);
-
-      // 開示: 確定順位と全員の目標が出る
-      for (const page of table.pages) {
-        await expect(page.locator("[data-testid='final-ranking']")).toBeVisible({ timeout: 15_000 });
-        await expect(page.locator("[data-testid='revealed-goals'] li")).toHaveCount(6);
-      }
-
-      if (round < ROUNDS) {
+        // 議論: 操作は無い。締切でサーバが順位の確定へ進める
         for (const page of table.pages) {
-          await page.click("[data-testid='next-round']");
+          await expect(page.locator("[data-testid='my-goal']")).toBeVisible({ timeout: 20_000 });
         }
-      }
-    }
 
-    // 最終ラウンドの確定で結果になる。ロビーへ戻る導線が出る
-    for (const page of table.pages) {
-      await expect(page.locator("[data-testid='back-to-lobby']")).toBeVisible({ timeout: 15_000 });
-      await expect(page.locator("[data-testid='score-board'] li")).toHaveCount(6);
-    }
+        // 順位の確定: ホストが提案し、全員が承認する
+        await proposeAndApprove(table.pages);
 
-    // 受入条件: 進行中のラウンドの目標がstateに載らない（ADR-0003）。
-    //
-    // 確定したラウンドの目標は rounds[] として公開される仕様であるため、
-    // 「文字列としてどこにも現れない」では検査にならない。rounds[] を除いた公開状態に
-    // 収録セットのどの目標文も現れないことを見る。
-    for (const page of table.pages) {
-      const states = await readStateMessages(page);
-      expect(states.length).toBeGreaterThan(0);
-
-      for (const state of states) {
-        // 言い回しの例は秘密情報にしか入らない。公開状態には一度も現れない
-        expect(state).not.toContain("hintEn");
-        expect(state).not.toContain("reconnectToken");
-
-        const gameState = (JSON.parse(state) as { gameState?: Record<string, unknown> }).gameState;
-        if (gameState === undefined) {
-          continue;
+        // 開示: 確定順位と全員の目標が出る
+        for (const page of table.pages) {
+          await expect(page.locator("[data-testid='final-ranking']")).toBeVisible({ timeout: 15_000 });
+          // 全員に1枚ずつ配るため、開示される目標は人数と同じ件数になる
+          await expect(page.locator("[data-testid='revealed-goals'] li")).toHaveCount(count);
         }
-        const withoutRounds = JSON.stringify({ ...gameState, rounds: [] });
-        for (const goalText of GOAL_TEXTS) {
-          expect(withoutRounds).not.toContain(goalText);
+
+        if (round < ROUNDS) {
+          for (const page of table.pages) {
+            await page.click("[data-testid='next-round']");
+          }
         }
       }
 
-      // 確定済みのラウンド数が roundIndex と一致する（先のラウンドの目標が漏れていない）
-      const duringDiscussion = states
-        .map((state) => JSON.parse(state) as { stage?: string; gameState?: { roundIndex: number; rounds: unknown[] } })
-        .filter((parsed) => parsed.stage === "discussion" && parsed.gameState !== undefined);
-      expect(duringDiscussion.length).toBeGreaterThan(0);
-      for (const parsed of duringDiscussion) {
-        expect(parsed.gameState!.rounds).toHaveLength(parsed.gameState!.roundIndex);
+      // 最終ラウンドの確定で結果になる。ロビーへ戻る導線が出る
+      for (const page of table.pages) {
+        await expect(page.locator("[data-testid='back-to-lobby']")).toBeVisible({ timeout: 15_000 });
+        await expect(page.locator("[data-testid='score-board'] li")).toHaveCount(count);
       }
+
+      // 受入条件: 進行中のラウンドの目標がstateに載らない（ADR-0003）。
+      //
+      // 確定したラウンドの目標は rounds[] として公開される仕様であるため、
+      // 「文字列としてどこにも現れない」では検査にならない。rounds[] を除いた公開状態に
+      // 収録セットのどの目標文も現れないことを見る。
+      for (const page of table.pages) {
+        const states = await readStateMessages(page);
+        expect(states.length).toBeGreaterThan(0);
+
+        for (const state of states) {
+          // 言い回しの例は秘密情報にしか入らない。公開状態には一度も現れない
+          expect(state).not.toContain("hintEn");
+          expect(state).not.toContain("reconnectToken");
+
+          const gameState = (JSON.parse(state) as { gameState?: Record<string, unknown> }).gameState;
+          if (gameState === undefined) {
+            continue;
+          }
+          const withoutRounds = JSON.stringify({ ...gameState, rounds: [] });
+          for (const goalText of GOAL_TEXTS) {
+            expect(withoutRounds).not.toContain(goalText);
+          }
+        }
+
+        // 確定済みのラウンド数が roundIndex と一致する（先のラウンドの目標が漏れていない）
+        const duringDiscussion = states
+          .map((state) => JSON.parse(state) as { stage?: string; gameState?: { roundIndex: number; rounds: unknown[] } })
+          .filter((parsed) => parsed.stage === "discussion" && parsed.gameState !== undefined);
+        expect(duringDiscussion.length).toBeGreaterThan(0);
+        for (const parsed of duringDiscussion) {
+          expect(parsed.gameState!.rounds).toHaveLength(parsed.gameState!.roundIndex);
+        }
+      }
+    } finally {
+      await table.close();
     }
-  } finally {
-    await table.close();
-  }
-});
+  });
+}
 
 test("遊び方からENGLISH RANKINGのルールを読める", async ({ browser, baseURL }) => {
   test.setTimeout(90_000);
@@ -153,6 +167,8 @@ test("遊び方からENGLISH RANKINGのルールを読める", async ({ browser,
     await expect(sheet).toContainText(GAME_TITLE, { timeout: 10_000 });
     await expect(sheet).toContainText("秘密の目標");
     await expect(sheet).toContainText("順位の確定");
+    // 人数ごとの難しさの配分は5〜8人の4行で出る（基本設計/10の目標の割り当て）
+    await expect(sheet.locator("[data-testid='deal-shapes'] tbody tr")).toHaveCount(4);
     // プレイ中でなくても、他ゲームの説明は混ざらない
     await expect(sheet).not.toContainText("禁止語");
   } finally {
