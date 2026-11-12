@@ -1,7 +1,7 @@
 # BEB Party
 
-同室の2〜6人が遊ぶ**英語パーティゲーム集**のWebアプリ。
-対応人数はゲームごとに決める。SECRET RULE ENGLISHは2〜6人用、ESCAPE CALLは2〜4人用、BLIND ROOMとDON'T SAY ITは3〜6人用、残りの3本は5〜6人用である（[ADR-0026](docs/adr/0026-対象人数を2人から6人に広げる.md)）。
+同室の2〜8人が遊ぶ**英語パーティゲーム集**のWebアプリ。
+対応人数はゲームごとに決める。SECRET RULE ENGLISHは2〜8人用、BLIND ROOMとDON'T SAY ITは3〜8人用、WHO WROTE THIS?とENGLISH RANKINGは5〜8人用、ENGLISH DETECTIVESは5〜6人用、ESCAPE CALLは2〜4人用である（[ADR-0033](docs/adr/0033-対象人数の上限を8人に上げる.md)）。
 1つの部屋基盤に複数ゲームを載せる。収録済みは英語推理ゲーム「ENGLISH DETECTIVES」（人狼型）、禁止語を避けて人物を説明する「DON'T SAY IT」、秘密の目標を抱えて順位を議論する「ENGLISH RANKING」、匿名の英文から作者を当てる「WHO WROTE THIS?」、見えない配置を英語で伝えて同じ形を作る「BLIND ROOM」、手がかりを英語で伝え合って3つの錠を開ける「ESCAPE CALL」、英文を書いて試し隠れた規則を見抜く「SECRET RULE ENGLISH」の7本。
 スマホブラウザSPA + Cloudflare Workers + Durable Objects。運用費¥0が絶対条件。
 
