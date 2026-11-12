@@ -16,6 +16,10 @@ import {
   formatFinding as formatSceneFinding,
   validatePack as validateScenePack,
 } from "@beb/server-escapecall";
+import {
+  formatFinding as formatPromptFinding,
+  validatePack as validatePromptPack,
+} from "@beb/server-mindmeld";
 import { formatFinding as formatPackFinding, validatePack } from "@beb/server-ranking";
 import {
   formatFinding as formatRuleFinding,
@@ -46,6 +50,10 @@ const validators: GameValidator[] = [
   {
     contentPath: "content/escapecall",
     validate: (content) => toGameReport(validateScenePack(content), formatSceneFinding),
+  },
+  {
+    contentPath: "content/mindmeld",
+    validate: (content) => toGameReport(validatePromptPack(content), formatPromptFinding),
   },
   {
     contentPath: "content/ranking",

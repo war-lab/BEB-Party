@@ -338,6 +338,15 @@ importers:
         specifier: workspace:*
         version: link:../../../shared/games/escapecall
 
+  server/games/mindmeld:
+    dependencies:
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../../shared/core
+      '@beb/shared-mindmeld':
+        specifier: workspace:*
+        version: link:../../../shared/games/mindmeld
+
   server/games/ranking:
     dependencies:
       '@beb/shared-core':
@@ -434,6 +443,9 @@ importers:
       '@beb/server-escapecall':
         specifier: workspace:*
         version: link:../server/games/escapecall
+      '@beb/server-mindmeld':
+        specifier: workspace:*
+        version: link:../server/games/mindmeld
       '@beb/server-ranking':
         specifier: workspace:*
         version: link:../server/games/ranking

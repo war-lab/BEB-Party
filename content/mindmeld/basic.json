@@ -1,0 +1,33 @@
+{
+  "id": "basic",
+  "title": "はじめてのお題",
+  "prompts": [
+    { "id": "kitchen", "en": "Something in a kitchen", "ja": "台所にあるもの" },
+    { "id": "yellow", "en": "Something yellow", "ja": "黄色いもの" },
+    { "id": "summer", "en": "Something you think of in summer", "ja": "夏といえば" },
+    { "id": "school", "en": "Something at school", "ja": "学校にあるもの" },
+    { "id": "zoo", "en": "An animal at the zoo", "ja": "動物園にいる動物" },
+    { "id": "bag", "en": "Something in your bag", "ja": "かばんの中にあるもの" },
+    { "id": "breakfast", "en": "Something you eat for breakfast", "ja": "朝ごはんに食べるもの" },
+    { "id": "park", "en": "Something you see in a park", "ja": "公園で見かけるもの" },
+    { "id": "cold", "en": "Something cold", "ja": "冷たいもの" },
+    { "id": "ride", "en": "Something you can ride", "ja": "乗れるもの" },
+    { "id": "sky", "en": "Something in the sky", "ja": "空にあるもの" },
+    { "id": "beach", "en": "Something at the beach", "ja": "海辺にあるもの" },
+    { "id": "bathroom", "en": "Something in a bathroom", "ja": "浴室や洗面所にあるもの" },
+    { "id": "round", "en": "Something round", "ja": "丸いもの" },
+    { "id": "winter", "en": "Something you think of in winter", "ja": "冬といえば" },
+    { "id": "hospital", "en": "Something in a hospital", "ja": "病院にあるもの" },
+    { "id": "ball_sport", "en": "A sport you play with a ball", "ja": "ボールを使うスポーツ" },
+    { "id": "red", "en": "Something red", "ja": "赤いもの" }
+  ],
+  "keyExpressions": [
+    { "en": "Three, two, one!", "ja": "せーの！" },
+    { "en": "We matched!", "ja": "そろった！" },
+    { "en": "So close!", "ja": "惜しい！" },
+    { "en": "Apple and apples. It's the same word.", "ja": "apple と apples は同じ語" },
+    { "en": "Sorry, cat and car are different words.", "ja": "cat と car は別の語だと思う" },
+    { "en": "Pan and fire... so I said cook.", "ja": "pan と fire だから cook にした" },
+    { "en": "Why did you say that?", "ja": "なぜその語にしたの？" }
+  ]
+}

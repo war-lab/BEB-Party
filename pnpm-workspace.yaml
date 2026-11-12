@@ -14,6 +14,7 @@ packages:
   - server/games/detectives
   - server/games/dontsayit
   - server/games/escapecall
+  - server/games/mindmeld
   - server/games/ranking
   - server/games/secretrule
   - server/games/whowrotethis
