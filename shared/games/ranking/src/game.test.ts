@@ -1,7 +1,10 @@
 // 述語の判定と難度の導出を固定する。ここが崩れると得点も検証も同時に狂う（基本設計/10）
 import { describe, expect, it } from "vitest";
 import {
+  DEAL_SHAPES,
   DIFFICULTY_SHAPE,
+  countByDifficulty,
+  dealShapeFor,
   DISCUSSION_SECONDS,
   GOALS_PER_SET,
   ITEMS_PER_SET,
@@ -114,13 +117,37 @@ describe("hintCountFor", () => {
 });
 
 describe("定数", () => {
-  it("目標カードの難度構成が6枚で昇順である", () => {
+  it("目標カードの難度構成が8枚で昇順である", () => {
     expect(DIFFICULTY_SHAPE).toHaveLength(GOALS_PER_SET);
     expect([...DIFFICULTY_SHAPE]).toEqual([...DIFFICULTY_SHAPE].sort());
   });
 
-  it("難度3が2枚ある（5人のとき1枚落とすため）", () => {
-    expect(DIFFICULTY_SHAPE.filter((value) => value === 3)).toHaveLength(2);
+  // 手札の形がセットの8枚から作れないと、割り当てが例外になり開始できない（10の目標の割り当て）
+  it("各人数の手札の形が、人数と同じ枚数で、難度ごとにセットの枚数を超えない", () => {
+    const available = countByDifficulty(DIFFICULTY_SHAPE);
+    for (const [count, shape] of Object.entries(DEAL_SHAPES)) {
+      expect(shape).toHaveLength(Number(count));
+      expect([...shape]).toEqual([...shape].sort());
+      const needed = countByDifficulty(shape);
+      for (const difficulty of [1, 2, 3] as const) {
+        expect(needed[difficulty]).toBeLessThanOrEqual(available[difficulty]);
+      }
+    }
+  });
+
+  // 8枚化で5〜6人の卓の難度配分を変えない（10の目標の割り当て）
+  it("5人と6人の手札の形が6枚時代の配り方と同じである", () => {
+    expect(dealShapeFor(5)).toEqual([1, 1, 2, 2, 3]);
+    expect(dealShapeFor(6)).toEqual([1, 1, 2, 2, 3, 3]);
+  });
+
+  it("8人の手札の形がセットの8枚すべてである", () => {
+    expect(dealShapeFor(8)).toEqual([...DIFFICULTY_SHAPE]);
+  });
+
+  it("表に無い人数ではundefinedを返す", () => {
+    expect(dealShapeFor(4)).toBeUndefined();
+    expect(dealShapeFor(9)).toBeUndefined();
   });
 
   it("項目数が5、ラウンド数が3である", () => {

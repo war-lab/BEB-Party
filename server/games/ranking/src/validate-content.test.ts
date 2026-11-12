@@ -1,4 +1,4 @@
-// 検証14項目。正常なパックを1項目だけ壊し、その項目だけが落ちることを確かめる（基本設計/10の検証項目）
+// 検証15項目。正常なパックを1項目だけ壊し、その項目だけが落ちることを確かめる（基本設計/10の検証項目）
 import { describe, expect, it } from "vitest";
 import { validatePack } from "./validate-content";
 import { validSet, validPack } from "./test-support/fixtures";
@@ -69,10 +69,19 @@ describe("検証4: 項目", () => {
 });
 
 describe("検証5: 目標の件数とid", () => {
-  it("6件でないものを落とす", () => {
+  it("8件でないものを落とす", () => {
     const pack = validPack();
     pack.sets[0]!.goals.pop();
     expect(itemsOf(validatePack(pack))).toContain(5);
+  });
+
+  // 6枚時代のセットが残っていると、7人と8人に配るカードが足りない（10の目標の割り当て）
+  it("6枚時代のセット（難度1・2が2枚ずつ）を落とす", () => {
+    const pack = validPack();
+    pack.sets[0]!.goals = pack.sets[0]!.goals.slice(0, 6);
+    const found = itemsOf(validatePack(pack));
+    expect(found).toContain(5);
+    expect(found).toContain(6);
   });
 
   it("idの重複を落とす", () => {
@@ -83,9 +92,9 @@ describe("検証5: 目標の件数とid", () => {
 });
 
 describe("検証6: 難度の構成", () => {
-  it("1,1,2,2,3,3 でないものを落とす", () => {
+  it("1,1,1,2,2,2,3,3 でないものを落とす", () => {
     const pack = validPack();
-    // 難度3を1枚だけにする（5人のとき落とす枚が無くなる）
+    // 難度3を1枚だけにする（6〜8人の手札の形を作れなくなる）
     pack.sets[0]!.goals[5]!.difficulty = 1;
     pack.sets[0]!.goals[5]!.goal = { type: "above", item: "e", than: "d" };
     expect(itemsOf(validatePack(pack))).toContain(6);
@@ -130,11 +139,23 @@ describe("検証9: 宣言した難度", () => {
   });
 });
 
-describe("検証10: 述語の重複", () => {
+describe("検証10: 目標の重複", () => {
   it("同じ述語を持つ2枚を落とす", () => {
     const pack = validPack();
     pack.sets[0]!.goals[1]!.goal = { type: "above", item: "a", than: "b" };
     expect(itemsOf(validatePack(pack))).toContain(10);
+  });
+
+  // 書き方が違っても真になる順位が同じなら、2人が同じ立場になる（10の検証項目）
+  it("書き方が違っても真になる順位が同じ2枚を落とす", () => {
+    const pack = validPack();
+    // g3 は top b within 1。exact b rank 1 は同じ順位でだけ真になる
+    pack.sets[0]!.goals[5]!.goal = { type: "exact", item: "b", rank: 1 };
+    expect(itemsOf(validatePack(pack))).toContain(10);
+  });
+
+  it("正常なパックでは発火しない", () => {
+    expect(validatePack(validPack()).findings.filter((finding) => finding.item === 10)).toHaveLength(0);
   });
 });
 
@@ -154,11 +175,12 @@ describe("検証11: 達成可能性", () => {
   });
 });
 
-describe("検証12: 全目標の同時達成", () => {
-  it("全て同時に達成できるセットを落とす", () => {
+describe("検証12: 手札の全目標の同時達成", () => {
+  // 8枚全体では対立があっても、5人の手札で対立が消えるセットを落とす（10の検証項目）
+  it("8枚全体は同時達成できないが、5人の手札が同時達成できるセットを落とす", () => {
     const pack = validPack();
-    // 6枚すべてを a,b,c,d,e の順で成立する述語に置き換える
     const set = pack.sets[0]!;
+    // a,b,c,d,e の順で g1〜g7 が成立する。g8（cを1位）だけが他と両立しない
     set.goals = [
       { ...set.goals[0]!, difficulty: 1, goal: { type: "above", item: "a", than: "b" } },
       { ...set.goals[1]!, difficulty: 1, goal: { type: "above", item: "b", than: "c" } },
@@ -166,16 +188,28 @@ describe("検証12: 全目標の同時達成", () => {
       { ...set.goals[3]!, difficulty: 2, goal: { type: "bottom", item: "e", within: 1 } },
       { ...set.goals[4]!, difficulty: 3, goal: { type: "exact", item: "c", rank: 3 } },
       { ...set.goals[5]!, difficulty: 3, goal: { type: "exact", item: "d", rank: 4 } },
+      { ...set.goals[6]!, difficulty: 1, goal: { type: "above", item: "c", than: "d" } },
+      { ...set.goals[7]!, difficulty: 2, goal: { type: "top", item: "c", within: 1 } },
     ];
-    expect(itemsOf(validatePack(pack))).toContain(12);
+    const report = validatePack(pack);
+    const findings12 = report.findings.filter((finding) => finding.item === 12);
+    expect(findings12.length).toBeGreaterThan(0);
+    // 反例には手札の人数が出る。5人の手札は反例に出て、8人の手札（8枚全体）は同時達成できないため反例に出ない
+    const details = findings12.flatMap((finding) => finding.detail);
+    expect(details.some((line) => line.startsWith("手札（5人）"))).toBe(true);
+    expect(details.some((line) => line.startsWith("手札（8人）"))).toBe(false);
+  });
+
+  it("正常なパックでは発火しない", () => {
+    expect(validatePack(validPack()).findings.filter((finding) => finding.item === 12)).toHaveLength(0);
   });
 });
 
 describe("検証13: 同時達成の下限", () => {
-  it("最大2枚しか同時に達成できないセットを落とす", () => {
+  it("手札によっては最大2枚しか同時に達成できないセットを落とす", () => {
     const pack = validPack();
     const set = pack.sets[0]!;
-    // 3枚が互いに1位を争う形にすると、同時達成は最大2枚になる
+    // 1位を争う目標と、互いに逆向きの2枚を並べると、5人の手札で同時達成が最大2枚になる
     set.goals = [
       { ...set.goals[0]!, difficulty: 1, goal: { type: "above", item: "a", than: "b" } },
       { ...set.goals[1]!, difficulty: 1, goal: { type: "above", item: "b", than: "a" } },
@@ -183,9 +217,24 @@ describe("検証13: 同時達成の下限", () => {
       { ...set.goals[3]!, difficulty: 2, goal: { type: "top", item: "d", within: 1 } },
       { ...set.goals[4]!, difficulty: 3, goal: { type: "exact", item: "e", rank: 1 } },
       { ...set.goals[5]!, difficulty: 3, goal: { type: "exact", item: "a", rank: 1 } },
+      { ...set.goals[6]!, difficulty: 1, goal: { type: "top", item: "e", within: 2 } },
+      { ...set.goals[7]!, difficulty: 2, goal: { type: "top", item: "b", within: 1 } },
     ];
     const report = validatePack(pack);
     expect(itemsOf(report)).toContain(13);
+  });
+});
+
+describe("検証15: 常に達成される目標", () => {
+  it("どの順位でも真になる目標を落とす", () => {
+    const pack = validPack();
+    // 5項目で5位以内は必ず真になる
+    pack.sets[0]!.goals[6]!.goal = { type: "top", item: "d", within: 5 };
+    expect(itemsOf(validatePack(pack))).toContain(15);
+  });
+
+  it("正常なパックでは発火しない", () => {
+    expect(validatePack(validPack()).findings.filter((finding) => finding.item === 15)).toHaveLength(0);
   });
 });
 

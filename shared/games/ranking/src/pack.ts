@@ -50,7 +50,7 @@ export interface KeyExpression {
   ja: string;
 }
 
-/** 1ラウンド分のお題。5項目と6枚の目標カードの組 */
+/** 1ラウンド分のお題。5項目と8枚の目標カードの組 */
 export interface RankingSet {
   id: string;
   question: { en: string; ja: string };
@@ -69,16 +69,45 @@ export interface RankingPack {
 /** 1セットの項目数。全順列の総当たりを成立させるため固定する（10の検証4） */
 export const ITEMS_PER_SET = 5;
 
-/** 1セットの目標カード数。対応人数の上限6人に配る（10の検証5） */
-export const GOALS_PER_SET = 6;
+/** 1セットの目標カード数。対応人数の上限8人に1枚ずつ配る（10の検証5、ADR-0033） */
+export const GOALS_PER_SET = 8;
 
 /**
- * 目標カード6枚の難度構成。
+ * 目標カード8枚の難度構成。
  *
- * 5人のときは難度3を1枚落として配るため、難度3を2枚持たせる（10の目標の割り当て）。
+ * 人数ごとの手札の形（DEAL_SHAPES）は、すべてこの8枚から難度ごとに枚数を選んで作る（10の目標の割り当て）。
  * 昇順で持つのは、検証でソート済みの列と直接比較するためである。
  */
-export const DIFFICULTY_SHAPE: readonly GoalDifficulty[] = [1, 1, 2, 2, 3, 3];
+export const DIFFICULTY_SHAPE: readonly GoalDifficulty[] = [1, 1, 1, 2, 2, 2, 3, 3];
+
+/**
+ * 参加人数ごとに配る難度の構成（手札の形）。昇順で持つ。
+ *
+ * 5人と6人は、セットが6枚だったときの配り方と同じにする。8枚化で5〜6人の卓の難度配分を変えないためである。
+ * 7人目と8人目には難度1と難度2を足し、難度3は2枚に据え置く。exactが3枚以上出ると順位の大半が
+ * exact同士の調整で埋まり、人数が増えて1人あたりの発言時間が減るところへ負荷の高いカードを重ねないためである。
+ * キーはモジュールの playerCount の範囲と一致させる（テストで固定する）。
+ */
+export const DEAL_SHAPES: Readonly<Record<number, readonly GoalDifficulty[]>> = {
+  5: [1, 1, 2, 2, 3],
+  6: [1, 1, 2, 2, 3, 3],
+  7: [1, 1, 1, 2, 2, 3, 3],
+  8: [1, 1, 1, 2, 2, 2, 3, 3],
+};
+
+/** 人数に対応する手札の形。表に無い人数なら undefined */
+export function dealShapeFor(playerCount: number): readonly GoalDifficulty[] | undefined {
+  return DEAL_SHAPES[playerCount];
+}
+
+/** 手札の形から、難度ごとの枚数を数える */
+export function countByDifficulty(shape: readonly GoalDifficulty[]): Record<GoalDifficulty, number> {
+  const counts: Record<GoalDifficulty, number> = { 1: 0, 2: 0, 3: 0 };
+  for (const difficulty of shape) {
+    counts[difficulty] += 1;
+  }
+  return counts;
+}
 
 /**
  * パックが持つセット数の下限。
@@ -157,7 +186,7 @@ export function goalKey(goal: Goal): string {
   }
 }
 
-/** 項目の全順列。5項目で120通りであり、検証11〜13で総当たりする */
+/** 項目の全順列。5項目で120通りであり、検証10〜13・15で総当たりする */
 export function permutations(itemIds: readonly string[]): string[][] {
   if (itemIds.length <= 1) {
     return [[...itemIds]];

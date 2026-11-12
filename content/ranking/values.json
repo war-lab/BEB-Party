@@ -36,6 +36,17 @@
           "goal": { "type": "top", "item": "friends", "within": 2 }
         },
         {
+          "id": "food_over_money",
+          "difficulty": 1,
+          "ja": "foodをmoneyより上にする",
+          "hintEn": [
+            "Food is more important than money.",
+            "Good food keeps us healthy and happy.",
+            "Money is only paper. Food is life."
+          ],
+          "goal": { "type": "above", "item": "food", "than": "money" }
+        },
+        {
           "id": "money_first",
           "difficulty": 2,
           "ja": "moneyを1位にする",
@@ -56,6 +67,17 @@
             "We can be happy with only five hours of sleep."
           ],
           "goal": { "type": "bottom", "item": "sleep", "within": 1 }
+        },
+        {
+          "id": "money_last",
+          "difficulty": 2,
+          "ja": "moneyを最下位にする",
+          "hintEn": [
+            "Money should be last.",
+            "Many rich people are not happy.",
+            "The best things in life are free."
+          ],
+          "goal": { "type": "bottom", "item": "money", "within": 1 }
         },
         {
           "id": "food_exact3",
@@ -120,6 +142,17 @@
           "goal": { "type": "bottom", "item": "knowledge", "within": 2 }
         },
         {
+          "id": "passion_top2",
+          "difficulty": 1,
+          "ja": "passionを2位以内に入れる",
+          "hintEn": [
+            "Passion should be in the top two.",
+            "A teacher who loves the subject makes us love it too.",
+            "Without passion, a class is just a list of facts."
+          ],
+          "goal": { "type": "top", "item": "passion", "within": 2 }
+        },
+        {
           "id": "patience_first",
           "difficulty": 2,
           "ja": "patienceを1位にする",
@@ -140,6 +173,17 @@
             "We come to learn, not to laugh."
           ],
           "goal": { "type": "bottom", "item": "humor", "within": 1 }
+        },
+        {
+          "id": "knowledge_first",
+          "difficulty": 2,
+          "ja": "knowledgeを1位にする",
+          "hintEn": [
+            "Knowledge has to be first.",
+            "A teacher who doesn't know the answer can't help us.",
+            "Patience and humor are nice, but we come to learn."
+          ],
+          "goal": { "type": "top", "item": "knowledge", "within": 1 }
         },
         {
           "id": "fairness_exact2",
@@ -204,6 +248,17 @@
           "goal": { "type": "top", "item": "safety", "within": 3 }
         },
         {
+          "id": "safety_over_price",
+          "difficulty": 1,
+          "ja": "safetyをpriceより上にする",
+          "hintEn": [
+            "Safety is more important than price.",
+            "A cheap hotel in a dangerous area is not a good deal.",
+            "We should never save money on safety."
+          ],
+          "goal": { "type": "above", "item": "safety", "than": "price" }
+        },
+        {
           "id": "price_first",
           "difficulty": 2,
           "ja": "priceを1位にする",
@@ -224,6 +279,17 @@
             "Rain or sun, a good trip is still good."
           ],
           "goal": { "type": "bottom", "item": "weather", "within": 1 }
+        },
+        {
+          "id": "weather_first",
+          "difficulty": 2,
+          "ja": "weatherを1位にする",
+          "hintEn": [
+            "Weather must be number one.",
+            "A beach trip in the rain is no fun.",
+            "Bad weather can cancel flights and close roads."
+          ],
+          "goal": { "type": "top", "item": "weather", "within": 1 }
         },
         {
           "id": "people_exact4",
@@ -288,6 +354,17 @@
           "goal": { "type": "bottom", "item": "weight", "within": 2 }
         },
         {
+          "id": "price_top2",
+          "difficulty": 1,
+          "ja": "priceを2位以内に入れる",
+          "hintEn": [
+            "Price should be in the top two.",
+            "A phone is useless if we cannot pay for it.",
+            "Most people look at the price first."
+          ],
+          "goal": { "type": "top", "item": "price", "within": 2 }
+        },
+        {
           "id": "camera_first",
           "difficulty": 2,
           "ja": "cameraを1位にする",
@@ -308,6 +385,17 @@
             "Cheap phones cost more in the end."
           ],
           "goal": { "type": "bottom", "item": "price", "within": 1 }
+        },
+        {
+          "id": "screen_last",
+          "difficulty": 2,
+          "ja": "screenを最下位にする",
+          "hintEn": [
+            "The screen should be last.",
+            "All screens today are clear and bright.",
+            "We can't really see the difference between screens."
+          ],
+          "goal": { "type": "bottom", "item": "screen", "within": 1 }
         },
         {
           "id": "screen_exact3",
@@ -372,6 +460,17 @@
           "goal": { "type": "top", "item": "hours", "within": 2 }
         },
         {
+          "id": "boss_over_commute",
+          "difficulty": 1,
+          "ja": "bossをcommuteより上にする",
+          "hintEn": [
+            "The boss is more important than the commute.",
+            "A bad boss can make every day hard.",
+            "A long train ride is tiring, but a bad boss is worse."
+          ],
+          "goal": { "type": "above", "item": "boss", "than": "commute" }
+        },
+        {
           "id": "salary_first",
           "difficulty": 2,
           "ja": "salaryを1位にする",
@@ -392,6 +491,17 @@
             "We can work well even with a quiet boss."
           ],
           "goal": { "type": "bottom", "item": "boss", "within": 1 }
+        },
+        {
+          "id": "boss_first",
+          "difficulty": 2,
+          "ja": "bossを1位にする",
+          "hintEn": [
+            "The boss has to be first.",
+            "A good boss teaches you and protects you.",
+            "People don't leave jobs. They leave bosses."
+          ],
+          "goal": { "type": "top", "item": "boss", "within": 1 }
         },
         {
           "id": "commute_exact3",
@@ -456,6 +566,17 @@
           "goal": { "type": "bottom", "item": "games", "within": 2 }
         },
         {
+          "id": "reading_over_movies",
+          "difficulty": 1,
+          "ja": "readingをmoviesより上にする",
+          "hintEn": [
+            "Reading helps more than movies.",
+            "When we read, we can stop and check new words.",
+            "Movies are too fast for most learners."
+          ],
+          "goal": { "type": "above", "item": "reading", "than": "movies" }
+        },
+        {
           "id": "speaking_first",
           "difficulty": 2,
           "ja": "speakingを1位にする",
@@ -476,6 +597,17 @@
             "Song English is strange English."
           ],
           "goal": { "type": "bottom", "item": "music", "within": 1 }
+        },
+        {
+          "id": "games_first",
+          "difficulty": 2,
+          "ja": "gamesを1位にする",
+          "hintEn": [
+            "Games must be number one.",
+            "In online games, we talk with people from all over the world.",
+            "When learning is fun, we keep doing it."
+          ],
+          "goal": { "type": "top", "item": "games", "within": 1 }
         },
         {
           "id": "movies_exact2",

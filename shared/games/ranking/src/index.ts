@@ -1,12 +1,15 @@
 // お題データのスキーマ型（正本）とENGLISH RANKINGのランタイム型・表示文言の定数
 export type { Goal, GoalCard, GoalDifficulty, KeyExpression, RankingItem, RankingPack, RankingSet } from "./pack";
 export {
+  DEAL_SHAPES,
   DIFFICULTY_SHAPE,
   GOALS_PER_SET,
   ITEMS_PER_SET,
   MIN_HINTS,
   MIN_SETS,
   achieves,
+  countByDifficulty,
+  dealShapeFor,
   difficultyOf,
   goalKey,
   permutations,

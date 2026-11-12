@@ -17,10 +17,14 @@ function hints(): string[] {
 }
 
 /**
- * 難度構成 1,1,2,2,3,3 を満たし、検証11〜13を通る6枚。
+ * 難度構成 1,1,1,2,2,2,3,3 を満たし、検証10〜13・15を配りうる全手札で通る8枚。
  *
- * 全6枚は同時に達成できない（`b`を1位に置く目標と`a`を`b`より上に置く目標が両立しない）。
- * 同時達成の最大は4枚である（`b,a,c,d,e` の順で g2・g3・g4・g5 が成立する）。
+ * 配列の先頭6枚は6枚時代と同じであり、g7（難度1）とg8（難度2）を末尾に足している。
+ * テストが添字で1枚を壊すため、既存の添字を動かさない。
+ *
+ * 8枚は同時に達成できない（`b`を1位に置くg3と`b`を最下位に置くg8が両立しない）。
+ * 5人の手札（難度1・2から2枚ずつ、難度3から1枚）でも全枚の同時達成は無く、
+ * 同時達成の最大はどの手札でも3枚以上である（総当たりで確認した値は、5〜6人で3〜4枚、7〜8人で4枚）。
  */
 function goals(): GoalCard[] {
   return [
@@ -30,6 +34,8 @@ function goals(): GoalCard[] {
     { id: "g4", difficulty: 2, ja: "eを最下位にする", hintEn: hints(), goal: { type: "bottom", item: "e", within: 1 } },
     { id: "g5", difficulty: 3, ja: "cをちょうど3位にする", hintEn: hints(), goal: { type: "exact", item: "c", rank: 3 } },
     { id: "g6", difficulty: 3, ja: "aをちょうど5位にする", hintEn: hints(), goal: { type: "exact", item: "a", rank: 5 } },
+    { id: "g7", difficulty: 1, ja: "dを2位以内に入れる", hintEn: hints(), goal: { type: "top", item: "d", within: 2 } },
+    { id: "g8", difficulty: 2, ja: "bを最下位にする", hintEn: hints(), goal: { type: "bottom", item: "b", within: 1 } },
   ];
 }
 

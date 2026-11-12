@@ -36,6 +36,17 @@
           "goal": { "type": "bottom", "item": "schools", "within": 2 }
         },
         {
+          "id": "schools_top3",
+          "difficulty": 1,
+          "ja": "schoolsを3位以内に入れる",
+          "hintEn": [
+            "Schools should be in the top three.",
+            "Good schools bring young families to a town.",
+            "A town without children gets old and quiet."
+          ],
+          "goal": { "type": "top", "item": "schools", "within": 3 }
+        },
+        {
           "id": "trains_first",
           "difficulty": 2,
           "ja": "trainsを1位にする",
@@ -56,6 +67,17 @@
             "Older people and families need a hospital nearby."
           ],
           "goal": { "type": "top", "item": "hospitals", "within": 1 }
+        },
+        {
+          "id": "parks_first",
+          "difficulty": 2,
+          "ja": "parksを1位にする",
+          "hintEn": [
+            "Parks must be number one.",
+            "Kids and dogs need a place to run.",
+            "A walk in the park is free every day."
+          ],
+          "goal": { "type": "top", "item": "parks", "within": 1 }
         },
         {
           "id": "shops_exact2",
@@ -120,6 +142,17 @@
           "goal": { "type": "top", "item": "kitchen", "within": 2 }
         },
         {
+          "id": "size_over_location",
+          "difficulty": 1,
+          "ja": "sizeをlocationより上にする",
+          "hintEn": [
+            "Size is more important than location.",
+            "You spend more time inside your home than at the station.",
+            "A tiny room feels like a box, even in a great area."
+          ],
+          "goal": { "type": "above", "item": "size", "than": "location" }
+        },
+        {
           "id": "rent_first",
           "difficulty": 2,
           "ja": "rentを1位にする",
@@ -140,6 +173,17 @@
             "A long commute takes hours out of your day."
           ],
           "goal": { "type": "top", "item": "location", "within": 1 }
+        },
+        {
+          "id": "kitchen_last",
+          "difficulty": 2,
+          "ja": "kitchenを最下位にする",
+          "hintEn": [
+            "The kitchen should be last.",
+            "Many people eat out or buy food at convenience stores.",
+            "A small kitchen is fine if you only make coffee."
+          ],
+          "goal": { "type": "bottom", "item": "kitchen", "within": 1 }
         },
         {
           "id": "size_exact2",
@@ -204,6 +248,17 @@
           "goal": { "type": "top", "item": "greetings", "within": 2 }
         },
         {
+          "id": "cleanliness_over_privacy",
+          "difficulty": 1,
+          "ja": "cleanlinessをprivacyより上にする",
+          "hintEn": [
+            "Cleanliness is more important than privacy.",
+            "Trash by the door brings bugs to everyone's home.",
+            "We share the stairs and the trash area every day."
+          ],
+          "goal": { "type": "above", "item": "cleanliness", "than": "privacy" }
+        },
+        {
           "id": "privacy_first",
           "difficulty": 2,
           "ja": "privacyを1位にする",
@@ -224,6 +279,17 @@
             "Many people in big cities never say hello, and that's fine."
           ],
           "goal": { "type": "bottom", "item": "greetings", "within": 1 }
+        },
+        {
+          "id": "kindness_first",
+          "difficulty": 2,
+          "ja": "kindnessを1位にする",
+          "hintEn": [
+            "Kindness must be number one.",
+            "A kind neighbor helps when you are sick or in trouble.",
+            "Small kind acts make the whole building warm."
+          ],
+          "goal": { "type": "top", "item": "kindness", "within": 1 }
         },
         {
           "id": "kindness_exact2",
@@ -288,6 +354,17 @@
           "goal": { "type": "top", "item": "honesty", "within": 2 }
         },
         {
+          "id": "cooking_over_tidiness",
+          "difficulty": 1,
+          "ja": "cookingをtidinessより上にする",
+          "hintEn": [
+            "Cooking is more important than tidiness.",
+            "A roommate who cooks makes dinner time happy.",
+            "A little mess is OK if the food is good."
+          ],
+          "goal": { "type": "above", "item": "cooking", "than": "tidiness" }
+        },
+        {
           "id": "tidiness_first",
           "difficulty": 2,
           "ja": "tidinessを1位にする",
@@ -308,6 +385,17 @@
             "We can always order food."
           ],
           "goal": { "type": "bottom", "item": "cooking", "within": 1 }
+        },
+        {
+          "id": "sleep_schedule_first",
+          "difficulty": 2,
+          "ja": "sleep scheduleを1位にする",
+          "hintEn": [
+            "The sleep schedule has to be first.",
+            "If one person sleeps while the other is loud, nobody is happy.",
+            "Good sleep makes everything else easier."
+          ],
+          "goal": { "type": "top", "item": "sleep_schedule", "within": 1 }
         },
         {
           "id": "sleep_schedule_exact2",
@@ -372,6 +460,17 @@
           "goal": { "type": "bottom", "item": "fish", "within": 2 }
         },
         {
+          "id": "rabbit_over_hamster",
+          "difficulty": 1,
+          "ja": "rabbitをhamsterより上にする",
+          "hintEn": [
+            "A rabbit is better than a hamster.",
+            "Rabbits are quiet and can learn their names.",
+            "Hamsters sleep all day and run all night."
+          ],
+          "goal": { "type": "above", "item": "rabbit", "than": "hamster" }
+        },
+        {
           "id": "dog_first",
           "difficulty": 2,
           "ja": "dogを1位にする",
@@ -392,6 +491,17 @@
             "Hamsters are quiet and cheap to keep."
           ],
           "goal": { "type": "top", "item": "hamster", "within": 1 }
+        },
+        {
+          "id": "fish_first",
+          "difficulty": 2,
+          "ja": "fishを1位にする",
+          "hintEn": [
+            "Fish must be number one.",
+            "Fish never make noise or scratch the walls.",
+            "A small tank fits on any shelf."
+          ],
+          "goal": { "type": "top", "item": "fish", "within": 1 }
         },
         {
           "id": "rabbit_exact2",
@@ -456,6 +566,17 @@
           "goal": { "type": "top", "item": "decorations", "within": 2 }
         },
         {
+          "id": "food_bottom2",
+          "difficulty": 1,
+          "ja": "foodを下から2位以内にする",
+          "hintEn": [
+            "Food should be near the bottom.",
+            "Everyone can bring snacks from the store.",
+            "People come to talk and play, not to eat."
+          ],
+          "goal": { "type": "bottom", "item": "food", "within": 2 }
+        },
+        {
           "id": "guests_first",
           "difficulty": 2,
           "ja": "guestsを1位にする",
@@ -476,6 +597,17 @@
             "It's a lot of work for very little fun."
           ],
           "goal": { "type": "bottom", "item": "decorations", "within": 1 }
+        },
+        {
+          "id": "music_first",
+          "difficulty": 2,
+          "ja": "musicを1位にする",
+          "hintEn": [
+            "Music must be number one.",
+            "Without music, a party feels like a meeting.",
+            "Good music makes people dance and talk."
+          ],
+          "goal": { "type": "top", "item": "music", "within": 1 }
         },
         {
           "id": "music_exact2",

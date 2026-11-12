@@ -36,6 +36,17 @@
           "goal": { "type": "top", "item": "blanket", "within": 2 }
         },
         {
+          "id": "water_over_lighter",
+          "difficulty": 1,
+          "ja": "waterをlighterより上にする",
+          "hintEn": [
+            "Water is more important than a lighter.",
+            "We can live only a few days without water.",
+            "We can make fire with sticks, but we can't make water."
+          ],
+          "goal": { "type": "above", "item": "water", "than": "lighter" }
+        },
+        {
           "id": "phone_first",
           "difficulty": 2,
           "ja": "phoneを1位にする",
@@ -56,6 +67,17 @@
             "We can use sharp stones or shells instead."
           ],
           "goal": { "type": "bottom", "item": "knife", "within": 1 }
+        },
+        {
+          "id": "blanket_last",
+          "difficulty": 2,
+          "ja": "blanketを最下位にする",
+          "hintEn": [
+            "The blanket should be last.",
+            "Islands are usually warm, even at night.",
+            "We can sleep on leaves and sand."
+          ],
+          "goal": { "type": "bottom", "item": "blanket", "within": 1 }
         },
         {
           "id": "water_exact2",
@@ -120,6 +142,17 @@
           "goal": { "type": "bottom", "item": "food", "within": 2 }
         },
         {
+          "id": "flashlight_over_power_bank",
+          "difficulty": 1,
+          "ja": "flashlightをpower bankより上にする",
+          "hintEn": [
+            "A flashlight is more important than a power bank.",
+            "A flashlight works for days on one battery.",
+            "A power bank runs out after one or two charges."
+          ],
+          "goal": { "type": "above", "item": "flashlight", "than": "power_bank" }
+        },
+        {
           "id": "power_bank_first",
           "difficulty": 2,
           "ja": "power bankを1位にする",
@@ -140,6 +173,17 @@
             "With cash, you can buy anything that is still for sale."
           ],
           "goal": { "type": "top", "item": "cash", "within": 1 }
+        },
+        {
+          "id": "food_first",
+          "difficulty": 2,
+          "ja": "foodを1位にする",
+          "hintEn": [
+            "Food must be number one.",
+            "In a disaster, shops close and lines are long.",
+            "Nobody can think or walk well when they are hungry."
+          ],
+          "goal": { "type": "top", "item": "food", "within": 1 }
         },
         {
           "id": "flashlight_exact2",
@@ -204,6 +248,17 @@
           "goal": { "type": "top", "item": "map", "within": 2 }
         },
         {
+          "id": "rain_jacket_over_tent",
+          "difficulty": 1,
+          "ja": "rain jacketをtentより上にする",
+          "hintEn": [
+            "A rain jacket is more important than a tent.",
+            "We wear a rain jacket all day, but we use the tent only at night.",
+            "Getting wet and cold can make you sick."
+          ],
+          "goal": { "type": "above", "item": "rain_jacket", "than": "tent" }
+        },
+        {
           "id": "tent_first",
           "difficulty": 2,
           "ja": "tentを1位にする",
@@ -224,6 +279,17 @@
             "Most campsites have clear signs."
           ],
           "goal": { "type": "bottom", "item": "map", "within": 1 }
+        },
+        {
+          "id": "tent_last",
+          "difficulty": 2,
+          "ja": "tentを最下位にする",
+          "hintEn": [
+            "The tent should be last.",
+            "Many campsites have cabins or shelters.",
+            "On a clear night, we can sleep under the stars."
+          ],
+          "goal": { "type": "bottom", "item": "tent", "within": 1 }
         },
         {
           "id": "stove_exact2",
@@ -288,6 +354,17 @@
           "goal": { "type": "bottom", "item": "window_seat", "within": 2 }
         },
         {
+          "id": "pillow_over_headphones",
+          "difficulty": 1,
+          "ja": "pillowをheadphonesより上にする",
+          "hintEn": [
+            "A pillow is more important than headphones.",
+            "The airline gives you headphones, but not a good pillow.",
+            "Sleep makes the flight feel shorter than any movie."
+          ],
+          "goal": { "type": "above", "item": "pillow", "than": "headphones" }
+        },
+        {
           "id": "headphones_first",
           "difficulty": 2,
           "ja": "headphonesを1位にする",
@@ -308,6 +385,17 @@
             "Without a pillow, your neck will hurt for days."
           ],
           "goal": { "type": "top", "item": "pillow", "within": 1 }
+        },
+        {
+          "id": "window_seat_first",
+          "difficulty": 2,
+          "ja": "window seatを1位にする",
+          "hintEn": [
+            "The window seat must be number one.",
+            "You can lean on the wall and sleep.",
+            "Nobody climbs over you to get out."
+          ],
+          "goal": { "type": "top", "item": "window_seat", "within": 1 }
         },
         {
           "id": "book_exact2",
@@ -372,6 +460,17 @@
           "goal": { "type": "top", "item": "fridge", "within": 2 }
         },
         {
+          "id": "washing_machine_top3",
+          "difficulty": 1,
+          "ja": "washing machineを3位以内に入れる",
+          "hintEn": [
+            "The washing machine should be in the top three.",
+            "Going to a laundromat every week takes a lot of time.",
+            "You need clean clothes for work and school."
+          ],
+          "goal": { "type": "top", "item": "washing_machine", "within": 3 }
+        },
+        {
           "id": "bed_first",
           "difficulty": 2,
           "ja": "bedを1位にする",
@@ -392,6 +491,17 @@
             "You can wash a few things by hand."
           ],
           "goal": { "type": "bottom", "item": "washing_machine", "within": 1 }
+        },
+        {
+          "id": "curtains_first",
+          "difficulty": 2,
+          "ja": "curtainsを1位にする",
+          "hintEn": [
+            "Curtains have to be first.",
+            "Without curtains, people outside can see into your room.",
+            "The morning sun will wake you up too early."
+          ],
+          "goal": { "type": "top", "item": "curtains", "within": 1 }
         },
         {
           "id": "desk_exact2",
@@ -456,6 +566,17 @@
           "goal": { "type": "bottom", "item": "hot_water", "within": 2 }
         },
         {
+          "id": "air_conditioner_top2",
+          "difficulty": 1,
+          "ja": "air conditionerを2位以内に入れる",
+          "hintEn": [
+            "The air conditioner should be in the top two.",
+            "In summer, the heat can be dangerous for old people and babies.",
+            "Without it, nobody can sleep on a hot night."
+          ],
+          "goal": { "type": "top", "item": "air_conditioner", "within": 2 }
+        },
+        {
           "id": "internet_first",
           "difficulty": 2,
           "ja": "internetを1位にする",
@@ -476,6 +597,17 @@
             "We can just open the windows."
           ],
           "goal": { "type": "bottom", "item": "air_conditioner", "within": 1 }
+        },
+        {
+          "id": "hot_water_first",
+          "difficulty": 2,
+          "ja": "hot waterを1位にする",
+          "hintEn": [
+            "Hot water must be number one.",
+            "In winter, we need hot water to stay warm.",
+            "Without hot water, we can't take a bath or wash dishes well."
+          ],
+          "goal": { "type": "top", "item": "hot_water", "within": 1 }
         },
         {
           "id": "fridge_exact2",

@@ -23,6 +23,8 @@ import {
   STAGES,
   STAGE_DEADLINE_SECONDS,
   achieves,
+  countByDifficulty,
+  dealShapeFor,
   hintCountFor,
   isFinalRound,
   type GoalCard,
@@ -119,31 +121,39 @@ function levelOf(players: readonly Player[], playerId: string): Level {
  * 1ラウンド分の目標を配る。
  *
  * 参加者をレベルの昇順、カードを難度の昇順に並べて対応させる（10のレベル差の吸収）。
- * 絶対的な割り当てにしないのは、6枚のカードで参加者のレベル分布を選べないためである。
+ * 絶対的な割り当てにしないのは、8枚のカードで参加者のレベル分布を選べないためである。
  *
- * 人数がカードより少ないときは、難度の高いカードから落とす。
- * 難度構成を 1,1,2,2,3,3 に固定しているため、5人なら難度3が1枚落ちる（10の検証6）。
+ * 配る難度の構成は人数ごとの手札の形（DEAL_SHAPES）で決め、同じ難度の中でどのカードを配るかはseedで選ぶ
+ * （10の目標の割り当て）。人数が表に無い場合とカードが手札の形に足りない場合は例外を投げる。
+ * 黙って飛ばすと、目標の無い参加者が0点で並び、ゲームが成立していないことに誰も気づかない。
  */
 function assignGoals(set: RankingSet, players: readonly Player[], random: () => number): Record<string, GoalCard> {
+  const shape = dealShapeFor(players.length);
+  if (shape === undefined) {
+    // 共通コアが開始時に playerCount で人数を検証するため、通常は到達しない
+    throw new Error(`目標を配れない人数: ${players.length}人（セット ${set.id}）`);
+  }
+
   // 同じレベルの2人が毎回同じ難度にならないよう、先にシャッフルしてから安定ソートする
   const ordered = shuffle([...players], random).sort((a, b) => a.level - b.level);
 
-  const cards = [...set.goals].sort((a, b) => a.difficulty - b.difficulty);
-  while (cards.length > ordered.length) {
-    // 最も難度の高い群からseedで1枚落とす
-    const hardest = cards[cards.length - 1]?.difficulty;
-    const candidates = cards.filter((card) => card.difficulty === hardest);
-    const victim = candidates[Math.floor(random() * candidates.length)];
-    const index = cards.findIndex((card) => card.id === victim?.id);
-    cards.splice(index === -1 ? cards.length - 1 : index, 1);
+  const needed = countByDifficulty(shape);
+  const cards: GoalCard[] = [];
+  for (const difficulty of [1, 2, 3] as const) {
+    const candidates = set.goals.filter((card) => card.difficulty === difficulty);
+    if (candidates.length < needed[difficulty]) {
+      // 検証5・6で8枚と難度構成を保証するため、通常は到達しない
+      throw new Error(
+        `セット ${set.id} の難度${difficulty}のカードが足りない: ${needed[difficulty]}枚必要、${candidates.length}枚`,
+      );
+    }
+    cards.push(...shuffle(candidates, random).slice(0, needed[difficulty]));
   }
 
   const goals: Record<string, GoalCard> = {};
   for (const [index, player] of ordered.entries()) {
-    const card = cards[index];
-    if (card !== undefined) {
-      goals[player.id] = card;
-    }
+    // cards は手札の形と同じ枚数（= 人数）であり、難度の昇順に並んでいる
+    goals[player.id] = cards[index] as GoalCard;
   }
   return goals;
 }
@@ -395,7 +405,7 @@ export const rankingModule: GameModule<RankingPublic, RankingSecret, RankingResu
   title: "ENGLISH RANKING",
   tagline: "秘密の目標を抱えて、英語で順位を決める",
   icon: "🏆",
-  playerCount: [5, 6],
+  playerCount: [5, 8],
   contentLabelJa: "お題を選ぶ",
   settingsFields: [
     {

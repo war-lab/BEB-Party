@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Player, Room } from "@beb/shared-core";
 import {
   ACTIONS,
+  DEAL_SHAPES,
   DISCUSSION_SECONDS,
   ERROR_CODES,
   POINTS_PER_GOAL,
@@ -15,11 +16,17 @@ import {
 } from "@beb/shared-ranking";
 import { playersOf, validPack } from "./test-support/fixtures";
 
-// 本番のcontent/を読ませない。テストは固定のパックだけを見る
+// 本番のcontent/を読ませない。テストは固定のパックだけを見る。
+// short_pack は6枚時代の形（難度1・2が2枚ずつ）のセットであり、7人以上に配るカードが足りない
 vi.mock("./packs", async () => {
   const { validPack: pack } = await import("./test-support/fixtures");
   const { summarize } = await vi.importActual<typeof import("./packs")>("./packs");
-  const packs = [pack()];
+  const short = pack();
+  short.id = "short_pack";
+  for (const set of short.sets) {
+    set.goals = set.goals.slice(0, 6);
+  }
+  const packs = [pack(), short];
   return {
     PACKS: packs,
     findPack: (packId: string) => packs.find((entry) => entry.id === packId),
@@ -33,6 +40,14 @@ const PACK_ID = "fixture_pack";
 const SEED = 4242;
 
 let players: Player[];
+
+/** 人数ごとの参加者のレベル。同値を混ぜ、同じレベルの並びをseedで崩す経路も通す */
+const LEVELS_BY_COUNT: Record<number, number[]> = {
+  5: [1, 2, 3, 4, 5],
+  6: [1, 2, 3, 4, 5, 5],
+  7: [1, 1, 2, 3, 4, 5, 5],
+  8: [1, 2, 2, 3, 3, 4, 5, 5],
+};
 
 beforeEach(() => {
   players = playersOf([1, 2, 3, 4, 5, 5]);
@@ -158,13 +173,68 @@ describe("目標の割り当て", () => {
     expect(difficulties).toEqual([...difficulties].sort());
   });
 
-  it("5人のとき難度3が1枚落ちて5枚配られる", () => {
-    const five = playersOf([1, 2, 3, 4, 5]);
-    const started = startGame({ players: five });
-    const goals = started.gameSecret?.goalsByRound[0] ?? {};
-    expect(Object.keys(goals)).toHaveLength(5);
-    const difficulties = Object.values(goals).map((card) => card.difficulty).sort();
-    expect(difficulties).toEqual([1, 1, 2, 2, 3]);
+  // 人数ごとの手札の形どおりに、全員へ1枚ずつ配る（10の目標の割り当て）
+  it.each([
+    [5, [1, 1, 2, 2, 3]],
+    [6, [1, 1, 2, 2, 3, 3]],
+    [7, [1, 1, 1, 2, 2, 3, 3]],
+    [8, [1, 1, 1, 2, 2, 2, 3, 3]],
+  ])("%i人のとき難度 %j が全員に1枚ずつ配られる", (count, expected) => {
+    const members = playersOf(LEVELS_BY_COUNT[count]!);
+    const started = startGame({ players: members });
+    for (const round of started.gameSecret?.goalsByRound ?? []) {
+      expect(Object.keys(round).sort()).toEqual(members.map((player) => player.id).sort());
+      const difficulties = Object.values(round)
+        .map((card) => card.difficulty)
+        .sort();
+      expect(difficulties).toEqual(expected);
+    }
+  });
+
+  // 手札の形の表に無い人数で開始すると、割り当てが例外になる（表と playerCount の一致を固定する）
+  it("手札の形の表の人数が playerCount の範囲と一致する", () => {
+    const [min, max] = rankingModule.playerCount;
+    const expected = Array.from({ length: max - min + 1 }, (_, index) => String(min + index));
+    expect(Object.keys(DEAL_SHAPES).sort()).toEqual(expected.sort());
+  });
+
+  // カードが足りない参加者を黙って飛ばすと、目標の無い参加者が0点で並ぶ（10の目標の割り当て）
+  it("表に無い人数では例外を投げる", () => {
+    expect(() => startGame({ players: playersOf([1, 2, 3, 4]) })).toThrow(/目標を配れない人数/);
+    expect(() => startGame({ players: playersOf([1, 1, 2, 2, 3, 3, 4, 4, 5]) })).toThrow(/目標を配れない人数/);
+  });
+
+  it("手札の形を満たさないセットでは、黙って飛ばさず例外を投げる", () => {
+    const seven = playersOf(LEVELS_BY_COUNT[7]!);
+    expect(() =>
+      rankingModule.start({ players: seven, contentId: "short_pack", settings: {}, seed: SEED }),
+    ).toThrow(/カードが足りない/);
+  });
+
+  it("6枚時代の形のセットでも、5人と6人には配れる", () => {
+    for (const count of [5, 6]) {
+      const members = playersOf(LEVELS_BY_COUNT[count]!);
+      const started = rankingModule.start({ players: members, contentId: "short_pack", settings: {}, seed: SEED });
+      expect(Object.keys(started.gameSecret?.goalsByRound[0] ?? {})).toHaveLength(count);
+    }
+  });
+
+  // 5人では難度1・2・3から1枚ずつ配らないカードが出る。どれを配るかはseedで変わる
+  it("5人のとき、同じ難度の中で配るカードがseedによって変わる", () => {
+    const five = playersOf(LEVELS_BY_COUNT[5]!);
+    const dealt = new Set<string>();
+    for (let seed = 1; seed <= 30; seed += 1) {
+      const started = startGame({ players: five, seed });
+      for (const round of started.gameSecret?.goalsByRound ?? []) {
+        dealt.add(
+          Object.values(round)
+            .map((card) => card.id)
+            .sort()
+            .join(","),
+        );
+      }
+    }
+    expect(dealt.size).toBeGreaterThan(1);
   });
 
   it("配る目標のidが重複しない", () => {
@@ -587,6 +657,74 @@ describe("3ラウンドの通し", () => {
   });
 });
 
+describe("人数ごとの開始から終局まで", () => {
+  // 申告する人数範囲の両端と、その間のすべての人数で通す（ADR-0026・ADR-0033のテストと動作確認）。
+  // ready・提案・承認の操作で進め、締切は議論の終わりにだけ使う（議論は締切でしか終わらない）
+  it.each([5, 6, 7, 8])("%i人で3ラウンドを操作で進め、結果に全員の目標と得点が載る", (count) => {
+    players = playersOf(LEVELS_BY_COUNT[count]!);
+    const started = startGame({ players });
+    const gameSecret = started.gameSecret;
+    let publicState = started.publicState;
+    let stage: string = started.stage;
+    let result: ReturnType<typeof rankingModule.onDeadline>["result"];
+    let lastSecrets: ReadonlyMap<string, unknown> | undefined;
+
+    function apply(transition: ReturnType<typeof rankingModule.onDeadline>): void {
+      expect(transition.reject).toBeUndefined();
+      publicState = transition.publicState ?? publicState;
+      stage = transition.stage ?? stage;
+      result = transition.result ?? result;
+      lastSecrets = transition.secrets ?? lastSecrets;
+    }
+
+    function act(playerId: string, action: string, payload: unknown = {}): void {
+      apply(
+        rankingModule.handleAction({ room: roomOf(publicState, stage), publicState, gameSecret, playerId, action, payload }),
+      );
+    }
+
+    function actAll(action: string): void {
+      for (const player of players) {
+        act(player.id, action);
+      }
+    }
+
+    const everyone = players.map((player) => player.id).sort();
+
+    // 開始時に全員へ自分の目標が届く
+    expect([...started.secrets.keys()].sort()).toEqual(everyone);
+
+    for (let round = 0; round < ROUNDS; round += 1) {
+      expect(stage).toBe(STAGES.briefing);
+      actAll(ACTIONS.ready);
+      expect(stage).toBe(STAGES.discussion);
+      apply(rankingModule.onDeadline({ room: roomOf(publicState, stage), publicState, gameSecret }));
+      expect(stage).toBe(STAGES.confirming);
+
+      // 定義順を逆にした並びをホストが提案し、全員が承認する
+      act(players[0]!.id, ACTIONS.proposeRanking, { ranking: publicState.items.map((item) => item.id).reverse() });
+      actAll(ACTIONS.approveRanking);
+      expect(stage).toBe(STAGES.reveal);
+      expect(publicState.rounds).toHaveLength(round + 1);
+      expect(publicState.rounds[round]?.goals.map((goal) => goal.playerId).sort()).toEqual(everyone);
+
+      if (round < ROUNDS - 1) {
+        lastSecrets = undefined;
+        actAll(ACTIONS.ready);
+        expect(publicState.roundIndex).toBe(round + 1);
+        // 次のラウンドの目標が全員へ送り直される。
+        // lastSecrets はクロージャ内で代入されるため、直前の undefined 代入による型の絞り込みを外して読む
+        const resent = lastSecrets as ReadonlyMap<string, unknown> | undefined;
+        expect([...(resent?.keys() ?? [])].sort()).toEqual(everyone);
+      }
+    }
+
+    expect(result).toBeDefined();
+    expect(result?.rounds).toHaveLength(ROUNDS);
+    expect(result?.scores.map((entry) => entry.playerId).sort()).toEqual(everyone);
+  });
+});
+
 describe("validateSettings", () => {
   it("記述子のminとmaxが受理範囲と一致する", () => {
     const field = rankingModule.settingsFields[0];
@@ -787,8 +925,8 @@ describe("rebuildSecret", () => {
     expect((h.saved.get(players[5]!.id) as RankingSecret).roundIndex).toBe(ROUNDS - 1);
   });
 
-  it("5人でも全ラウンドで一致する", () => {
-    players = playersOf([1, 2, 3, 4, 5]);
+  it.each([5, 7, 8])("%i人でも全ラウンドで一致する", (count) => {
+    players = playersOf(LEVELS_BY_COUNT[count]!);
     const h = harness({ players });
     for (let round = 0; round < ROUNDS; round += 1) {
       h.actAll(ACTIONS.ready);
