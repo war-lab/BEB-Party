@@ -393,6 +393,12 @@ importers:
         specifier: workspace:*
         version: link:../../core
 
+  shared/games/mindmeld:
+    dependencies:
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../core
+
   shared/games/ranking:
     dependencies:
       '@beb/shared-core':

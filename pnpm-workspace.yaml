@@ -5,6 +5,7 @@ packages:
   - shared/games/detectives
   - shared/games/dontsayit
   - shared/games/escapecall
+  - shared/games/mindmeld
   - shared/games/ranking
   - shared/games/secretrule
   - shared/games/whowrotethis
