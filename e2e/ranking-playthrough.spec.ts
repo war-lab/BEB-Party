@@ -132,9 +132,9 @@ for (const { count, levels, timeout } of TABLES) {
             continue;
           }
           const withoutRounds = JSON.stringify({ ...gameState, rounds: [] });
-          for (const goalText of GOAL_TEXTS) {
-            expect(withoutRounds).not.toContain(goalText);
-          }
+          // 目標文ごとにexpectを呼ぶと、目標8枚化で呼び出しが1万回を超えて締切を食うため、
+          // 現れた目標文の一覧が空であることを1回で確かめる（検出力は同じ）
+          expect(GOAL_TEXTS.filter((goalText) => withoutRounds.includes(goalText))).toEqual([]);
         }
 
         // 確定済みのラウンド数が roundIndex と一致する（先のラウンドの目標が漏れていない）
