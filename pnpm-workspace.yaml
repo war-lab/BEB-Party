@@ -19,6 +19,7 @@ packages:
   - server/games/mindmeld
   - server/games/ranking
   - server/games/secretrule
+  - server/games/secretteams
   - server/games/twoheaded
   - server/games/whowrotethis
   - client/core

@@ -415,6 +415,15 @@ importers:
         specifier: workspace:*
         version: link:../../../shared/games/secretrule
 
+  server/games/secretteams:
+    dependencies:
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../../shared/core
+      '@beb/shared-secretteams':
+        specifier: workspace:*
+        version: link:../../../shared/games/secretteams
+
   server/games/twoheaded:
     dependencies:
       '@beb/shared-core':
@@ -523,6 +532,9 @@ importers:
       '@beb/server-secretrule':
         specifier: workspace:*
         version: link:../server/games/secretrule
+      '@beb/server-secretteams':
+        specifier: workspace:*
+        version: link:../server/games/secretteams
       '@beb/server-twoheaded':
         specifier: workspace:*
         version: link:../server/games/twoheaded

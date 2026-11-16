@@ -1,0 +1,204 @@
+{
+  "id": "basic",
+  "title": "はじめてのテーマ",
+  "keyExpressions": [
+    { "en": "You can ... it.", "ja": "それは…できる" },
+    { "en": "It's bigger than a ...", "ja": "…より大きい" },
+    { "en": "You can find it in ...", "ja": "…で見つかる" },
+    { "en": "Can you eat it?", "ja": "それは食べられる？" },
+    { "en": "Is it alive?", "ja": "それは生きている？" },
+    { "en": "Maybe.", "ja": "たぶんね" },
+    { "en": "I think you're on my team.", "ja": "あなたは味方だと思う" },
+    { "en": "Number four?", "ja": "4番？" }
+  ],
+  "families": [
+    {
+      "id": "water",
+      "themes": [
+        {
+          "id": "ocean",
+          "en": "Ocean",
+          "ja": "海",
+          "words": [
+            { "en": "whale", "ja": "クジラ" },
+            { "en": "wave", "ja": "波" },
+            { "en": "boat", "ja": "ボート" },
+            { "en": "shell", "ja": "貝がら" },
+            { "en": "salt", "ja": "塩" },
+            { "en": "island", "ja": "島" },
+            { "en": "shark", "ja": "サメ" }
+          ]
+        },
+        {
+          "id": "river",
+          "en": "River",
+          "ja": "川",
+          "words": [
+            { "en": "bridge", "ja": "橋" },
+            { "en": "salmon", "ja": "サケ" },
+            { "en": "canoe", "ja": "カヌー" },
+            { "en": "waterfall", "ja": "滝" },
+            { "en": "fish", "ja": "魚" },
+            { "en": "stone", "ja": "石" },
+            { "en": "otter", "ja": "カワウソ" }
+          ]
+        },
+        {
+          "id": "lake",
+          "en": "Lake",
+          "ja": "湖",
+          "words": [
+            { "en": "duck", "ja": "アヒル" },
+            { "en": "swan", "ja": "白鳥" },
+            { "en": "cabin", "ja": "山小屋" },
+            { "en": "fishing rod", "ja": "釣りざお" },
+            { "en": "frog", "ja": "カエル" },
+            { "en": "ice skating", "ja": "アイススケート" },
+            { "en": "rowboat", "ja": "手こぎボート" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sky",
+      "themes": [
+        {
+          "id": "space",
+          "en": "Space",
+          "ja": "宇宙",
+          "words": [
+            { "en": "rocket", "ja": "ロケット" },
+            { "en": "moon", "ja": "月" },
+            { "en": "planet", "ja": "惑星" },
+            { "en": "astronaut", "ja": "宇宙飛行士" },
+            { "en": "alien", "ja": "宇宙人" },
+            { "en": "comet", "ja": "彗星" },
+            { "en": "telescope", "ja": "望遠鏡" }
+          ]
+        },
+        {
+          "id": "weather",
+          "en": "Weather",
+          "ja": "天気",
+          "words": [
+            { "en": "rain", "ja": "雨" },
+            { "en": "snow", "ja": "雪" },
+            { "en": "cloud", "ja": "雲" },
+            { "en": "umbrella", "ja": "かさ" },
+            { "en": "thunder", "ja": "雷" },
+            { "en": "rainbow", "ja": "虹" },
+            { "en": "wind", "ja": "風" }
+          ]
+        },
+        {
+          "id": "birds",
+          "en": "Birds",
+          "ja": "鳥",
+          "words": [
+            { "en": "nest", "ja": "巣" },
+            { "en": "egg", "ja": "卵" },
+            { "en": "feather", "ja": "羽根" },
+            { "en": "wing", "ja": "つばさ" },
+            { "en": "owl", "ja": "フクロウ" },
+            { "en": "parrot", "ja": "オウム" },
+            { "en": "eagle", "ja": "ワシ" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "building",
+      "themes": [
+        {
+          "id": "school",
+          "en": "School",
+          "ja": "学校",
+          "words": [
+            { "en": "teacher", "ja": "先生" },
+            { "en": "desk", "ja": "机" },
+            { "en": "homework", "ja": "宿題" },
+            { "en": "test", "ja": "テスト" },
+            { "en": "chalk", "ja": "チョーク" },
+            { "en": "lunch box", "ja": "弁当箱" },
+            { "en": "classroom", "ja": "教室" }
+          ]
+        },
+        {
+          "id": "hospital",
+          "en": "Hospital",
+          "ja": "病院",
+          "words": [
+            { "en": "doctor", "ja": "医者" },
+            { "en": "nurse", "ja": "看護師" },
+            { "en": "medicine", "ja": "薬" },
+            { "en": "bandage", "ja": "包帯" },
+            { "en": "ambulance", "ja": "救急車" },
+            { "en": "bed", "ja": "ベッド" },
+            { "en": "x-ray", "ja": "レントゲン" }
+          ]
+        },
+        {
+          "id": "airport",
+          "en": "Airport",
+          "ja": "空港",
+          "words": [
+            { "en": "passport", "ja": "パスポート" },
+            { "en": "pilot", "ja": "パイロット" },
+            { "en": "suitcase", "ja": "スーツケース" },
+            { "en": "ticket", "ja": "チケット" },
+            { "en": "gate", "ja": "搭乗口" },
+            { "en": "runway", "ja": "滑走路" },
+            { "en": "airplane", "ja": "飛行機" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "event",
+      "themes": [
+        {
+          "id": "birthday",
+          "en": "Birthday",
+          "ja": "誕生日",
+          "words": [
+            { "en": "cake", "ja": "ケーキ" },
+            { "en": "candle", "ja": "ろうそく" },
+            { "en": "present", "ja": "プレゼント" },
+            { "en": "balloon", "ja": "風船" },
+            { "en": "party hat", "ja": "パーティー帽" },
+            { "en": "card", "ja": "カード" },
+            { "en": "age", "ja": "年齢" }
+          ]
+        },
+        {
+          "id": "wedding",
+          "en": "Wedding",
+          "ja": "結婚式",
+          "words": [
+            { "en": "ring", "ja": "指輪" },
+            { "en": "dress", "ja": "ドレス" },
+            { "en": "bride", "ja": "花嫁" },
+            { "en": "flowers", "ja": "花" },
+            { "en": "kiss", "ja": "キス" },
+            { "en": "church", "ja": "教会" },
+            { "en": "speech", "ja": "スピーチ" }
+          ]
+        },
+        {
+          "id": "christmas",
+          "en": "Christmas",
+          "ja": "クリスマス",
+          "words": [
+            { "en": "tree", "ja": "ツリー" },
+            { "en": "reindeer", "ja": "トナカイ" },
+            { "en": "stocking", "ja": "くつした" },
+            { "en": "snowman", "ja": "雪だるま" },
+            { "en": "bell", "ja": "鈴" },
+            { "en": "santa", "ja": "サンタ" },
+            { "en": "chimney", "ja": "えんとつ" }
+          ]
+        }
+      ]
+    }
+  ]
+}

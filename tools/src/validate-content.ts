@@ -26,6 +26,10 @@ import {
   validatePack as validateRulePack,
 } from "@beb/server-secretrule";
 import {
+  formatFinding as formatThemeFinding,
+  validatePack as validateThemePack,
+} from "@beb/server-secretteams";
+import {
   formatFinding as formatTwoHeadedFinding,
   validateSet as validateTwoHeadedSet,
 } from "@beb/server-twoheaded";
@@ -66,6 +70,10 @@ const validators: GameValidator[] = [
   {
     contentPath: "content/secretrule",
     validate: (content) => toGameReport(validateRulePack(content), formatRuleFinding),
+  },
+  {
+    contentPath: "content/secretteams",
+    validate: (content) => toGameReport(validateThemePack(content), formatThemeFinding),
   },
   {
     contentPath: "content/twoheaded",
