@@ -1,13 +1,13 @@
 # BEB Party
 
 同室の2〜8人で遊ぶ英語パーティゲーム集のWebアプリ。
-対応人数はゲームごとに異なる。SECRET RULE ENGLISHは2〜8人用、BLIND ROOMとDON'T SAY ITは3〜8人用、MIND MELDは4〜8人用、WHO WROTE THIS?とENGLISH RANKINGは5〜8人用、TWO-HEADED SPEAKERは6〜8人用、ENGLISH DETECTIVESは5〜6人用、ESCAPE CALLは2〜4人用である（[ADR-0033](docs/adr/0033-対象人数の上限を8人に上げる.md)）。
+対応人数はゲームごとに異なる。SECRET RULE ENGLISHは2〜8人用、BLIND ROOMとDON'T SAY ITは3〜8人用、MIND MELDとSECRET TEAMSは4〜8人用、WHO WROTE THIS?とENGLISH RANKINGは5〜8人用、TWO-HEADED SPEAKERは6〜8人用、ENGLISH DETECTIVESは5〜6人用、ESCAPE CALLは2〜4人用である（[ADR-0033](docs/adr/0033-対象人数の上限を8人に上げる.md)）。
 
 TOEIC 200点台から900点台までが混在しても全員が同時に楽しめることを目標にする。
 1つの部屋基盤の上に複数のゲームを載せ、その日の気分と人数で選んで遊ぶ。
 
 現在は9本を収録している。
-英語推理ゲーム **ENGLISH DETECTIVES**（人狼型）、禁止語を避けて人物を説明する **DON'T SAY IT**、秘密の目標を抱えて順位を議論する **ENGLISH RANKING**、匿名の英文から作者を当てる **WHO WROTE THIS?**、見えない配置を英語で伝えて同じ形を作る **BLIND ROOM**、2〜4人で手がかりを英語で伝え合って3つの錠を開ける **ESCAPE CALL**、英文を書いて試し、通る英文の隠れた規則を全員で見抜く **SECRET RULE ENGLISH**、ペアで同時に英単語を出して同じ語にそろえる **MIND MELD**、ペアで1語ずつ交互に話してお題を説明する **TWO-HEADED SPEAKER** である。
+英語推理ゲーム **ENGLISH DETECTIVES**（人狼型）、禁止語を避けて人物を説明する **DON'T SAY IT**、秘密の目標を抱えて順位を議論する **ENGLISH RANKING**、匿名の英文から作者を当てる **WHO WROTE THIS?**、見えない配置を英語で伝えて同じ形を作る **BLIND ROOM**、2〜4人で手がかりを英語で伝え合って3つの錠を開ける **ESCAPE CALL**、英文を書いて試し、通る英文の隠れた規則を全員で見抜く **SECRET RULE ENGLISH**、ペアで同時に英単語を出して同じ語にそろえる **MIND MELD**、ペアで1語ずつ交互に話してお題を説明する **TWO-HEADED SPEAKER**、伏せたチームの味方を英語の説明から見抜く **SECRET TEAMS** である。
 いずれもプレイヤーは自分のスマホで自分だけの秘密情報を受け取り、英語の会話で決着させる。
 
 ## 特徴
@@ -31,6 +31,7 @@ TOEIC 200点台から900点台までが混在しても全員が同時に楽し�
 | SECRET RULE ENGLISH | 2〜8人の協力型。英文を書いて試し、書いた本人だけが見る成否を英語で報告し合って、候補6件から秘密の規則を当てる | 実装済み（実プレイ未実施） |
 | MIND MELD | 4〜8人のチーム対抗戦。ペアの2人が同時に英単語を出し、同じ語にそろうまで連想を寄せ合う。近い語は申告と異議で決める | 実装済み（実プレイ未実施） |
 | TWO-HEADED SPEAKER | 6〜8人のチーム対抗戦。説明役のペアが英語を1語ずつ交互に声に出してお題を説明し、ほかのペアが声で当てる。7人のときは3人組を1つ作る | 実装済み（実プレイ未実施） |
+| SECRET TEAMS | 4〜8人のチーム対抗戦。誰が味方かを伏せたまま自分の単語を英語で遠回しに説明し、味方と相手チームのテーマを見抜く | 実装済み（実プレイ未実施） |
 | LOST IN TRANSLATION | 伝言ゲーム。各自に異なる伝達制約が付く | 候補 |
 | BROKEN STORY | 順に英文物語を継ぎ足す | 候補 |
 
