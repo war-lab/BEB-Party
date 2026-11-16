@@ -17,6 +17,7 @@
     "@beb/server-mindmeld": "workspace:*",
     "@beb/server-ranking": "workspace:*",
     "@beb/server-secretrule": "workspace:*",
+    "@beb/server-twoheaded": "workspace:*",
     "@beb/server-whowrotethis": "workspace:*",
     "@beb/shared-blindroom": "workspace:*",
     "@beb/shared-core": "workspace:*",
