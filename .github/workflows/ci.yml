@@ -100,6 +100,13 @@ jobs:
           pnpm --filter @beb/server-twoheaded run generate:sets
           git diff --exit-code -- server/games/twoheaded/src/sets.generated.ts
 
+      - name: テーマインデックス（SECRET TEAMS）の再生成と差分チェック
+        # content/secretteams/ の走査結果(server/games/secretteams/src/packs.generated.ts)はコミットする。
+        # テーマパック追加PRで再生成を忘れると、そのパックがWorkerのバンドルに入らない（17、01のコンテンツの読み込み）
+        run: |
+          pnpm --filter @beb/server-secretteams run generate:packs
+          git diff --exit-code -- server/games/secretteams/src/packs.generated.ts
+
       - name: 盤面アイコンの再生成と差分チェック
         # 生成物(client/public/items/blindroom/*.svg)はコミットする。形状の正本は
         # generate-icons.mjs にあり、SVGを直接編集すると色違いの形が揃わなくなる（ADR-0025）

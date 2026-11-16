@@ -332,6 +332,9 @@ importers:
       '@beb/server-secretrule':
         specifier: workspace:*
         version: link:../games/secretrule
+      '@beb/server-secretteams':
+        specifier: workspace:*
+        version: link:../games/secretteams
       '@beb/server-twoheaded':
         specifier: workspace:*
         version: link:../games/twoheaded
