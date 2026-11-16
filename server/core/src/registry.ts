@@ -8,6 +8,7 @@ import { escapeCallModule } from "@beb/server-escapecall";
 import { mindMeldModule } from "@beb/server-mindmeld";
 import { rankingModule } from "@beb/server-ranking";
 import { secretRuleModule } from "@beb/server-secretrule";
+import { twoHeadedModule } from "@beb/server-twoheaded";
 import { whoWroteThisModule } from "@beb/server-whowrotethis";
 
 // キーの順がロビーのゲーム選択と遊び方タブの並びになる。収録順で並べ、先頭はMVPのDETECTIVESとする
@@ -20,4 +21,5 @@ export const registry: Record<string, GameModule<unknown, unknown, unknown>> = {
   escapecall: escapeCallModule as unknown as GameModule<unknown, unknown, unknown>,
   secretrule: secretRuleModule as unknown as GameModule<unknown, unknown, unknown>,
   mindmeld: mindMeldModule as unknown as GameModule<unknown, unknown, unknown>,
+  twoheaded: twoHeadedModule as unknown as GameModule<unknown, unknown, unknown>,
 };

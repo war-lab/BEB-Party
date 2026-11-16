@@ -93,6 +93,13 @@ jobs:
           pnpm --filter @beb/server-mindmeld run generate:packs
           git diff --exit-code -- server/games/mindmeld/src/packs.generated.ts
 
+      - name: お題インデックス（TWO-HEADED SPEAKER）の再生成と差分チェック
+        # content/twoheaded/ の走査結果(server/games/twoheaded/src/sets.generated.ts)はコミットする。
+        # お題セット追加PRで再生成を忘れると、そのセットがWorkerのバンドルに入らない（16、01のコンテンツの読み込み）
+        run: |
+          pnpm --filter @beb/server-twoheaded run generate:sets
+          git diff --exit-code -- server/games/twoheaded/src/sets.generated.ts
+
       - name: 盤面アイコンの再生成と差分チェック
         # 生成物(client/public/items/blindroom/*.svg)はコミットする。形状の正本は
         # generate-icons.mjs にあり、SVGを直接編集すると色違いの形が揃わなくなる（ADR-0025）
