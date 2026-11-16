@@ -445,6 +445,12 @@ importers:
         specifier: workspace:*
         version: link:../../core
 
+  shared/games/twoheaded:
+    dependencies:
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../core
+
   shared/games/whowrotethis:
     dependencies:
       '@beb/shared-core':
