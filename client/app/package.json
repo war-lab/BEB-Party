@@ -19,6 +19,7 @@
     "@beb/client-mindmeld": "workspace:*",
     "@beb/client-ranking": "workspace:*",
     "@beb/client-secretrule": "workspace:*",
+    "@beb/client-secretteams": "workspace:*",
     "@beb/client-twoheaded": "workspace:*",
     "@beb/client-whowrotethis": "workspace:*"
   },

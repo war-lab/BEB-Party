@@ -30,6 +30,7 @@ packages:
   - client/games/mindmeld
   - client/games/ranking
   - client/games/secretrule
+  - client/games/secretteams
   - client/games/twoheaded
   - client/games/whowrotethis
   - client/app

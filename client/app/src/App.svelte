@@ -12,6 +12,7 @@
     mindmeld: () => import("@beb/client-mindmeld") as Promise<{ default: Component }>,
     ranking: () => import("@beb/client-ranking") as Promise<{ default: Component }>,
     secretrule: () => import("@beb/client-secretrule") as Promise<{ default: Component }>,
+    secretteams: () => import("@beb/client-secretteams") as Promise<{ default: Component }>,
     twoheaded: () => import("@beb/client-twoheaded") as Promise<{ default: Component }>,
     whowrotethis: () => import("@beb/client-whowrotethis") as Promise<{ default: Component }>,
   };
@@ -25,6 +26,7 @@
     mindmeld: () => import("@beb/client-mindmeld/guide") as Promise<{ default: Component }>,
     ranking: () => import("@beb/client-ranking/guide") as Promise<{ default: Component }>,
     secretrule: () => import("@beb/client-secretrule/guide") as Promise<{ default: Component }>,
+    secretteams: () => import("@beb/client-secretteams/guide") as Promise<{ default: Component }>,
     twoheaded: () => import("@beb/client-twoheaded/guide") as Promise<{ default: Component }>,
     whowrotethis: () => import("@beb/client-whowrotethis/guide") as Promise<{ default: Component }>,
   };
@@ -38,6 +40,7 @@
     mindmeld: () => import("@beb/client-mindmeld/stage-labels"),
     ranking: () => import("@beb/client-ranking/stage-labels"),
     secretrule: () => import("@beb/client-secretrule/stage-labels"),
+    secretteams: () => import("@beb/client-secretteams/stage-labels"),
     twoheaded: () => import("@beb/client-twoheaded/stage-labels"),
     whowrotethis: () => import("@beb/client-whowrotethis/stage-labels"),
   };
