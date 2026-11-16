@@ -2,7 +2,7 @@
 //
 // 公開状態・秘密情報・結果を別の型で表す。同じ型に混ぜると、片方だけを配るコードが書けなくなる（ADR-0003）。
 // 見本と聞き手の盤面は、開示までは秘密情報とゲーム秘密状態の側にだけ現れる。
-import type { ContentSummary, Level } from "@beb/shared-core";
+import { lapsFromId, type ContentSummary, type LapsId, type Level } from "@beb/shared-core";
 import type { Board } from "./board";
 import { DEFAULT_BOARD_SIZE_ID, type BoardSizeId } from "./board-size";
 import type { ItemDefinition, KeyExpression } from "./pack";
@@ -247,24 +247,14 @@ export interface BlindRoomSettings {
  * 人数から自動で決めないのは、4人で2周にすると1ゲームが約16分になり、受入条件の15分を超えるためである
  * （12の所要時間の見積り）。選ぶのはホストに任せる。
  */
-export const LAPS_OPTIONS = {
-  "1": { laps: 1, labelJa: "1周（全員が1回ずつ説明）" },
-  "2": { laps: 2, labelJa: "2周（全員が2回ずつ説明）" },
-} as const;
+export { LAPS_IDS, LAPS_OPTIONS, isLapsId, type LapsId } from "@beb/shared-core";
 
-export type LapsId = keyof typeof LAPS_OPTIONS;
-
-export const LAPS_IDS = Object.keys(LAPS_OPTIONS) as LapsId[];
-
+/** 選択肢そのものは共通コアにある（ADR-0020）。既定はゲームごとに決める */
 export const DEFAULT_LAPS_ID: LapsId = "1";
-
-export function isLapsId(value: unknown): value is LapsId {
-  return typeof value === "string" && Object.hasOwn(LAPS_OPTIONS, value);
-}
 
 /** 周回数を引く。未知の値は既定へ落として進行を止めない */
 export function lapsOf(id: unknown): number {
-  return isLapsId(id) ? LAPS_OPTIONS[id].laps : LAPS_OPTIONS[DEFAULT_LAPS_ID].laps;
+  return lapsFromId(id, DEFAULT_LAPS_ID);
 }
 
 /** 盤面の広さの既定値。ロビーの記述子と validateSettings が参照する */

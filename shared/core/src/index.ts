@@ -22,6 +22,8 @@ export {
 export { createRandom, shuffle } from "./rng";
 // チーム編成。自己申告レベルで偏りを抑えて抽選する（ADR-0032）
 export { formBalancedTeams, TEAM_BALANCE_TOLERANCE } from "./teams";
+// 周回数の選択肢。説明役を回すゲームが共通で使う（ADR-0020、基本設計/16の設定）
+export { LAPS_IDS, LAPS_OPTIONS, MAX_LAPS, isLapsId, lapsFromId, type LapsId } from "./laps";
 export * from "./protocol";
 export * from "./game-module";
 export * from "./validate";

@@ -2,7 +2,7 @@
 //
 // 公開状態・秘密情報・結果を別の型で表す。同じ型に混ぜると、片方だけを配るコードが書けなくなる（ADR-0003）。
 // 正解と禁止語は秘密情報の型にだけ現れる。公開状態の型には現れない。
-import type { ContentSummary, Level } from "@beb/shared-core";
+import { lapsFromId, type ContentSummary, type LapsId, type Level } from "@beb/shared-core";
 import type { ConstraintCard, KeyExpression } from "./set";
 
 /** ステージid。共通コアはこの文字列を解釈しない（ADR-0009） */
@@ -257,30 +257,16 @@ export interface DontSayItSettings {
  * 3〜4人の卓では1周が短く、各自が説明者を1回しか務められない。2周にすると2回ずつ務める。
  * 人数から自動で決めないのは、卓の時間の都合をホストが知っているためである（09の設定）。
  *
- * BLIND ROOMの同名の定数と同じ形である。ゲーム間の重複はこれで2つ目であり、
- * 共通コアへ移す条件（3つ目のコピー）には達していない（ADR-0020）。
+ * 選択肢そのものは共通コアにある。BLIND ROOMとTWO-HEADED SPEAKERも同じ選択肢を使い、
+ * 3つ目のコピーになったため共通コアへ移した（ADR-0020）。既定はゲームごとに決める。
  */
-export const LAPS_OPTIONS = {
-  "1": { laps: 1, labelJa: "1周（全員が1回ずつ説明）" },
-  "2": { laps: 2, labelJa: "2周（全員が2回ずつ説明）" },
-} as const;
-
-export type LapsId = keyof typeof LAPS_OPTIONS;
-
-export const LAPS_IDS = Object.keys(LAPS_OPTIONS) as LapsId[];
+export { LAPS_IDS, LAPS_OPTIONS, MAX_LAPS, isLapsId, type LapsId } from "@beb/shared-core";
 
 export const DEFAULT_LAPS_ID: LapsId = "1";
 
-/** 周回数の上限。山札の下限（MIN_CARDS）はこの値から導く */
-export const MAX_LAPS = Math.max(...Object.values(LAPS_OPTIONS).map((option) => option.laps));
-
-export function isLapsId(value: unknown): value is LapsId {
-  return typeof value === "string" && Object.hasOwn(LAPS_OPTIONS, value);
-}
-
 /** 周回数を引く。未知の値は既定へ落として進行を止めない */
 export function lapsOf(id: unknown): number {
-  return isLapsId(id) ? LAPS_OPTIONS[id].laps : LAPS_OPTIONS[DEFAULT_LAPS_ID].laps;
+  return lapsFromId(id, DEFAULT_LAPS_ID);
 }
 
 /**
