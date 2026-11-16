@@ -8,6 +8,7 @@ packages:
   - shared/games/mindmeld
   - shared/games/ranking
   - shared/games/secretrule
+  - shared/games/secretteams
   - shared/games/twoheaded
   - shared/games/whowrotethis
   - server/core

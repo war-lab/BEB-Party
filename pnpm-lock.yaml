@@ -479,6 +479,12 @@ importers:
         specifier: workspace:*
         version: link:../../core
 
+  shared/games/secretteams:
+    dependencies:
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../core
+
   shared/games/twoheaded:
     dependencies:
       '@beb/shared-core':
