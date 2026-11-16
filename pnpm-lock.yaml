@@ -65,6 +65,9 @@ importers:
       '@beb/client-secretrule':
         specifier: workspace:*
         version: link:../games/secretrule
+      '@beb/client-twoheaded':
+        specifier: workspace:*
+        version: link:../games/twoheaded
       '@beb/client-whowrotethis':
         specifier: workspace:*
         version: link:../games/whowrotethis
@@ -235,6 +238,25 @@ importers:
       '@beb/shared-secretrule':
         specifier: workspace:*
         version: link:../../../shared/games/secretrule
+      svelte:
+        specifier: 5.56.9
+        version: 5.56.9(@typescript-eslint/types@8.67.0)
+    devDependencies:
+      svelte-check:
+        specifier: 4.7.5
+        version: 4.7.5(picomatch@4.0.5)(svelte@5.56.9(@typescript-eslint/types@8.67.0))(typescript@6.0.3)
+
+  client/games/twoheaded:
+    dependencies:
+      '@beb/client-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@beb/shared-core':
+        specifier: workspace:*
+        version: link:../../../shared/core
+      '@beb/shared-twoheaded':
+        specifier: workspace:*
+        version: link:../../../shared/games/twoheaded
       svelte:
         specifier: 5.56.9
         version: 5.56.9(@typescript-eslint/types@8.67.0)

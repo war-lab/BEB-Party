@@ -28,6 +28,7 @@ packages:
   - client/games/mindmeld
   - client/games/ranking
   - client/games/secretrule
+  - client/games/twoheaded
   - client/games/whowrotethis
   - client/app
   - tools
