@@ -63,6 +63,18 @@ async function expectNarrowReveal(page: Page, listenerCount: number): Promise<vo
   await page.setViewportSize({ width: 375, height: 667 });
   const boards = page.locator("[data-testid='listener-board']");
   await expect(boards).toHaveCount(listenerCount);
+  // 盤面はズームイン（scaleの変形）で1枚ずつずらして現れる。再生中に測ると変形後の箱を拾い、
+  // 左端が盤面ごとに散る（実測で5〜7種類）。全盤面のアニメーションが終わってから測る
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        Array.from(document.querySelectorAll("[data-testid='listener-board']")).reduce(
+          (running, el) => running + el.getAnimations({ subtree: true }).filter((a) => a.playState === "running").length,
+          0,
+        ),
+      ),
+    )
+    .toBe(0);
   const lefts = new Set<number>();
   for (let index = 0; index < listenerCount; index += 1) {
     const box = await boards.nth(index).boundingBox();
