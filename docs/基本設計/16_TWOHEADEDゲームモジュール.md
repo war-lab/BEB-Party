@@ -196,6 +196,11 @@ gameIdは `twoheaded` とする。
 手番をまたいで数えるのは、各手番の1枚目を毎回同じ人が始めないようにするためである。
 1手番に1〜2枚しか説明しない卓では、手番ごとに数え直すと先頭の人に偏る。
 
+通し番号には、正解と送りで終えたお題に加えて、`explaining` の締切で捨てたお題も数える。
+締切で捨てたお題も説明は済んでいるためである。
+数えないと、毎手番1枚目で時間切れになるペアでは、毎手番同じ人が先に話す。
+`handoff` で飛ばした手番のお題は誰も説明していないため数えない。
+
 ### ペアの編成と奇数人数
 
 `start` で `formBalancedTeams` を呼び、参加者をペアに分ける（[ADR-0032](../adr/0032-チーム編成は自己申告レベルで揃えて開始時に抽選する.md)）。
@@ -206,6 +211,8 @@ gameIdは `twoheaded` とする。
 | 6 | `[2, 2, 2]` | 3 |
 | 7 | `[2, 2, 3]` | 3 |
 | 8 | `[2, 2, 2, 2]` | 4 |
+
+`teamId` は `formBalancedTeams` が返した順に `t1` から振り、画面では同じ順に「ペア1」〜「ペア4」と表示する。
 
 `formBalancedTeams` はペアの合計レベルの差を小さくするため、レベルの高い人と低い人が組みやすい。
 このゲームでは、上級者が文の骨格を作り、相方が1語を足す形で、レベル1〜2の参加者も説明に加われる（「レベル差の吸収」）。
@@ -246,6 +253,7 @@ interface TwoHeadedPublic {
   solvedThisTurn: number;
   passedThisTurn: number;
   lastCard: RevealedCard | null;     // 直前に終えたお題。手番が変わると null に戻す
+  starters: KeyExpression[];         // お題セットの書き出しの例。説明役のペアの画面に出す
   turnSeconds: number;
   laps: number;
 }
@@ -286,6 +294,12 @@ interface RevealedCard {
 `explaining` の締切で捨てたお題は `lastCard` に載せず、結果で開示する（「結果」）。
 
 `speakingOrder` を公開状態に置くのは、当てる側も話す順を知っていないと、交互の違反を指摘できないためである。
+`briefing` と `debrief` では空配列にする。
+
+`starters` を公開状態に置くのは、書き出しの例（「レベル差の吸収」の第3層）を説明役のペアの画面に出すために、どこかで配る必要があるためである。
+書き出しの例はお題ではなく、当てる側に見えても得にならない。
+秘密情報に入れると、お題が進むたびに同じ値を送り直すことになる。
+草案の公開状態と秘密情報はどちらも書き出しの例を持っておらず、実装で公開状態に足した。
 
 ペアの合計レベルと各自のレベルは公開状態に追加しない。
 レベルは共通コアの `Player` にあり、ロビーで既に見えている値を重ねて持つ必要がない。
@@ -344,7 +358,7 @@ interface GuesserSecret {
 終局の時点で次のお題を引いている場合があり、同じ式で作り直すと誰も見ていないお題が届く。
 `debrief` の画面は秘密情報を読まない。
 
-お題セットが無い場合、表示中のお題がセットに無い場合、`playing` の間に `gameSecret` が無い場合は例外を投げる。
+お題セットが無い場合、表示中のお題がセットに無い場合、`playing` の間に `gameSecret` が無い場合、参加者でない `playerId` の場合、`handoff` か `explaining` で表示中のお題が無い場合は例外を投げる。
 共通コアは例外のときに保存済みの値を送るため、誤った値を返すより安全である。
 
 ## ゲーム秘密状態（gameSecret）
@@ -445,7 +459,7 @@ payloadは `{ cardId: string }` とする。
 | --- | --- |
 | `briefing` | 最初の `handoff` へ進む |
 | `handoff` | 説明役のペアの接続中の人数が2人以上なら `explaining` へ進む。2人未満ならその手番を飛ばす |
-| `explaining` | 現在のお題を `usedCards` へ `timeout` として加え、`turns` に集計を足して3つのカウンタを戻す。最後の手番なら `result` を返して `debrief` へ、そうでなければ次の `handoff` へ進む |
+| `explaining` | 現在のお題を `usedCards` へ `timeout` として加え、`turns` に集計を足して3つのカウンタ（`solvedThisTurn`、`passedThisTurn`、`lastCard`）を戻す。最後の手番なら `result` を返して `debrief` へ、そうでなければ次の `handoff` へ進む |
 | `debrief` | 締切を置かない |
 
 `explaining` の締切で終えた手番のお題は捨て札にし、次の手番は新しいお題から始める。
@@ -556,8 +570,9 @@ DON'T SAY ITは1人が1手番を務めるため、1周でも人数分の手番�
 本ゲームに複製せず、共通コアへ移すことに決めた。
 複製して移す判断を先送りする案は、ADR-0020が移すとした状態をそのまま残すため採らない。
 
-移す作業は本ゲームの実装より前に、`shared/core/` を変える単独のPRで行う（[開発ガイド.md](../開発ガイド.md) の「モジュール境界と並行作業」）。
-本文書を確定した時点では、コードは移していない。
+移す作業は本ゲームの実装より前に、`shared/core/` を変える単独のコミットで行った（`shared/core/src/laps.ts`）。
+共通コアは選択肢（`LAPS_OPTIONS`、`LAPS_IDS`、`MAX_LAPS`、`isLapsId`）と、既定へ落とす関数 `lapsFromId(id, fallback)` を持つ。
+既定の周回数はゲームごとに違う（DON'T SAY IT・BLIND ROOMは1周、本ゲームは2周）ため、`DEFAULT_LAPS_ID` は各ゲームが持つ。
 
 `validateSettings` は範囲外と型違いを拒否し、`settings` が無い場合とキーが欠けている場合は既定値を使う。
 記述子の `min` / `max` と受理範囲の一致をテストで固定する。
@@ -636,6 +651,7 @@ interface TwoHeadedSetSummary extends ContentSummary {
 ## コンテンツ形式
 
 `content/twoheaded/<id>.json` に静的JSONとして置く（[ADR-0004](../adr/0004-事件データの静的JSON化とCI検証.md) と同じ方針）。
+セットの一覧は `pnpm --filter @beb/server-twoheaded run generate:sets` が `server/games/twoheaded/src/sets.generated.ts` へ書き出し、CIで再生成との差分を検査する（[07](./07_リポジトリとツールチェーン.md)）。
 スキーマの正本は `shared/games/twoheaded/` の型定義とし、以下は説明用とする。
 
 ```jsonc
@@ -683,7 +699,7 @@ interface TwoHeadedSetSummary extends ContentSummary {
 | --- | --- | --- |
 | 1 | スキーマ | 必須欄の欠落、型違い、定義に無い欄を落とす。カードidがセット内で一意 |
 | 2 | 正解名の文字種 | `answer` が英字、空白、ハイフン、アポストロフィのみで構成され、先頭が英字 |
-| 3 | 正解の一意 | 正規化した `answer` がセット内で重複しない |
+| 3 | 正解の一意 | 正規化した `answer` がセット内で重複しない。正規化は大文字と小文字、前後と連続の空白、ハイフンと空白の違いを揃える |
 | 4 | 山札の枚数 | カードが40枚以上ある |
 | 5 | 日本語名 | `ja` に日本語の文字が1文字以上含まれる |
 | 6 | 別名の形 | 各別名が `answer` と同じ文字種で、3件以内で、`answer` と重複しない |
@@ -752,4 +768,4 @@ interface TwoHeadedSetSummary extends ContentSummary {
 * 設定: 記述子の `min` / `max` と `validateSettings` の受理範囲が一致すること
 * 人数: 6人と8人で開始から `debrief` まで進むこと（[ADR-0033](../adr/0033-対象人数の上限を8人に上げる.md) の申告範囲の両端）
 * 検証: 検証1〜8がそれぞれ違反を落とすこと
-* 通しE2E: 6人と8人で結果まで進み、当てる側の画面にお題が出ないこと
+* 通しE2E: 6人（既定の2周）、7人（1周、3人組を含む）、8人（1周）で結果まで進み、当てる側の画面とstateにお題が出ないこと。2026-11-16のローカル実行で3件合わせて約1.7分であり、安定性（繰り返し実行とCIでの再試行の有無）は未検証である
