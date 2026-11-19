@@ -5,9 +5,11 @@ import {
   PROTOCOL_VERSION,
   isPlayerIconId,
   type Level,
+  type PinnedPair,
   type PlayerIconId,
   type ServerMessage,
 } from "@beb/shared-core";
+import { clearPinnedPairs, setPinnedPairs } from "./stores/backstage.svelte";
 import { clearResult, setResult } from "./stores/result.svelte";
 import { clearSecret, setSecret } from "./stores/secret.svelte";
 import { clearServerState, setServerState } from "./stores/server-state.svelte";
@@ -20,7 +22,7 @@ const RECONNECT_BACKOFF_MS = [1_000, 2_000, 4_000, 8_000, 10_000]; // 上限10�
 // 「一度もopenしないまま閉じた」ことをもって429相当の可能性として扱い、最低30秒待つ
 const CONNECT_FAILURE_BACKOFF_MS = 30_000;
 // 再試行しても状況が変わらないエラー。受けたら再接続をやめ、画面に理由を出す（基本設計/02）
-const FATAL_ERROR_CODES = new Set(["spectator_limit", "room_full", "game_in_progress", "kicked"]);
+const FATAL_ERROR_CODES = new Set(["spectator_limit", "backstage_limit", "room_full", "game_in_progress", "kicked"]);
 // ハンドシェイクが一度も成立しない状態。部屋コードの誤り（404）と混雑（429）を
 // ブラウザのWebSocket APIでは区別できないため、両方を含む文言で知らせる
 export const CONNECT_FAILED = "connect_failed";
@@ -33,8 +35,8 @@ let reconnectAttempt = 0;
 let hasOpenedOnce = false;
 let currentCode: string | null = null;
 let pendingJoin: { name: string; level: Level; icon: PlayerIconId | undefined } | null = null;
-// 接続直後に送るメッセージ。ホスト画面は参加者ではなく観戦ソケットとして入る（基本設計/02）
-let entryMode: "join" | "spectate" = "join";
+// 接続直後に送るメッセージ。ホスト画面は観戦ソケット、裏画面は裏画面のソケットとして入る（基本設計/02）
+let entryMode: "join" | "spectate" | "backstage" = "join";
 let closedByClient = false;
 
 function sessionKey(code: string): string {
@@ -129,6 +131,27 @@ export function spectate(code: string): void {
   openSocket();
 }
 
+/**
+ * 裏画面のソケットとして接続する（ADR-0035）。
+ *
+ * `join` を送らないため部屋の参加者にならず、`secret` も届かない。ペアの指定の現在値（`pinnedPairs`）が届く。
+ * 再接続の手順は観戦と同じで、`reconnectToken` は扱わない。
+ */
+export function enterBackstage(code: string): void {
+  currentCode = code;
+  pendingJoin = null;
+  entryMode = "backstage";
+  closedByClient = false;
+  reconnectAttempt = 0;
+  hasOpenedOnce = false;
+  openSocket();
+}
+
+/** ペアの指定を丸ごと置き換える。送信できたかを返す。画面はサーバから届いた pinnedPairs で描く（ADR-0035） */
+export function sendPinnedPairs(pairs: PinnedPair[]): boolean {
+  return send({ v: PROTOCOL_VERSION, type: "setPinnedPairs", pairs });
+}
+
 export function disconnect(): void {
   closedByClient = true;
   clearTimers();
@@ -143,6 +166,7 @@ export function disconnect(): void {
   clearServerState();
   clearSecret();
   clearResult();
+  clearPinnedPairs();
   ui.connectionStatus = "disconnected";
 }
 
@@ -241,6 +265,10 @@ function sendEntry(): void {
     send({ v: PROTOCOL_VERSION, type: "spectate" });
     return;
   }
+  if (entryMode === "backstage") {
+    send({ v: PROTOCOL_VERSION, type: "backstage" });
+    return;
+  }
   if (!pendingJoin) {
     return;
   }
@@ -287,6 +315,10 @@ function handleServerMessage(raw: string): void {
     }
     case "result": {
       setResult(message.gameId, message.payload);
+      break;
+    }
+    case "pinnedPairs": {
+      setPinnedPairs(message.pairs);
       break;
     }
     case "error": {

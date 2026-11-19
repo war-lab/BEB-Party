@@ -2,7 +2,8 @@
   import type { Component } from "svelte";
   import { serverState } from "./stores/server-state.svelte";
   import { ui } from "./stores/ui.svelte";
-  import { connect, disconnect, spectate, storedIdentity } from "./connection";
+  import { connect, disconnect, enterBackstage, spectate, storedIdentity } from "./connection";
+  import BackstageView from "./components/BackstageView.svelte";
   import ConnectionBanner from "./components/ConnectionBanner.svelte";
   import Home from "./components/Home.svelte";
   import HostView from "./components/HostView.svelte";
@@ -53,6 +54,11 @@
   const wantsHostMode = new URLSearchParams(location.search).get("mode") === "host";
   let hostMode = $state(false);
 
+  // 裏画面(?mode=backstage)は主催者がペアを指定する画面。どこからもリンクしない（ADR-0035）。
+  // ホスト画面と同じく、部屋コードを含むURLで実際に入ったときだけ真にする
+  const wantsBackstageMode = new URLSearchParams(location.search).get("mode") === "backstage";
+  let backstageMode = $state(false);
+
   // マウント時にURL(/room/:code)を読み、リロード・タブ復帰でもロビーへ自動復帰する。
   // reconnectTokenがsessionStorageにあれば、サーバは名前・レベルの送信値を無視して既存プレイヤーとして扱う。
   // $effectは追跡対象の$stateを読まないため、Svelteのスケジューラが後続のflushで再実行することがあり
@@ -65,6 +71,9 @@
     if (wantsHostMode) {
       hostMode = true;
       spectate(restoredCode);
+    } else if (wantsBackstageMode) {
+      backstageMode = true;
+      enterBackstage(restoredCode);
     } else {
       const identity = storedIdentity(restoredCode);
       // 外された部屋の記録では自動接続しない。ホームで本人に入り直すかを選ばせる（ADR-0028）
@@ -80,7 +89,7 @@
 
   // ホストに外されたら、部屋コードを入れたホームへ戻す。入り直すかは本人が決める（ADR-0028）
   $effect(() => {
-    if (ui.lastErrorCode === "kicked" && code && !hostMode) {
+    if (ui.lastErrorCode === "kicked" && code && !hostMode && !backstageMode) {
       pendingCode = code;
       code = null;
       // 履歴を置き換える。pushStateだと戻るボタンで /room/CODE に戻り、リロードで自動接続が走る
@@ -111,6 +120,8 @@
 
 {#if hostMode && code}
   <HostView {code} {gameStageLabels} />
+{:else if backstageMode && code}
+  <BackstageView {code} />
 {:else if !code}
   <Home onEnter={enterRoom} initialCode={pendingCode} />
 {:else if !room || room.lifecycle === "lobby"}
@@ -122,8 +133,8 @@
   <UnknownStage />
 {/if}
 
-<!-- ホスト画面は読み取り専用のため、フッターの操作も出さない。書体の表記は画面内に静的に置く（基本設計/02） -->
-{#if !hostMode}
+<!-- ホスト画面と裏画面はフッターの操作を出さない。書体の表記は画面内に静的に置く（基本設計/02） -->
+{#if !hostMode && !backstageMode}
   <footer class="license-footer">
     <!-- 遊び方はどの画面からも開ける。プレイ中はそのゲームの説明を直接出す（基本設計/02） -->
     <button class="license-link" onclick={() => openHowToPlay(room?.gameId ?? null)}>遊び方</button>
