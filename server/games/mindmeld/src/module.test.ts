@@ -4,7 +4,7 @@
 // - 遷移が返した秘密を上書きで溜めた値と、rebuildSecret の戻り値が全員について一致すること（ADR-0029）
 // - 公開状態のキーと配列の要素のキーが許可リストと一致すること（名前を変えた漏洩を落とす）
 // - input 中の公開状態に提出した語が現れず、どのステージにも後のラウンドのお題が現れないこと（ADR-0003）
-import { ACTION_MAX_CHARS, type GameTransition, type Player, type Room } from "@beb/shared-core";
+import { ACTION_MAX_CHARS, pairTeamSizes, type GameTransition, type Player, type Room } from "@beb/shared-core";
 import {
   ACTIONS,
   BRIEFING_SECONDS,
@@ -396,6 +396,13 @@ describe("start", () => {
   // ペアの指定（ADR-0035）。指定が効かないこと、指定が無いときの編成が変わることの両方を検出する
   it("ペアの指定: acceptsPinnedPairs を宣言する", () => {
     expect(mindMeldModule.acceptsPinnedPairs).toBe(true);
+  });
+
+  // 裏画面は共通コアの pairTeamSizes で指定の自然さを判定する。表がずれると警告が外れる（ADR-0035）
+  it("ペアの指定: 人数構成の表が共通コアの pairTeamSizes と一致する", () => {
+    for (let count = 4; count <= 8; count += 1) {
+      expect([...(TEAM_SIZES[count] ?? [])].sort()).toEqual(pairTeamSizes(count).sort());
+    }
   });
 
   it("ペアの指定: 4〜8人で、指定した組がどのseedでも同じチームに入る", () => {

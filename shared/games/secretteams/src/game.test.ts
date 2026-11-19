@@ -67,4 +67,12 @@ describe("得点", () => {
     expect(teamScoreOf(1 / 3, 0)).toBe(17);
     expect(teamScoreOf(0.5, 0.5)).toBe(50);
   });
+
+  // 浮動小数の誤差の補正（+1e-9）を消すと、正しくは37.5点（切り上げで38点）の合流率が
+  // 37.49999999999999 になり37点に落ちる。足し算の順で結果が変わるため、この順で書く
+  it("浮動小数の誤差で .5 を切り捨てない（37.5 は 38）", () => {
+    const joinRate = (1 / 3 + 1 + 1 + 2 / 3) / 4;
+    expect(joinRate * 50).not.toBe(37.5);
+    expect(teamScoreOf(joinRate, 0)).toBe(38);
+  });
 });

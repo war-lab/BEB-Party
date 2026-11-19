@@ -84,13 +84,17 @@ class Session {
   result: SecretTeamsResult | undefined;
   disconnected: string[] = [];
 
-  constructor(playerCount: number, input: { seed?: number; settings?: unknown; players?: Player[] } = {}) {
+  constructor(
+    playerCount: number,
+    input: { seed?: number; settings?: unknown; players?: Player[]; pinnedPairs?: [string, string][] } = {},
+  ) {
     this.players = input.players ?? playersOf(playerCount);
     const started = secretTeamsModule.start({
       players: this.players,
       contentId: PACK_ID,
       settings: input.settings ?? {},
       seed: input.seed ?? SEED,
+      pinnedPairs: input.pinnedPairs,
     });
     this.stage = started.stage;
     this.deadlineSeconds = started.deadlineSeconds;
@@ -292,6 +296,23 @@ function toAnswering(session: Session): void {
 }
 
 describe("start", () => {
+  // ペアの指定を使うと、指定した主催者だけが味方を知った状態で遊ぶことになる（ADR-0035）
+  it("ペアの指定を使わない: acceptsPinnedPairs を宣言せず、指定を渡しても編成が変わらない", () => {
+    expect(secretTeamsModule.acceptsPinnedPairs).not.toBe(true);
+    for (const seed of [1, 2, 3, 4, 5]) {
+      const plain = new Session(6, { seed });
+      const ids = plain.players.map((player) => player.id);
+      const pinned = new Session(6, {
+        seed,
+        pinnedPairs: [
+          [ids[0]!, ids[5]!],
+          [ids[1]!, ids[4]!],
+        ],
+      });
+      expect(pinned.gameSecret.teams).toEqual(plain.gameSecret.teams);
+    }
+  });
+
   it("決定性: 同じ seed と参加者から同じチーム、テーマ、単語、選択肢の並び、説明の順番が得られる", () => {
     const a = new Session(6, { seed: 7 });
     const b = new Session(6, { seed: 7 });
