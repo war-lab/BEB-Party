@@ -38,7 +38,8 @@ type Attachment =
   | { backstage: true; connectedAt: number };
 
 const SPECTATOR_LIMIT = 2;
-// 裏画面のソケットの上限。端末の切り替え中に前の接続が残る場合の余地として2本とする（ADR-0035）
+// 裏画面のソケットの上限。端末の切り替え中に前の接続が残る場合の余地として2本とする（ADR-0035）。
+// 超えたら一番古い接続を閉じる（後勝ち）。先勝ちにすると、部屋コードを知る者が枠を埋めて主催者を締め出せる
 const BACKSTAGE_LIMIT = 2;
 
 // ソケット1本あたりのメッセージ流量。通常のプレイは1分間に数回であり、
@@ -373,10 +374,15 @@ export class RoomDO extends DurableObject<Env> {
     if (this.deserializeAttachment(ws) !== null) {
       return this.sendError(ws, ERROR_CODES.INVALID_LIFECYCLE, "already joined on this socket");
     }
-    if (this.backstageSockets().length >= BACKSTAGE_LIMIT) {
-      this.sendError(ws, ERROR_CODES.BACKSTAGE_LIMIT, "backstage limit reached");
-      ws.close(1008, "backstage_limit");
-      return;
+    // 後勝ち。閉じる側には backstage_replaced を送り、クライアントに再接続をやめさせる。
+    // 送らずに閉じると、閉じられた裏画面が自動で再接続し、2つの端末が互いを閉じ合う
+    const others = this.backstageSockets()
+      .filter((socket) => socket.readyState === WebSocket.OPEN)
+      .map((socket) => ({ socket, connectedAt: this.deserializeAttachment(socket)?.connectedAt ?? 0 }))
+      .sort((a, b) => a.connectedAt - b.connectedAt);
+    for (const { socket } of others.slice(0, Math.max(0, others.length - BACKSTAGE_LIMIT + 1))) {
+      this.sendError(socket, ERROR_CODES.BACKSTAGE_REPLACED, "backstage opened elsewhere");
+      socket.close(1000, "backstage_replaced");
     }
 
     ws.serializeAttachment({ backstage: true, connectedAt: Date.now() } satisfies Attachment);
@@ -406,7 +412,8 @@ export class RoomDO extends DurableObject<Env> {
     const secrets = await this.getSecrets();
     secrets.pinnedPairs = message.pairs.map(([a, b]) => [a, b] satisfies PinnedPair);
     await this.ctx.storage.put("secrets", secrets);
-    await this.updateAlarm(room);
+    // アラームは張り直さない。ペアの指定は締切に関係しない。張り直すと、締切を過ぎてからアラームが動くまでの
+    // 間に届いた場合にステージの締切が消え、部屋の寿命も認証の無い接続から延ばせてしまう
     this.sendPinnedPairsToBackstage(secrets.pinnedPairs);
   }
 

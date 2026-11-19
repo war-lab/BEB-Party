@@ -1,5 +1,6 @@
 // 裏画面とペアの指定（ADR-0035、基本設計/01の「裏画面のソケット」）。
 // 指定が参加者や観戦ソケットへ漏れること、不正な組が保存されること、kick・nextGame・startでの扱いの退行を検出する
+import { runInDurableObject } from "cloudflare:test";
 import { exports } from "cloudflare:workers";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { GameModule, PinnedPair, ServerMessage } from "@beb/shared-core";
@@ -239,16 +240,44 @@ describe("裏画面のソケット", () => {
     expect(first[1]).toEqual({ v: 1, type: "pinnedPairs", pairs });
   });
 
-  it("2本まで許可し、3本目はbackstage_limitで拒否する", async () => {
-    const stub = await createRoom(uniqueRoomCode("backstage-limit"));
-    await openBackstage(stub);
+  it("3本目が来たら一番古い裏画面をbackstage_replacedで閉じる（後勝ち）", async () => {
+    const stub = await createRoom(uniqueRoomCode("backstage-replace"));
+    const first = await openBackstage(stub);
     await openBackstage(stub);
 
-    const third = await openSocket(stub);
-    const recv = collectMessages(third, 1);
-    sendMessage(third, { v: 1, type: "backstage" });
-    const [error] = await recv;
-    expect(error).toMatchObject({ type: "error", code: "backstage_limit" });
+    const replaced = waitFor(first.ws, (message) => message.type === "error");
+    const closed = new Promise<void>((resolve) => first.ws.addEventListener("close", () => resolve()));
+    const third = await openBackstage(stub);
+    expect(third.first[1]).toEqual({ v: 1, type: "pinnedPairs", pairs: [] });
+    expect(await replaced).toMatchObject({ type: "error", code: "backstage_replaced" });
+    await closed;
+  });
+
+  it("setPinnedPairsはステージの締切のアラームを張り直さない", async () => {
+    const stub = await createRoom(uniqueRoomCode("backstage-alarm"));
+    const host = await join(stub, "Host");
+    await selectGameAndContent(host.ws, STUB_GAME_ID, STUB_CONTENT_ID);
+    const playing = waitFor(host.ws, (message) => message.type === "state" && message.lifecycle === "playing");
+    sendMessage(host.ws, { v: 1, type: "start" });
+    await playing;
+    const { ws: backstage } = await openBackstage(stub);
+
+    // 締切が過ぎたのにアラームがまだ動いていない状況を作る（アラームの時刻は未来のまま、締切だけ過去にする）
+    const past = Date.now() - 1000;
+    const before = await runInDurableObject(stub, async (_instance, state) => {
+      const room = (await state.storage.get("room")) as Record<string, unknown>;
+      await state.storage.put("room", { ...room, deadline: past });
+      const alarms = { stageDeadline: past, expireAt: Date.now() + 60_000 };
+      await state.storage.put("alarms", alarms);
+      return alarms;
+    });
+
+    const set = waitFor(backstage, isPinned);
+    sendMessage(backstage, { v: 1, type: "setPinnedPairs", pairs: [] });
+    await set;
+
+    const after = await runInDurableObject(stub, async (_instance, state) => state.storage.get("alarms"));
+    expect(after).toEqual(before);
   });
 
   it("参加者のソケットから裏画面へ転向できない", async () => {
