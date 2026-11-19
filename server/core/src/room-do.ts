@@ -558,7 +558,8 @@ export class RoomDO extends DurableObject<Env> {
       return this.sendError(ws, ERROR_CODES.NOT_HOST, "host only");
     }
 
-    // ADR-0011: 持ち越すのは参加者とそのレベルだけ。gameId/contentId/settingsも含め選択は全てクリアする
+    // ADR-0011: 持ち越すのは参加者とそのレベルだけ。gameId/contentId/settingsも含め選択は全てクリアする。
+    // ペアの指定は secrets 側にあり、ここでは消さない（ADR-0035）
     const nextRoom: InternalRoomState = {
       code: room.code,
       lifecycle: "lobby",
