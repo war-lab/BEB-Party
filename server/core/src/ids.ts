@@ -19,6 +19,11 @@ export function generateReconnectToken(): string {
 }
 
 // GameModule.startへ注入する乱数シード(基本設計/05_ゲームモジュール.md)
-export function generateSeed(): number {
-  return crypto.getRandomValues(new Uint32Array(1))[0] as number;
+/**
+ * ゲーム開始時の seed。128bit（32bit×4）を暗号論的乱数から作る（ADR-0036）。
+ * 32bit では公開された並びから総当たりで状態を復元でき、同じ乱数列で作った秘密が割れた
+ */
+export function generateSeed(): readonly [number, number, number, number] {
+  const words = crypto.getRandomValues(new Uint32Array(4));
+  return [words[0] as number, words[1] as number, words[2] as number, words[3] as number];
 }
