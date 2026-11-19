@@ -80,6 +80,57 @@ export function formBalancedTeams<T extends { id: string; level: Level }>(
   return order.map((index) => (chosen.teams[index] as number[]).map((playerIndex) => players[playerIndex] as T));
 }
 
+/**
+ * ペア戦の人数構成。2人組を並べ、奇数人数のときだけ最後の組を3人にする。
+ *
+ * ペアの指定を使うゲーム（ADR-0035）はどれもこの構成で組むため、裏画面がゲームを問わず
+ * 指定の自然さを判定できるよう共通コアに置く。各ゲームの人数構成の表がこれと一致することは、
+ * そのゲームのテストが確かめる
+ */
+export function pairTeamSizes(count: number): number[] {
+  if (!Number.isInteger(count) || count < 2) {
+    return [];
+  }
+  const sizes = Array.from({ length: Math.floor(count / 2) }, () => 2);
+  if (count % 2 === 1) {
+    sizes[sizes.length - 1] = 3;
+  }
+  return sizes;
+}
+
+/**
+ * `together` の組をすべて満たす分け方の中に、指定なしの自動編成でも選ばれうる分け方
+ * （偏りが「最小の偏り + TEAM_BALANCE_TOLERANCE」以下）があるかを返す。
+ *
+ * false のとき、指定した組は自動編成では出ない。参加者は公開されているレベルから
+ * 手で決めたことに気付きうる（ADR-0035の「伏せることの限界」）。裏画面が警告に使う
+ */
+export function isTogetherNatural<T extends { id: string; level: Level }>(
+  players: readonly T[],
+  sizes: readonly number[],
+  together: readonly (readonly [string, string])[],
+): boolean {
+  const total = sizes.reduce((sum, size) => sum + size, 0);
+  if (players.length === 0 || total !== players.length) {
+    return true;
+  }
+  const resolved = resolveTogether(players, together);
+  if (resolved.length === 0) {
+    return true;
+  }
+  const maxSize = Math.max(...sizes);
+  let minSpread = Number.POSITIVE_INFINITY;
+  let minSatisfyingSpread = Number.POSITIVE_INFINITY;
+  for (const teams of enumeratePartitions(players.length, sizes)) {
+    const spread = spreadOf(teams, players, maxSize);
+    minSpread = Math.min(minSpread, spread);
+    if (countSatisfied(teams, resolved) === resolved.length) {
+      minSatisfyingSpread = Math.min(minSatisfyingSpread, spread);
+    }
+  }
+  return minSatisfyingSpread <= minSpread + TEAM_BALANCE_TOLERANCE + EPSILON;
+}
+
 /** 組を添字の組に直す。参加者に居ないidを含む組と、同じ人の組は捨てる */
 function resolveTogether<T extends { id: string }>(
   players: readonly T[],

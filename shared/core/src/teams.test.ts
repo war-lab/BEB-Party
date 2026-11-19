@@ -2,7 +2,7 @@
 // 許容幅が効かず毎回同じ編成になること（許容幅を設けた理由）の両方を検出する
 import { describe, expect, it } from "vitest";
 import { createRandom } from "./rng";
-import { formBalancedTeams, TEAM_BALANCE_TOLERANCE } from "./teams";
+import { formBalancedTeams, isTogetherNatural, pairTeamSizes, TEAM_BALANCE_TOLERANCE } from "./teams";
 import type { Level } from "./types";
 
 function makePlayers(levels: number[]): { id: string; level: Level }[] {
@@ -189,5 +189,64 @@ describe("formBalancedTeams の together", () => {
         omitted.map((team) => team.map((player) => player.id)),
       );
     }
+  });
+});
+
+// ペア戦の人数構成と、指定の自然さの判定（ADR-0035の「伏せることの限界」）。
+// 自動では出ない組を自然と判定すると裏画面が警告せず、主催者が気付かないまま見抜かれる
+describe("pairTeamSizes", () => {
+  it("2人組を並べ、奇数人数のときだけ最後を3人にする", () => {
+    expect(pairTeamSizes(4)).toEqual([2, 2]);
+    expect(pairTeamSizes(5)).toEqual([2, 3]);
+    expect(pairTeamSizes(7)).toEqual([2, 2, 3]);
+    expect(pairTeamSizes(8)).toEqual([2, 2, 2, 2]);
+    expect(pairTeamSizes(1)).toEqual([]);
+  });
+});
+
+describe("isTogetherNatural", () => {
+  it("自動では選ばれない組（レベル5どうし）は自然でないと判定する", () => {
+    const players = makePlayers([5, 5, 1, 1]);
+    expect(isTogetherNatural(players, [2, 2], [["p0", "p1"]])).toBe(false);
+    // 実際に、指定なしの自動編成ではp0とp1は一度も組まない
+    for (let seed = 1; seed <= 50; seed += 1) {
+      const teams = formBalancedTeams(players, [2, 2], createRandom(seed));
+      expect(canonical(teams)).not.toContain("p0+p1");
+    }
+  });
+
+  it("自動でも選ばれうる組は自然と判定する", () => {
+    const players = makePlayers([5, 5, 1, 1]);
+    expect(isTogetherNatural(players, [2, 2], [["p0", "p2"]])).toBe(true);
+    expect(isTogetherNatural(makePlayers([3, 3, 3, 3, 3, 3]), [2, 2, 2], [["p0", "p5"]])).toBe(true);
+  });
+
+  it("1組ずつなら自然でも、組み合わせると自然でない場合を見分ける", () => {
+    // 最小の偏りは1（例: 5+1、4+2、3+2）。5+2 と 4+3 はそれぞれ単独なら許容幅の内側だが、
+    // 両方を指定すると残りが 2+1=3 になり、合計 7・7・3 の偏り4が許容幅（1+2=3）を超える
+    const players = makePlayers([5, 4, 3, 2, 2, 1]);
+    expect(isTogetherNatural(players, [2, 2, 2], [["p0", "p3"]])).toBe(true);
+    expect(isTogetherNatural(players, [2, 2, 2], [["p1", "p2"]])).toBe(true);
+    expect(
+      isTogetherNatural(players, [2, 2, 2], [
+        ["p0", "p3"],
+        ["p1", "p2"],
+      ]),
+    ).toBe(false);
+  });
+
+  it("指定が無い・人数構成が合わない場合は自然とみなす", () => {
+    const players = makePlayers([5, 5, 1, 1]);
+    expect(isTogetherNatural(players, [2, 2], [])).toBe(true);
+    expect(isTogetherNatural(players, [2, 2, 2], [["p0", "p1"]])).toBe(true);
+  });
+
+  it("許容幅の境界: 最小の偏り + 許容幅ちょうどの組は自然とみなす", () => {
+    // 合計 5+2=7 と 4+1=5 の差は2（最小は 5+1 と 4+2 の差0）
+    const players = makePlayers([5, 4, 2, 1]);
+    expect(TEAM_BALANCE_TOLERANCE).toBe(2);
+    expect(isTogetherNatural(players, [2, 2], [["p0", "p2"]])).toBe(true);
+    // 5+4=9 と 2+1=3 の差6は外れる
+    expect(isTogetherNatural(players, [2, 2], [["p0", "p1"]])).toBe(false);
   });
 });
