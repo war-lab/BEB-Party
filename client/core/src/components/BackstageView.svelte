@@ -5,7 +5,15 @@
   どのゲームが指定を使うかはカタログの `acceptsPinnedPairs` で決め、ゲームIDで分岐しない（ADR-0009）
 -->
 <script lang="ts">
-  import { MAX_PINNED_PAIRS, playerIconEmoji, type GameSummary, type PinnedPair, type Player } from "@beb/shared-core";
+  import {
+    MAX_PINNED_PAIRS,
+    isTogetherNatural,
+    pairTeamSizes,
+    playerIconEmoji,
+    type GameSummary,
+    type PinnedPair,
+    type Player,
+  } from "@beb/shared-core";
   import { serverState } from "../stores/server-state.svelte";
   import { backstage } from "../stores/backstage.svelte";
   import { ui } from "../stores/ui.svelte";
@@ -18,6 +26,8 @@
   let { code }: Props = $props();
 
   let catalog = $state<GameSummary[]>([]);
+  // カタログを取れなかったとき、ゲーム未選択と取り違えて案内しないために持つ
+  let catalogFailed = $state(false);
   // 1人目にタップした参加者。2人目をタップした時点で組を送る
   let picking = $state<string | null>(null);
   let sendFailed = $state(false);
@@ -27,9 +37,11 @@
       .then((response) => response.json() as Promise<{ games: GameSummary[] }>)
       .then((body) => {
         catalog = body.games;
+        catalogFailed = false;
       })
       .catch(() => {
         catalog = [];
+        catalogFailed = true;
       });
   });
 
@@ -39,6 +51,14 @@
   const pairingGames = $derived(catalog.filter((game) => game.acceptsPinnedPairs).map((game) => game.title));
   const pinnedIds = $derived(new Set((pairs ?? []).flat()));
   const full = $derived((pairs ?? []).length >= MAX_PINNED_PAIRS);
+
+  // 自動編成では出ない組か。ペアの指定を使うゲームはどれもペア戦の人数構成で組む（pairTeamSizes）。
+  // 出ない組は、参加者が公開されているレベルを見比べると手で決めたと気付きうる（ADR-0035の「伏せることの限界」）
+  const sizes = $derived(pairTeamSizes(room?.players.length ?? 0));
+  const allNatural = $derived(isTogetherNatural(room?.players ?? [], sizes, pairs ?? []));
+  function pairNatural(pair: PinnedPair): boolean {
+    return isTogetherNatural(room?.players ?? [], sizes, [pair]);
+  }
 
   // 届いた指定で組に入った人、または部屋からいなくなった人を選択中のままにしない
   $effect(() => {
@@ -52,6 +72,8 @@
   }
 
   function submit(next: PinnedPair[]): void {
+    // 前の操作のエラーを持ち越さない。残すと、保存に成功していても失敗の表示が出たままになる
+    ui.lastErrorCode = null;
     sendFailed = !sendPinnedPairs(next);
   }
 
@@ -85,8 +107,8 @@
   }
 
   const errorText = $derived.by(() => {
-    if (ui.lastErrorCode === "backstage_limit") {
-      return "この部屋の裏画面は同時に2つまでしか開けません。";
+    if (ui.lastErrorCode === "backstage_replaced") {
+      return "別の端末でこの部屋の裏画面が開かれたため、この画面の接続を閉じました。再読み込みすると、この端末で開き直せます。";
     }
     if (ui.lastErrorCode === "invalid_payload") {
       return "指定を保存できませんでした。参加者が入れ替わった可能性があります。";
@@ -107,11 +129,14 @@
   <section class="card note">
     <p>ここで指定した2人は、ペア戦の開始時に必ず同じペアになります。指定しなかった人は、これまでどおり自動で組みます。</p>
     <p>指定は参加者の画面には出ません。この画面を参加者に見せないでください。</p>
+    <p>指定は、次のゲーム以降も外すまで残ります。</p>
     <p class="game" data-testid="backstage-game-note">
       {#if selectedGame?.acceptsPinnedPairs}
         選択中の {selectedGame.title} では、指定が使われます。
       {:else if selectedGame}
         選択中の {selectedGame.title} では、指定は使われません。
+      {:else if catalogFailed}
+        ゲームの一覧を取得できませんでした。
       {:else}
         ゲームはまだ選ばれていません。
       {/if}
@@ -125,6 +150,12 @@
     <p class="error" role="alert">{errorText}</p>
   {/if}
 
+  {#if pairs !== null && pairs.length > 0 && !allNatural}
+    <p class="warning" role="status" data-testid="backstage-warning">
+      この指定には、レベルを揃える自動編成では出ない組み合わせがあります。参加者がレベルを見比べると、手で決めたことに気付く可能性があります。
+    </p>
+  {/if}
+
   <section class="card" aria-label="指定済みの組">
     <h2>指定済みの組（{(pairs ?? []).length} / {MAX_PINNED_PAIRS}）</h2>
     {#if pairs === null}
@@ -135,7 +166,12 @@
       <ul class="pairs">
         {#each pairs as [a, b], index (`${a}+${b}`)}
           <li class="pair" data-testid="backstage-pair" data-pair={`${a},${b}`}>
-            <span class="pair-names">{playerOf(a)?.name ?? "?"} ＆ {playerOf(b)?.name ?? "?"}</span>
+            <span class="pair-names">
+              {playerOf(a)?.name ?? "?"} ＆ {playerOf(b)?.name ?? "?"}
+              {#if !pairNatural([a, b])}
+                <span class="unnatural" data-testid="backstage-unnatural">自動では出ない組</span>
+              {/if}
+            </span>
             <button class="small" data-testid="backstage-unpin" onclick={() => unpin(index)}>外す</button>
           </li>
         {/each}
@@ -159,6 +195,7 @@
             class="tile"
             class:selected={picking === player.id}
             class:pinned
+            aria-pressed={picking === player.id}
             data-testid="backstage-player"
             data-player-id={player.id}
             disabled={pairs === null || pinned || (full && picking === null)}
@@ -264,6 +301,24 @@
     flex-direction: column;
     gap: 0.4rem;
   }
+  .warning {
+    margin: 0;
+    background: var(--yellow-veil);
+    border: 2px solid var(--yellow);
+    border-radius: var(--radius-tile);
+    padding: 0.5rem 0.8rem;
+    font-size: 0.88rem;
+  }
+  .unnatural {
+    display: inline-block;
+    margin-left: 0.3rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--ink);
+    border: 1.5px dashed var(--ink);
+    border-radius: var(--radius-button);
+    padding: 0 0.4rem;
+  }
   .pair {
     display: flex;
     align-items: center;
@@ -287,6 +342,8 @@
     border: 2px solid var(--ink);
     border-radius: var(--radius-button);
     padding: 0.2rem 0.8rem;
+    /* 02の「外す」ボタンの下限（32px）に揃える */
+    min-height: 2rem;
     cursor: pointer;
     flex-shrink: 0;
   }

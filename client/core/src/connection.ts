@@ -22,7 +22,8 @@ const RECONNECT_BACKOFF_MS = [1_000, 2_000, 4_000, 8_000, 10_000]; // 上限10�
 // 「一度もopenしないまま閉じた」ことをもって429相当の可能性として扱い、最低30秒待つ
 const CONNECT_FAILURE_BACKOFF_MS = 30_000;
 // 再試行しても状況が変わらないエラー。受けたら再接続をやめ、画面に理由を出す（基本設計/02）
-const FATAL_ERROR_CODES = new Set(["spectator_limit", "backstage_limit", "room_full", "game_in_progress", "kicked"]);
+// backstage_replaced は別の端末で裏画面が開かれたことを示す。再接続すると2つの端末が互いを閉じ合う（ADR-0035）
+const FATAL_ERROR_CODES = new Set(["spectator_limit", "backstage_replaced", "room_full", "game_in_progress", "kicked"]);
 // ハンドシェイクが一度も成立しない状態。部屋コードの誤り（404）と混雑（429）を
 // ブラウザのWebSocket APIでは区別できないため、両方を含む文言で知らせる
 export const CONNECT_FAILED = "connect_failed";
