@@ -1,6 +1,6 @@
 <!-- ロビー。キャラクターセレクト風のグリッドとタイトルカード（ビジュアルデザイン.mdのモック） -->
 <script lang="ts">
-  import type { GameSummary, Player } from "@beb/shared-core";
+  import { GAME_TAG_LABELS, type GameSummary, type Player } from "@beb/shared-core";
   import { serverState } from "../stores/server-state.svelte";
   import { ui } from "../stores/ui.svelte";
   import { sendCommon } from "../connection";
@@ -255,6 +255,12 @@
               </span>
               <span class="title-card-body">
                 <span class="title-card-name">{game.title}</span>
+                <!-- 遊び方の形を一覧で見分けられるようにする。並びはカタログが決めている（基本設計/02、05） -->
+                <span class="title-card-tags">
+                  {#each game.tags as tag (tag)}
+                    <span class="game-tag" data-testid="game-tag" data-tag={tag}>{GAME_TAG_LABELS[tag]}</span>
+                  {/each}
+                </span>
                 <span class="title-card-tagline">{game.tagline}</span>
                 {#if !playable}
                   <span class="visually-hidden">いまの人数では遊べません</span>
@@ -532,6 +538,43 @@
     line-height: 1.15;
     transform: skew(var(--skew-angle));
     transform-origin: left;
+  }
+  .title-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 0.1rem 0 0.05rem;
+  }
+  /* 形は塗りで、性質（正体隠匿）は輪郭だけで描き、形を先に読ませる */
+  .game-tag {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    font-size: 0.66rem;
+    line-height: 1.4;
+    padding: 0 0.5rem;
+    border-radius: var(--radius-button);
+    border: 1.5px solid var(--ink);
+    background: var(--panel);
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .game-tag[data-tag="solo"] {
+    background: var(--blue);
+    color: #fff;
+  }
+  .game-tag[data-tag="team"] {
+    background: var(--red-deep);
+    color: #fff;
+  }
+  .game-tag[data-tag="coop"] {
+    background: var(--yellow);
+  }
+  .game-tag[data-tag="faction"] {
+    background: var(--ink);
+    color: #fff;
+  }
+  .game-tag[data-tag="hidden"] {
+    border-style: dashed;
   }
   .title-card-tagline {
     font-size: 0.76rem;
