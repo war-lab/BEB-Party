@@ -217,6 +217,13 @@ gameIdは `twoheaded` とする。
 `formBalancedTeams` はペアの合計レベルの差を小さくするため、レベルの高い人と低い人が組みやすい。
 このゲームでは、上級者が文の骨格を作り、相方が1語を足す形で、レベル1〜2の参加者も説明に加われる（「レベル差の吸収」）。
 
+本ゲームは `acceptsPinnedPairs: true` を宣言し、裏画面で主催者が指定した組を使う（[ADR-0035](../adr/0035-ペアの指定は裏画面で行い参加者に伏せる.md)）。
+`start` の入力の `pinnedPairs` を `formBalancedTeams` の `together` へ渡し、指定した2人を必ず同じペアに入れる。
+7人では、指定した2人が3人組に入ることがある。
+
+指定は8人で最大4組であり、ペアの数（8人で4）を超えないため、すべての指定を満たす分け方が必ずある。
+指定の有無は画面と結果のどこにも出さない。
+
 7人のときは1組を3人組にする。
 3人組は話す順を3人で回す。
 
@@ -582,7 +589,7 @@ DON'T SAY ITは1人が1手番を務めるため、1周でも人数分の手番�
 1. `contentId` からお題セットを引く。`listContents` に載るidだけを受理する
 2. `settings` を確定する（既定 `turnSeconds` 90秒、`laps` 2周）
 3. `seed` から乱数を作り、参加者の並びを `shuffle` する
-4. 人数から `sizes` を決め（「ペアの編成と奇数人数」）、`formBalancedTeams` でペアに分ける。返った順に `t1` から `teamId` を振る
+4. 人数から `sizes` を決め（「ペアの編成と奇数人数」）、`formBalancedTeams` に `pinnedPairs` を `together` として渡してペアに分ける。返った順に `t1` から `teamId` を振る
 5. `turnOrder` を、ペアの並びを周回数だけ繰り返した列にする
 6. 山札を `shuffle` し、`cursor` を0、`cardsExplained` を全ペア0にする
 7. 全員へ `GuesserSecret` を送る

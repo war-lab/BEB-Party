@@ -198,6 +198,18 @@ Wake Lock は取得しない。
 チームの `id` はラベルを小文字にした文字列（`a`〜`d`）とする。
 ラベルは `formBalancedTeams` が返した並び順に付け、並び順は乱数で入れ替わっている（`shared/core/src/teams.ts`）。
 
+### ペアの指定
+
+本ゲームは `acceptsPinnedPairs: true` を宣言し、裏画面で主催者が指定した組を使う（[ADR-0035](../adr/0035-ペアの指定は裏画面で行い参加者に伏せる.md)）。
+`start` の入力の `pinnedPairs` を `formBalancedTeams` の `together` へ渡し、指定した2人を必ず同じチームに入れる。
+残りの参加者は従来どおり偏りの小さい分け方から選ぶ。
+
+5人と7人では、指定した2人が3人組に入ることがある。
+3人組も同じチームであり、指定は満たされている。
+
+指定は8人で最大4組であり、チームの数（8人で4）を超えないため、すべての指定を満たす分け方が必ずある。
+指定の有無は画面と結果のどこにも出さない。
+
 3人組は、試行ごとに語を出す2人を交代する。
 3人を `start()` で並べた順を (P, Q, R) とすると、3人組が語を出す回の数え（`trioTurns`）が 0, 1, 2 のとき、出すのはそれぞれ (P, Q)、(Q, R)、(R, P) とする。
 数えはラウンドをまたいで続け、3人組が一致済みで語を出さない試行では進めない。
@@ -637,7 +649,7 @@ TWO-HEADED SPEAKER と SECRET TEAMS もチームの得点表を要する場合�
 1. `contentId` からパックを引く。`listContents` に載るidだけを受理する
 2. `settings.inputSeconds` を確定する（既定30秒）
 3. `seed` から乱数を作る
-4. 人数から `sizes` を決め、`formBalancedTeams(players, sizes, random)` でチームを編成し、並び順に `A` からラベルを付ける
+4. 人数から `sizes` を決め、`formBalancedTeams(players, sizes, random, { together: pinnedPairs })` でチームを編成し、並び順に `A` からラベルを付ける（「ペアの指定」）
 5. パックのお題を `shuffle` し、先頭 `MAX_ROUNDS` 件を `gameSecret.prompts` に固定する
 6. 全員へ `roundIndex: 0`、`attemptIndex: 0` の秘密を送る
 7. `stage` を `briefing`、`deadlineSeconds` を90として返す
