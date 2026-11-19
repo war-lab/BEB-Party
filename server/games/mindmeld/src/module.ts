@@ -569,7 +569,10 @@ export const mindMeldModule: GameModule<MindMeldPublic, MindMeldSecret, MindMeld
 
   validateSettings,
 
-  start: ({ players, contentId, settings, seed }) => {
+  // 裏画面で主催者が指定した組を、必ず同じチームに入れる（15の「ペアの指定」、ADR-0035）
+  acceptsPinnedPairs: true,
+
+  start: ({ players, contentId, settings, seed, pinnedPairs }) => {
     const pack = resolvePack(contentId);
     const { inputSeconds } = readSettings(settings);
     const random = createRandom(seed);
@@ -580,7 +583,9 @@ export const mindMeldModule: GameModule<MindMeldPublic, MindMeldSecret, MindMeld
       throw new Error(`対応していない人数: ${players.length}`);
     }
     // 各チームの中の並びは入力（room.players）の順を保つ。3人組の交代の順になる（15の start）
-    const teams: TeamPublic[] = formBalancedTeams(players, sizes, random).map((members, index) => {
+    // 指定は8人で最大4組でチームの数を超えないため、すべての指定を満たす分け方が必ずある（15の「ペアの指定」）
+    const together = pinnedPairs ?? [];
+    const teams: TeamPublic[] = formBalancedTeams(players, sizes, random, { together }).map((members, index) => {
       const label = TEAM_LABELS[index] ?? String(index + 1);
       return { id: label.toLowerCase(), label, memberIds: members.map((player) => player.id) };
     });

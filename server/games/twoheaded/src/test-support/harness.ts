@@ -43,13 +43,14 @@ export function roomOf(live: Live): Room {
 export function startLive(
   module: Module,
   players: Player[],
-  options: { contentId: string; settings?: unknown; seed?: number },
+  options: { contentId: string; settings?: unknown; seed?: number; pinnedPairs?: [string, string][] },
 ): Live {
   const started = module.start({
     players,
     contentId: options.contentId,
     settings: options.settings,
     seed: options.seed ?? 4242,
+    pinnedPairs: options.pinnedPairs,
   });
   return {
     lifecycle: "playing",

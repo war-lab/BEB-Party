@@ -524,7 +524,10 @@ export const twoHeadedModule: GameModule<TwoHeadedPublic, TwoHeadedSecret, TwoHe
 
   validateSettings,
 
-  start: ({ players, contentId, settings, seed }) => {
+  // 裏画面で主催者が指定した組を、必ず同じペアに入れる（16の「ペアの編成と奇数人数」、ADR-0035）
+  acceptsPinnedPairs: true,
+
+  start: ({ players, contentId, settings, seed, pinnedPairs }) => {
     const target = resolveSet(contentId);
     const { turnSeconds, laps } = readSettings(settings);
     const random = createRandom(seed);
@@ -537,7 +540,9 @@ export const twoHeadedModule: GameModule<TwoHeadedPublic, TwoHeadedSecret, TwoHe
     // 先に並びを入れ替える。formBalancedTeams は各ペアの中の並びを入力の順のまま返すため、
     // 入れ替えないと入室の早い人がペアの中で常に先頭になり、最初のお題で先に話す（16の start の手順3）
     const shuffled = shuffle(players, random);
-    const teams: TeamPublic[] = formBalancedTeams(shuffled, sizes, random).map((members: Player[], index) => ({
+    // 指定は8人で最大4組でペアの数を超えないため、すべての指定を満たす分け方が必ずある（16）
+    const together = pinnedPairs ?? [];
+    const teams: TeamPublic[] = formBalancedTeams(shuffled, sizes, random, { together }).map((members: Player[], index) => ({
       teamId: `t${index + 1}`,
       members: members.map((player) => player.id),
     }));

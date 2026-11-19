@@ -57,11 +57,15 @@ const LEVELS: Record<number, Level[]> = {
   8: [1, 1, 2, 3, 3, 4, 5, 5],
 };
 
-function begin(count: number, options: { settings?: unknown; seed?: number; contentId?: string } = {}): Live {
+function begin(
+  count: number,
+  options: { settings?: unknown; seed?: number; contentId?: string; pinnedPairs?: [string, string][] } = {},
+): Live {
   return startLive(twoHeadedModule, playersOf(count, LEVELS[count]), {
     contentId: options.contentId ?? LARGE_SET_ID,
     settings: options.settings,
     seed: options.seed,
+    pinnedPairs: options.pinnedPairs,
   });
 }
 
@@ -174,6 +178,39 @@ describe("start", () => {
       const members = teams.flatMap((team) => team.members);
       expect(new Set(members).size).toBe(count);
       expect(members.sort()).toEqual(live.players.map((player) => player.id).sort());
+    }
+  });
+
+  // ペアの指定（ADR-0035）。指定が効かないこと、指定が無いときの編成が変わることの両方を検出する
+  it("ペアの指定: acceptsPinnedPairs を宣言する", () => {
+    expect(twoHeadedModule.acceptsPinnedPairs).toBe(true);
+  });
+
+  it.each([6, 7, 8])("ペアの指定: %i人で、指定した組がどのseedでも同じペアに入る", (count) => {
+    const pinnedPairs: [string, string][] =
+      count === 8
+        ? [
+            ["p1", "p8"],
+            ["p2", "p7"],
+            ["p3", "p6"],
+            ["p4", "p5"],
+          ]
+        : [
+            ["p1", "p2"],
+            ["p3", `p${count}`],
+          ];
+    for (let seed = 1; seed <= 20; seed += 1) {
+      const live = begin(count, { seed, pinnedPairs });
+      for (const [a, b] of pinnedPairs) {
+        const team = live.publicState.teams.find((entry) => entry.members.includes(a));
+        expect(team?.members).toContain(b);
+      }
+    }
+  });
+
+  it("ペアの指定: 指定が空なら、同じseedで指定を渡さない場合と同じ編成になる", () => {
+    for (const seed of [1, 2, 3]) {
+      expect(begin(8, { seed, pinnedPairs: [] }).publicState.teams).toEqual(begin(8, { seed }).publicState.teams);
     }
   });
 

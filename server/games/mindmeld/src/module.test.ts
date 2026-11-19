@@ -95,13 +95,17 @@ class Session {
   disconnected: string[] = [];
   private counter = 0;
 
-  constructor(playerCount: number, input: { seed?: number; settings?: unknown; players?: Player[] } = {}) {
+  constructor(
+    playerCount: number,
+    input: { seed?: number; settings?: unknown; players?: Player[]; pinnedPairs?: [string, string][] } = {},
+  ) {
     this.players = input.players ?? playersOf(playerCount);
     const started = mindMeldModule.start({
       players: this.players,
       contentId: PACK_ID,
       settings: input.settings ?? {},
       seed: input.seed ?? SEED,
+      pinnedPairs: input.pinnedPairs,
     });
     this.stage = started.stage;
     this.deadlineSeconds = started.deadlineSeconds;
@@ -386,6 +390,36 @@ describe("start", () => {
         }
         expect(session.publicState.scores).toEqual(teams.map((team) => ({ teamId: team.id, points: 0 })));
       }
+    }
+  });
+
+  // ペアの指定（ADR-0035）。指定が効かないこと、指定が無いときの編成が変わることの両方を検出する
+  it("ペアの指定: acceptsPinnedPairs を宣言する", () => {
+    expect(mindMeldModule.acceptsPinnedPairs).toBe(true);
+  });
+
+  it("ペアの指定: 4〜8人で、指定した組がどのseedでも同じチームに入る", () => {
+    for (let count = 4; count <= 8; count += 1) {
+      const ids = playersOf(count).map((player) => player.id);
+      // 人数の半分の切り捨てまで組を作る（8人で4組）。入室の順で隣り合わない2人を組ませる
+      const half = Math.floor(count / 2);
+      const pinnedPairs: [string, string][] = Array.from({ length: half }, (_, i) => [
+        ids[i] as string,
+        ids[i + half] as string,
+      ]);
+      for (let seed = 1; seed <= 15; seed += 1) {
+        const session = new Session(count, { seed, pinnedPairs });
+        for (const [a, b] of pinnedPairs) {
+          const team = session.publicState.teams.find((entry) => entry.memberIds.includes(a));
+          expect(team?.memberIds).toContain(b);
+        }
+      }
+    }
+  });
+
+  it("ペアの指定: 指定が空なら、同じseedで指定を渡さない場合と同じ編成になる", () => {
+    for (const seed of [1, 2, 3]) {
+      expect(new Session(8, { seed, pinnedPairs: [] }).publicState.teams).toEqual(new Session(8, { seed }).publicState.teams);
     }
   });
 
