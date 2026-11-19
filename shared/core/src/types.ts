@@ -1,5 +1,6 @@
 // 共通コアの状態モデル。ゲーム固有の語彙を含まない（不変条件4、ADR-0009）
 // 出典: 設計.md ランタイムデータモデル、基本設計/05_ゲームモジュール.md 状態モデル
+import type { GameTag } from "./game-tags";
 import type { PlayerIconId } from "./player-icon";
 
 export type Level = 1 | 2 | 3 | 4 | 5;
@@ -84,6 +85,8 @@ export interface GameSummary {
   /** 選択画面のアイコン（絵文字） */
   icon: string;
   playerCount: [number, number];
+  /** 遊び方の形のタグ。表示の順に並べてある（基本設計/05） */
+  tags: GameTag[];
   /** コンテンツ選択の見出し（例: 事件を選ぶ / お題を選ぶ） */
   contentLabelJa: string;
   /** ロビーで変更できる設定。空配列なら設定の入力を出さない */

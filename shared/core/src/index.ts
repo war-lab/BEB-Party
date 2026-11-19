@@ -10,6 +10,17 @@ export type {
   SettingField,
 } from "./types";
 export * from "./errors";
+// 遊び方の形のタグ。ロビーのゲーム一覧に出す（基本設計/05）
+export {
+  FORMAT_TAGS,
+  GAME_TAG_LABELS,
+  TRAIT_TAGS,
+  isFormatTag,
+  sortGameTags,
+  type FormatTag,
+  type GameTag,
+  type TraitTag,
+} from "./game-tags";
 // プレイヤーアイコン。プロトコルに載るのはIDのみで、絵文字は表示用の対応表（ADR-0022）
 export {
   PLAYER_ICONS,
