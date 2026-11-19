@@ -1,4 +1,4 @@
-import type { GameSummary } from "@beb/shared-core";
+import { sortGameTags, type GameSummary } from "@beb/shared-core";
 import { registry } from "./registry";
 import { generateRoomCode } from "./ids";
 
@@ -81,6 +81,7 @@ function handleCatalog(): Response {
     tagline: gameModule.tagline,
     icon: gameModule.icon,
     playerCount: gameModule.playerCount,
+    tags: sortGameTags(gameModule.tags),
     contentLabelJa: gameModule.contentLabelJa,
     settingsFields: gameModule.settingsFields,
     acceptsPinnedPairs: gameModule.acceptsPinnedPairs === true,

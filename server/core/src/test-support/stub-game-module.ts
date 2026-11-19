@@ -31,6 +31,7 @@ export const stubGameModule: GameModule<StubPublicState, StubSecret, StubResult,
   contentLabelJa: "コンテンツを選ぶ",
   settingsFields: [],
   playerCount: [1, 8],
+  tags: ["solo"],
 
   listContents: () => [{ id: STUB_CONTENT_ID, title: "Stub Content" }],
 
