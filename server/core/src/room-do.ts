@@ -12,8 +12,10 @@ import {
   type GameTransition,
   type JoinMessage,
   type KickMessage,
+  type PinnedPair,
   type Player,
   type SelectGameMessage,
+  type SetPinnedPairsMessage,
   type ServerMessage,
   type StateMessage,
 } from "@beb/shared-core";
@@ -30,9 +32,14 @@ import { generatePlayerId, generateReconnectToken, generateSeed } from "./ids";
 // ソケット⇔プレイヤーの対応。serializeAttachmentで保持し、インメモリのMapに依存しない（不変条件6）。
 // connectedAtは、一度もハートビートを送っていない接続(getWebSocketAutoResponseTimestampがnull)を
 // 死活判定するためのフォールバック起点として使う
-type Attachment = { playerId: string; connectedAt: number } | { spectator: true; connectedAt: number };
+type Attachment =
+  | { playerId: string; connectedAt: number }
+  | { spectator: true; connectedAt: number }
+  | { backstage: true; connectedAt: number };
 
 const SPECTATOR_LIMIT = 2;
+// 裏画面のソケットの上限。端末の切り替え中に前の接続が残る場合の余地として2本とする（ADR-0035）
+const BACKSTAGE_LIMIT = 2;
 
 // ソケット1本あたりのメッセージ流量。通常のプレイは1分間に数回であり、
 // 連打・自動化だけがこの値に届く（基本設計/01のレート制限）
@@ -172,6 +179,10 @@ export class RoomDO extends DurableObject<Env> {
         return this.handleJoin(ws, message);
       case "spectate":
         return this.handleSpectate(ws);
+      case "backstage":
+        return this.handleBackstage(ws);
+      case "setPinnedPairs":
+        return this.handleSetPinnedPairs(ws, message);
       case "selectGame":
         return this.handleSelectGame(ws, message);
       case "configure":
@@ -350,6 +361,55 @@ export class RoomDO extends DurableObject<Env> {
     this.sendLastResult(ws, room, await this.getSecrets());
   }
 
+  /**
+   * 裏画面のソケットとして登録する（ADR-0035）。
+   *
+   * 参加者に数えず、secretを送らない。ペアの指定の現在値は裏画面のソケットにだけ送る。
+   * URLを知っていれば誰でも開ける（不変条件3の例外。被害はペアの指定の漏れと書き換えに限られる）
+   */
+  private async handleBackstage(ws: WebSocket): Promise<void> {
+    // 参加者のソケットを裏画面へ転向させない。転向するとattachmentからplayerIdが消え、
+    // その席は切断も死活判定も効かないまま connected: true で残る（観戦と同じ理由）
+    if (this.deserializeAttachment(ws) !== null) {
+      return this.sendError(ws, ERROR_CODES.INVALID_LIFECYCLE, "already joined on this socket");
+    }
+    if (this.backstageSockets().length >= BACKSTAGE_LIMIT) {
+      this.sendError(ws, ERROR_CODES.BACKSTAGE_LIMIT, "backstage limit reached");
+      ws.close(1008, "backstage_limit");
+      return;
+    }
+
+    ws.serializeAttachment({ backstage: true, connectedAt: Date.now() } satisfies Attachment);
+    const room = await this.getRoom();
+    const secrets = await this.getSecrets();
+    this.send(ws, this.buildStateMessage(room));
+    this.send(ws, { v: PROTOCOL_VERSION, type: "pinnedPairs", pairs: secrets.pinnedPairs ?? [] });
+  }
+
+  /**
+   * ペアの指定を丸ごと置き換える（ADR-0035）。
+   *
+   * 構造（2人が異なる、組どうしが人を共有しない、4組まで）は parseClientMessage が確かめている。
+   * ここでは部屋の状態を見て、2人が今の参加者であることを確かめる。
+   * lifecycleによらず受理し、次のstartで使う。結果の表示中に次のゲームのペアを決められるようにするため
+   */
+  private async handleSetPinnedPairs(ws: WebSocket, message: SetPinnedPairsMessage): Promise<void> {
+    if (!this.isBackstage(ws)) {
+      return this.sendError(ws, ERROR_CODES.INVALID_LIFECYCLE, "backstage only");
+    }
+    const room = await this.getRoom();
+    const playerIds = new Set(room.players.map((p) => p.id));
+    if (!message.pairs.every(([a, b]) => playerIds.has(a) && playerIds.has(b))) {
+      return this.sendError(ws, ERROR_CODES.INVALID_PAYLOAD, "unknown player in pairs");
+    }
+
+    const secrets = await this.getSecrets();
+    secrets.pinnedPairs = message.pairs.map(([a, b]) => [a, b] satisfies PinnedPair);
+    await this.ctx.storage.put("secrets", secrets);
+    await this.updateAlarm(room);
+    this.sendPinnedPairsToBackstage(secrets.pinnedPairs);
+  }
+
   private async handleSelectGame(ws: WebSocket, message: SelectGameMessage): Promise<void> {
     const room = await this.getRoom();
     if (room.lifecycle !== "lobby") {
@@ -422,11 +482,13 @@ export class RoomDO extends DurableObject<Env> {
       return this.sendError(ws, ERROR_CODES.INVALID_PAYLOAD, "content not selected");
     }
 
+    const secrets = await this.getSecrets();
     const startResult = gameModule.start({
       players: room.players,
       contentId: room.contentId ?? "",
       settings: room.settings,
       seed: generateSeed(),
+      pinnedPairs: this.pinnedPairsOfPlayers(secrets, room.players),
     });
 
     room.lifecycle = "playing";
@@ -434,7 +496,6 @@ export class RoomDO extends DurableObject<Env> {
     room.deadline = Date.now() + startResult.deadlineSeconds * 1000;
     room.gameState = startResult.publicState;
 
-    const secrets = await this.getSecrets();
     for (const [playerId, payload] of startResult.secrets) {
       secrets.playerSecrets[playerId] = payload;
     }
@@ -538,6 +599,12 @@ export class RoomDO extends DurableObject<Env> {
     if (token) {
       secrets.revokedTokens = [...(secrets.revokedTokens ?? []), token].slice(-REVOKED_TOKENS_LIMIT);
     }
+    // 外した人を含む組を消す。入り直すと新しいplayerIdになり、古い組は誰も指さなくなる（ADR-0035）
+    const pinnedBefore = secrets.pinnedPairs ?? [];
+    const pinnedAfter = pinnedBefore.filter(([a, b]) => a !== target.id && b !== target.id);
+    if (pinnedAfter.length !== pinnedBefore.length) {
+      secrets.pinnedPairs = pinnedAfter;
+    }
     this.reassignHostIfNeeded(room);
 
     await this.ctx.storage.put("room", room);
@@ -554,6 +621,9 @@ export class RoomDO extends DurableObject<Env> {
       }
     }
     this.broadcastState(room);
+    if (pinnedAfter.length !== pinnedBefore.length) {
+      this.sendPinnedPairsToBackstage(pinnedAfter);
+    }
   }
 
   // --- 時間駆動処理（アラーム多重化・死活判定・部屋のGC。基本設計/01_サーバ.md、ADR-0013） ---
@@ -732,6 +802,31 @@ export class RoomDO extends DurableObject<Env> {
       return false;
     }
     return room.players.find((p) => p.id === playerId)?.isHost === true;
+  }
+
+  private isBackstage(ws: WebSocket): boolean {
+    const attachment = this.deserializeAttachment(ws);
+    return attachment !== null && "backstage" in attachment;
+  }
+
+  private backstageSockets(): WebSocket[] {
+    return this.ctx.getWebSockets().filter((socket) => this.isBackstage(socket));
+  }
+
+  /** ペアの指定は裏画面のソケットにだけ送る。参加者と観戦ソケットへは送らない（ADR-0035） */
+  private sendPinnedPairsToBackstage(pairs: PinnedPair[]): void {
+    for (const socket of this.backstageSockets()) {
+      this.send(socket, { v: PROTOCOL_VERSION, type: "pinnedPairs", pairs });
+    }
+  }
+
+  /**
+   * startへ渡すペアの指定。今の参加者だけで成り立つ組に絞る。
+   * kickで組は消しているが、保存済みの値が参加者とずれていてもゲームモジュールへ渡さないための保険である
+   */
+  private pinnedPairsOfPlayers(secrets: SecretsState, players: Player[]): PinnedPair[] {
+    const ids = new Set(players.map((p) => p.id));
+    return (secrets.pinnedPairs ?? []).filter(([a, b]) => ids.has(a) && ids.has(b));
   }
 
   private deserializeAttachment(ws: WebSocket): Attachment | null {

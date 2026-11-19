@@ -83,6 +83,7 @@ function handleCatalog(): Response {
     playerCount: gameModule.playerCount,
     contentLabelJa: gameModule.contentLabelJa,
     settingsFields: gameModule.settingsFields,
+    acceptsPinnedPairs: gameModule.acceptsPinnedPairs === true,
     contents: gameModule.listContents(),
   }));
   return Response.json({ games });

@@ -1,5 +1,5 @@
 // RoomDOのstorage表現。公開Room型のスーパーセットとして持つ内部状態
-import type { Room } from "@beb/shared-core";
+import type { PinnedPair, Room } from "@beb/shared-core";
 
 // configureで保存するゲーム固有設定。公開Room型(state配信)には含めない
 export interface InternalRoomState extends Room {
@@ -19,6 +19,9 @@ export interface SecretsState {
   playerSecrets: Record<string, unknown>;
   // ゲームモジュールが保持する秘密状態。共通コアは中身を解釈しない（基本設計/01、ADR-0015）
   gameSecret?: unknown;
+  // 裏画面で主催者が指定した「同じペアに入れる2人」の組。参加者に伏せるため room ではなくこちらに置く。
+  // nextGameでも消さない。導入前に作られた部屋のsecretsには無いため省略可とし、無ければ指定なしとして扱う（ADR-0035）
+  pinnedPairs?: PinnedPair[];
 }
 
 export function emptySecretsState(): SecretsState {
