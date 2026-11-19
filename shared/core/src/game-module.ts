@@ -1,5 +1,6 @@
 // GameModuleインターフェース。共通コアはこれだけを通してゲームに触る（基本設計/05_ゲームモジュール.md）
 import type { GameTag } from "./game-tags";
+import type { Seed } from "./rng";
 import type { ContentSummary, PinnedPair, Player, Room, SettingField } from "./types";
 
 export interface ValidationResult {
@@ -57,7 +58,8 @@ export interface GameModule<TPublic, TSecret, TResult, TGameSecret = unknown> {
     players: Player[];
     contentId: string;
     settings: unknown;
-    seed: number;
+    /** 実行時は128bit（ADR-0036）。テストでは数値を渡してよい */
+    seed: Seed;
     pinnedPairs?: PinnedPair[];
   }): {
     stage: string;
