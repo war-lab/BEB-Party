@@ -1,6 +1,6 @@
 // メッセージ構造(型)の正本。意味・受理条件・順序保証は基本設計/03_プロトコル.mdを正とする
 import type { PlayerIconId } from "./player-icon";
-import type { Level, Room } from "./types";
+import type { Level, PinnedPair, Room } from "./types";
 
 export const PROTOCOL_VERSION = 1;
 
@@ -29,6 +29,27 @@ export interface JoinMessage {
 export interface SpectateMessage {
   v: number;
   type: "spectate";
+}
+
+/**
+ * 裏画面のソケットとして登録する（ADR-0035）。
+ *
+ * 参加者に数えず、`secret` を受け取らない。URLを知っていれば誰でも送れる（不変条件3の例外。ADR-0035）
+ */
+export interface BackstageMessage {
+  v: number;
+  type: "backstage";
+}
+
+/**
+ * ペアの指定を丸ごと置き換える。空配列で指定をすべて外す（ADR-0035）。
+ *
+ * 裏画面のソケットからだけ受理する。`pairs` の playerId は組ませる対象の指定であって認証情報ではない
+ */
+export interface SetPinnedPairsMessage {
+  v: number;
+  type: "setPinnedPairs";
+  pairs: PinnedPair[];
 }
 
 export interface SelectGameMessage {
@@ -78,6 +99,8 @@ export interface ActionMessage {
 export type ClientMessage =
   | JoinMessage
   | SpectateMessage
+  | BackstageMessage
+  | SetPinnedPairsMessage
   | SelectGameMessage
   | ConfigureMessage
   | StartMessage
@@ -115,6 +138,13 @@ export interface ResultMessage {
   payload: unknown;
 }
 
+/** ペアの指定の現在値。裏画面のソケットにだけ送る（ADR-0035） */
+export interface PinnedPairsMessage {
+  v: number;
+  type: "pinnedPairs";
+  pairs: PinnedPair[];
+}
+
 export interface ErrorMessage {
   v: number;
   type: "error";
@@ -122,4 +152,10 @@ export interface ErrorMessage {
   message: string;
 }
 
-export type ServerMessage = JoinedMessage | StateMessage | SecretMessage | ResultMessage | ErrorMessage;
+export type ServerMessage =
+  | JoinedMessage
+  | StateMessage
+  | SecretMessage
+  | ResultMessage
+  | PinnedPairsMessage
+  | ErrorMessage;

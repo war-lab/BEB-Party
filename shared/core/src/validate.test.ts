@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { ACTION_MAX_CHARS, NAME_MAX_LENGTH, PLAYER_ID_MAX_LENGTH, SETTINGS_MAX_CHARS, parseClientMessage } from "./validate";
+import {
+  ACTION_MAX_CHARS,
+  MAX_PINNED_PAIRS,
+  NAME_MAX_LENGTH,
+  PLAYER_ID_MAX_LENGTH,
+  SETTINGS_MAX_CHARS,
+  parseClientMessage,
+} from "./validate";
 
 describe("parseClientMessage", () => {
   it("非オブジェクトを拒否する", () => {
@@ -111,6 +118,61 @@ describe("parseClientMessage", () => {
       contentId: "case-01",
       settings: { investigationSeconds: 600 },
     });
+  });
+
+  it("backstageを受理する", () => {
+    expect(parseClientMessage({ v: 1, type: "backstage" })).toEqual({ v: 1, type: "backstage" });
+  });
+
+  // ペアの指定（ADR-0035）。部屋の状態によらず成り立たない指定をサーバへ通さない
+  it("setPinnedPairsを正しく検証する", () => {
+    expect(parseClientMessage({ v: 1, type: "setPinnedPairs", pairs: [] })).toEqual({
+      v: 1,
+      type: "setPinnedPairs",
+      pairs: [],
+    });
+    expect(
+      parseClientMessage({
+        v: 1,
+        type: "setPinnedPairs",
+        pairs: [
+          ["a", "b"],
+          ["c", "d"],
+        ],
+      }),
+    ).toEqual({
+      v: 1,
+      type: "setPinnedPairs",
+      pairs: [
+        ["a", "b"],
+        ["c", "d"],
+      ],
+    });
+    // 欠落・型違い
+    expect(parseClientMessage({ v: 1, type: "setPinnedPairs" })).toBeNull();
+    expect(parseClientMessage({ v: 1, type: "setPinnedPairs", pairs: "a,b" })).toBeNull();
+    expect(parseClientMessage({ v: 1, type: "setPinnedPairs", pairs: [["a"]] })).toBeNull();
+    expect(parseClientMessage({ v: 1, type: "setPinnedPairs", pairs: [["a", "b", "c"]] })).toBeNull();
+    expect(parseClientMessage({ v: 1, type: "setPinnedPairs", pairs: [["a", 1]] })).toBeNull();
+    expect(parseClientMessage({ v: 1, type: "setPinnedPairs", pairs: [["a", ""]] })).toBeNull();
+    expect(
+      parseClientMessage({ v: 1, type: "setPinnedPairs", pairs: [["a", "x".repeat(PLAYER_ID_MAX_LENGTH + 1)]] }),
+    ).toBeNull();
+    // 同じ人の組、人を共有する組
+    expect(parseClientMessage({ v: 1, type: "setPinnedPairs", pairs: [["a", "a"]] })).toBeNull();
+    expect(
+      parseClientMessage({
+        v: 1,
+        type: "setPinnedPairs",
+        pairs: [
+          ["a", "b"],
+          ["b", "c"],
+        ],
+      }),
+    ).toBeNull();
+    // 上限（8人の半分）を超える組数
+    const five = Array.from({ length: MAX_PINNED_PAIRS + 1 }, (_, i) => [`x${i}`, `y${i}`]);
+    expect(parseClientMessage({ v: 1, type: "setPinnedPairs", pairs: five })).toBeNull();
   });
 
   it("kickを正しく検証する", () => {

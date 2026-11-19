@@ -15,6 +15,14 @@ export interface Player {
   isHost: boolean;
 }
 
+/**
+ * 同じペア（チーム）に入れる2人の組。要素は playerId。
+ *
+ * 裏画面で主催者が指定し、参加者には伏せる。`state` に載せない（ADR-0035）。
+ * playerId は対象の指定であって認証情報ではない。
+ */
+export type PinnedPair = [string, string];
+
 // 部屋単位の通算スコアに相当するフィールドは持たない（ADR-0011）
 export interface Room {
   code: string;
@@ -80,6 +88,8 @@ export interface GameSummary {
   contentLabelJa: string;
   /** ロビーで変更できる設定。空配列なら設定の入力を出さない */
   settingsFields: SettingField[];
+  /** ペアの指定を使うか。裏画面が「選択中のゲームで指定が使われるか」を出すために使う（ADR-0035） */
+  acceptsPinnedPairs: boolean;
   contents: ContentSummary[];
 }
 

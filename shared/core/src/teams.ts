@@ -5,6 +5,15 @@
 // チームの意味（ペア、陣営など）は呼び出し側が与える。ゲーム固有の語彙を含まない（不変条件4）。
 import type { Level } from "./types";
 
+/** 編成の追加条件 */
+export interface FormBalancedTeamsOptions {
+  /**
+   * 同じチームに入れる2人の組（idで指定）。裏画面のペアの指定から渡る（ADR-0035）。
+   * 参加者に居ないidを含む組は無視する
+   */
+  together?: readonly (readonly [string, string])[];
+}
+
 /** 最小の偏りに対する許容幅。合計レベルの尺度で数える（ADR-0032の暫定値） */
 export const TEAM_BALANCE_TOLERANCE = 2;
 
@@ -15,9 +24,12 @@ const EPSILON = 1e-9;
  * 参加者を `sizes` の人数構成でチームに分ける。
  *
  * 1. 同じ人数のチームの並べ替えを区別せずに、すべての分け方を列挙する
- * 2. チームごとの平均レベルに最大のチーム人数を掛けた値の、最大と最小の差を偏りとする
- * 3. 偏りが「最小の偏り + TEAM_BALANCE_TOLERANCE」以下の分け方から、`random` で1つを選ぶ
- * 4. チームの並び順を `random` で入れ替えて返す
+ * 2. `together` の組を満たす数が最大の分け方だけを残す。すべての組を満たす分け方があれば、それだけが残る
+ * 3. チームごとの平均レベルに最大のチーム人数を掛けた値の、最大と最小の差を偏りとする
+ * 4. 偏りが「最小の偏り + TEAM_BALANCE_TOLERANCE」以下の分け方から、`random` で1つを選ぶ
+ * 5. チームの並び順を `random` で入れ替えて返す
+ *
+ * `together` を省略した場合、手順2は何も除かず、乱数の消費も変わらない。
  *
  * 全列挙の件数は8人で最大280通り（3・3・2人）であり、工夫せずに足りる（ADR-0032）。
  * 各チームの中の並びは入力の順を保つ。
@@ -26,6 +38,7 @@ export function formBalancedTeams<T extends { id: string; level: Level }>(
   players: readonly T[],
   sizes: readonly number[],
   random: () => number,
+  options: FormBalancedTeamsOptions = {},
 ): T[][] {
   for (const size of sizes) {
     if (!Number.isInteger(size) || size < 1) {
@@ -41,10 +54,13 @@ export function formBalancedTeams<T extends { id: string; level: Level }>(
   }
 
   const maxSize = Math.max(...sizes);
-  const candidates: { teams: number[][]; spread: number }[] = [];
+  const together = resolveTogether(players, options.together ?? []);
+  const all: { teams: number[][]; spread: number; satisfied: number }[] = [];
   for (const teams of enumeratePartitions(players.length, sizes)) {
-    candidates.push({ teams, spread: spreadOf(teams, players, maxSize) });
+    all.push({ teams, spread: spreadOf(teams, players, maxSize), satisfied: countSatisfied(teams, together) });
   }
+  const maxSatisfied = Math.max(...all.map((candidate) => candidate.satisfied));
+  const candidates = all.filter((candidate) => candidate.satisfied === maxSatisfied);
 
   const minSpread = Math.min(...candidates.map((candidate) => candidate.spread));
   const accepted = candidates.filter((candidate) => candidate.spread <= minSpread + TEAM_BALANCE_TOLERANCE + EPSILON);
@@ -62,6 +78,33 @@ export function formBalancedTeams<T extends { id: string; level: Level }>(
     order[j] = a;
   }
   return order.map((index) => (chosen.teams[index] as number[]).map((playerIndex) => players[playerIndex] as T));
+}
+
+/** 組を添字の組に直す。参加者に居ないidを含む組と、同じ人の組は捨てる */
+function resolveTogether<T extends { id: string }>(
+  players: readonly T[],
+  together: readonly (readonly [string, string])[],
+): [number, number][] {
+  const indexOf = new Map(players.map((player, index) => [player.id, index]));
+  const resolved: [number, number][] = [];
+  for (const [a, b] of together) {
+    const ia = indexOf.get(a);
+    const ib = indexOf.get(b);
+    if (ia !== undefined && ib !== undefined && ia !== ib) {
+      resolved.push([ia, ib]);
+    }
+  }
+  return resolved;
+}
+
+/** 分け方が満たす組の数 */
+function countSatisfied(teams: number[][], together: readonly [number, number][]): number {
+  if (together.length === 0) {
+    return 0;
+  }
+  const teamOf = new Map<number, number>();
+  teams.forEach((team, teamIndex) => team.forEach((playerIndex) => teamOf.set(playerIndex, teamIndex)));
+  return together.filter(([a, b]) => teamOf.get(a) === teamOf.get(b)).length;
 }
 
 /** 合計レベルの尺度にそろえた偏り。人数の違うチームは平均に最大人数を掛けて比べる */

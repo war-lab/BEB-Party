@@ -103,3 +103,91 @@ describe("formBalancedTeams", () => {
     expect(Date.now() - started).toBeLessThan(500);
   });
 });
+
+// ペアの指定（ADR-0035）。指定した組が別のチームに割れること（指定が効かない）と、
+// 指定しない場合の編成が変わること（既存の部屋の再現性を壊す）の両方を検出する
+describe("formBalancedTeams の together", () => {
+  function teamOf(teams: { id: string }[][], id: string): number {
+    return teams.findIndex((team) => team.some((player) => player.id === id));
+  }
+
+  it("8人4ペアで4組すべてを指定すると、どのseedでも指定どおりのペアになる", () => {
+    const players = makePlayers([1, 2, 3, 4, 5, 1, 2, 3]);
+    const together: [string, string][] = [
+      ["p0", "p7"],
+      ["p1", "p6"],
+      ["p2", "p5"],
+      ["p3", "p4"],
+    ];
+    for (let seed = 1; seed <= 30; seed += 1) {
+      const teams = formBalancedTeams(players, [2, 2, 2, 2], createRandom(seed), { together });
+      for (const [a, b] of together) {
+        expect(teamOf(teams, a)).toBe(teamOf(teams, b));
+      }
+    }
+  });
+
+  it("一部だけ指定すると、指定した組は必ず同じペアになり、残りは毎回同じとは限らない", () => {
+    const players = makePlayers([3, 3, 3, 3, 3, 3, 3, 3]);
+    const together: [string, string][] = [["p0", "p5"]];
+    const rest = new Set<string>();
+    for (let seed = 1; seed <= 40; seed += 1) {
+      const teams = formBalancedTeams(players, [2, 2, 2, 2], createRandom(seed), { together });
+      expect(teamOf(teams, "p0")).toBe(teamOf(teams, "p5"));
+      rest.add(canonical(teams));
+    }
+    expect(rest.size).toBeGreaterThan(1);
+  });
+
+  it("指定がレベルの偏りを大きくしても、指定を優先する", () => {
+    // 5と5を組ませると合計の差は8になり、指定が無ければ許容幅（2）の外で選ばれない
+    const players = makePlayers([5, 5, 1, 1]);
+    for (let seed = 1; seed <= 20; seed += 1) {
+      const teams = formBalancedTeams(players, [2, 2], createRandom(seed), { together: [["p0", "p1"]] });
+      expect(teamOf(teams, "p0")).toBe(teamOf(teams, "p1"));
+    }
+  });
+
+  it("指定した2人が3人組に入る編成も、指定を満たすとみなす", () => {
+    const players = makePlayers([3, 3, 3, 3, 3, 3, 3]);
+    const seen = new Set<number>();
+    for (let seed = 1; seed <= 60; seed += 1) {
+      const teams = formBalancedTeams(players, [2, 2, 3], createRandom(seed), { together: [["p0", "p1"]] });
+      const index = teamOf(teams, "p0");
+      expect(index).toBe(teamOf(teams, "p1"));
+      seen.add((teams[index] as unknown[]).length);
+    }
+    expect([...seen].sort()).toEqual([2, 3]);
+  });
+
+  it("参加者に居ないidを含む組は無視する", () => {
+    const players = makePlayers([1, 2, 3, 4]);
+    const plain = formBalancedTeams(players, [2, 2], createRandom(7));
+    const withGhost = formBalancedTeams(players, [2, 2], createRandom(7), { together: [["p0", "ghost"]] });
+    expect(canonical(withGhost)).toBe(canonical(plain));
+  });
+
+  it("すべては満たせない指定では、満たす組の数が最大の分け方を選ぶ", () => {
+    const players = makePlayers([3, 3, 3, 3]);
+    const together: [string, string][] = [
+      ["p0", "p1"],
+      ["p0", "p2"],
+    ];
+    for (let seed = 1; seed <= 20; seed += 1) {
+      const teams = formBalancedTeams(players, [2, 2], createRandom(seed), { together });
+      const satisfied = together.filter(([a, b]) => teamOf(teams, a) === teamOf(teams, b)).length;
+      expect(satisfied).toBe(1);
+    }
+  });
+
+  it("指定を省略しても空でも、同じseedなら従来と同じ編成を返す（既存の部屋の再現性）", () => {
+    const players = makePlayers([1, 2, 3, 4, 5, 1, 2, 3]);
+    for (let seed = 1; seed <= 10; seed += 1) {
+      const omitted = formBalancedTeams(players, [2, 2, 2, 2], createRandom(seed));
+      const empty = formBalancedTeams(players, [2, 2, 2, 2], createRandom(seed), { together: [] });
+      expect(empty.map((team) => team.map((player) => player.id))).toEqual(
+        omitted.map((team) => team.map((player) => player.id)),
+      );
+    }
+  });
+});

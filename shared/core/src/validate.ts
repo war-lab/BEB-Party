@@ -1,6 +1,6 @@
 // 受信値(unknown)を検証して共通メッセージ型を付ける。構造検証のみを行い、
 // プロトコルバージョンの一致判定(unsupported_versionの送出)はサーバ側の責務とする
-import type { Level } from "./types";
+import type { Level, PinnedPair } from "./types";
 import type { ClientMessage } from "./protocol";
 import { isPlayerIconId } from "./player-icon";
 
@@ -29,6 +29,40 @@ export const SETTINGS_MAX_CHARS = 2048;
 export const ACTION_MAX_CHARS = 512;
 /** kickの対象ID の長さ上限。サーバが発行するIDはUUID（36文字）であり、それより長い値は照合するまでもなく不正である */
 export const PLAYER_ID_MAX_LENGTH = 64;
+/**
+ * ペアの指定の組数の上限。部屋の上限人数8人（ADR-0033）の半分である（ADR-0035）。
+ * 組どうしは人を共有しないため、8人の部屋でこれを超える指定は成り立たない
+ */
+export const MAX_PINNED_PAIRS = 4;
+
+function isPlayerIdLike(value: unknown): value is string {
+  return typeof value === "string" && value.length > 0 && value.length <= PLAYER_ID_MAX_LENGTH;
+}
+
+/**
+ * ペアの指定の構造だけを検証する。2人が部屋の参加者かどうかは部屋の状態を見るサーバが確かめる。
+ * 同じ人の組と、人を共有する組はここで弾く（部屋の状態によらず成り立たないため）
+ */
+function parsePinnedPairs(value: unknown): PinnedPair[] | null {
+  if (!Array.isArray(value) || value.length > MAX_PINNED_PAIRS) {
+    return null;
+  }
+  const seen = new Set<string>();
+  const pairs: PinnedPair[] = [];
+  for (const entry of value) {
+    if (!Array.isArray(entry) || entry.length !== 2) {
+      return null;
+    }
+    const [a, b] = entry as unknown[];
+    if (!isPlayerIdLike(a) || !isPlayerIdLike(b) || a === b || seen.has(a) || seen.has(b)) {
+      return null;
+    }
+    seen.add(a);
+    seen.add(b);
+    pairs.push([a, b]);
+  }
+  return pairs;
+}
 
 function isValidName(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0 && [...value].length <= NAME_MAX_LENGTH;
@@ -79,6 +113,16 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
     }
     case "spectate": {
       return { v, type: "spectate" };
+    }
+    case "backstage": {
+      return { v, type: "backstage" };
+    }
+    case "setPinnedPairs": {
+      const pairs = parsePinnedPairs(raw.pairs);
+      if (!pairs) {
+        return null;
+      }
+      return { v, type: "setPinnedPairs", pairs };
     }
     case "selectGame": {
       if (typeof raw.gameId !== "string") {

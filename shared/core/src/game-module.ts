@@ -1,5 +1,5 @@
 // GameModuleインターフェース。共通コアはこれだけを通してゲームに触る（基本設計/05_ゲームモジュール.md）
-import type { ContentSummary, Player, Room, SettingField } from "./types";
+import type { ContentSummary, PinnedPair, Player, Room, SettingField } from "./types";
 
 export interface ValidationResult {
   valid: boolean;
@@ -30,12 +30,28 @@ export interface GameModule<TPublic, TSecret, TResult, TGameSecret = unknown> {
   contentLabelJa: string;
   /** ロビーで変更できる設定の記述子。空配列なら設定の入力を出さない（ADR-0012） */
   settingsFields: SettingField[];
+  /**
+   * ペアの指定（start の pinnedPairs）を使うか。省略は使わない（ADR-0035）。
+   * 裏画面がこの値を見て、選択中のゲームで指定が使われるかを表示する
+   */
+  acceptsPinnedPairs?: boolean;
 
   listContents(): ContentSummary[];
 
   validateSettings(settings: unknown): ValidationResult;
 
-  start(input: { players: Player[]; contentId: string; settings: unknown; seed: number }): {
+  /**
+   * 開始。`pinnedPairs` は裏画面で指定された「同じペアに入れる2人」の組である。
+   * 共通コアは各組の2人が参加者で、組どうしが人を共有しないことだけを保証する。
+   * 使わないゲームは無視してよい（ADR-0035）
+   */
+  start(input: {
+    players: Player[];
+    contentId: string;
+    settings: unknown;
+    seed: number;
+    pinnedPairs: PinnedPair[];
+  }): {
     stage: string;
     deadlineSeconds: number;
     publicState: TPublic;

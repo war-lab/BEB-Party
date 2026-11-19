@@ -4,6 +4,7 @@ export const ERROR_CODES = {
   ROOM_NOT_FOUND: "room_not_found",
   ROOM_FULL: "room_full",
   SPECTATOR_LIMIT: "spectator_limit",
+  BACKSTAGE_LIMIT: "backstage_limit",
   GAME_IN_PROGRESS: "game_in_progress",
   NOT_HOST: "not_host",
   INVALID_LIFECYCLE: "invalid_lifecycle",
