@@ -403,13 +403,14 @@ export const SCRIPTS: MovieScript[] = [
   },
   {
     // 数値の出典: shared/games/secretrule/src/game.ts（STAGE_DEADLINE_SECONDS・WRITING_SECONDS・
-    // CANDIDATE_COUNT・TESTS_PER_ROUND・MAX_ROUNDS・RANK_THRESHOLDS）。2〜6人のゲームであり、
+    // CANDIDATE_COUNT・TESTS_PER_ROUND・MAX_ROUNDS・RANK_THRESHOLDS）と server/games/secretrule/src/module.ts（playerCount）。
+    // 2〜8人のゲームであり（ADR-0033）、
     // 下書きを選ぶ画面も写るよう素材は4人の卓で撮る
     id: "secretrule",
     icon: "\u{1F9EA}",
     title: ["SECRET RULE", "ENGLISH"],
     tagline: ["英文を書いて試し、", "隠れた規則を全員で見抜く"],
-    purpose: ["2〜6人で協力して、", "英文が「通る」秘密の規則を", "6つの候補から当てる"],
+    purpose: ["2〜8人で協力して、", "英文が「通る」秘密の規則を", "6つの候補から当てる"],
     beats: [
       {
         shot: "secretrule-briefing",
