@@ -452,6 +452,7 @@ export const secretTeamsModule: GameModule<
   // 演劇の仮面の絵文字。収録8本のアイコンと重ならないものを選ぶ（17のロビーの記述子）
   icon: "\u{1F3AD}",
   playerCount: [4, 8],
+  tags: ["team", "hidden"],
   contentLabelJa: "テーマパックを選ぶ",
   settingsFields: [
     {

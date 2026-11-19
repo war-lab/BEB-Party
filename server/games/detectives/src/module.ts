@@ -393,6 +393,7 @@ export const detectivesModule: GameModule<
   tagline: "英語で聞き込み、嘘つきを1人あぶり出す",
   icon: "🔍",
   playerCount: [5, 6],
+  tags: ["faction", "hidden"],
   contentLabelJa: "事件を選ぶ",
   settingsFields: [
     {

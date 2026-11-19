@@ -552,6 +552,7 @@ export const mindMeldModule: GameModule<MindMeldPublic, MindMeldSecret, MindMeld
   // 脳の絵文字。収録7本のアイコンと重ならないものを選ぶ（15のロビーの記述子）
   icon: "\u{1F9E0}",
   playerCount: [4, 8],
+  tags: ["team"],
   contentLabelJa: "お題を選ぶ",
   settingsFields: [
     {

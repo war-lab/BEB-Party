@@ -406,6 +406,7 @@ export const rankingModule: GameModule<RankingPublic, RankingSecret, RankingResu
   tagline: "秘密の目標を抱えて、英語で順位を決める",
   icon: "🏆",
   playerCount: [5, 8],
+  tags: ["solo"],
   contentLabelJa: "お題を選ぶ",
   settingsFields: [
     {

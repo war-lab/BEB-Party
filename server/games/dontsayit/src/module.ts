@@ -533,6 +533,7 @@ export const dontSayItModule: GameModule<
   // 3人から遊べる。説明者・監視役・回答者1人が残る（09の3役）。
   // 上限を変えるときは山札の下限（MIN_CARDS）を上限 × 周回数の上限 × 1ラウンドの消費上限へ合わせる（09の検証4）
   playerCount: [3, 8],
+  tags: ["solo"],
   contentLabelJa: "お題を選ぶ",
   settingsFields: [
     {

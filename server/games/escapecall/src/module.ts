@@ -383,6 +383,7 @@ export const escapeCallModule: GameModule<EscapeCallPublic, EscapeCallSecret, Es
   tagline: "別々の手がかりを英語で伝え合い、3つの錠を開けて脱出する",
   icon: "🔐",
   playerCount: [2, 4],
+  tags: ["coop"],
   contentLabelJa: "舞台を選ぶ",
   settingsFields: [
     {

@@ -525,6 +525,7 @@ export const whoWroteThisModule: GameModule<
   icon: "✍️",
   // 5〜8人（ADR-0033）。指名の候補が増えるほど当てずっぽうで当たりにくくなり、規則の骨格は変えない（11のロビーの記述子）
   playerCount: [5, 8],
+  tags: ["solo"],
   contentLabelJa: "お題を選ぶ",
   settingsFields: [
     {

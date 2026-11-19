@@ -500,6 +500,7 @@ export const twoHeadedModule: GameModule<TwoHeadedPublic, TwoHeadedSecret, TwoHe
   // 3組以上でないと得点の付け方が競争として成り立たない（16の「対応人数の下限を6人にする理由」）。
   // 上限を変えるときは TEAM_SIZES と山札の下限（MIN_CARDS）を合わせる
   playerCount: [6, 8],
+  tags: ["team"],
   contentLabelJa: "お題セットを選ぶ",
   settingsFields: [
     {

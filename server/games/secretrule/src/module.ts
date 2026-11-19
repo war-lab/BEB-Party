@@ -642,6 +642,7 @@ export const secretRuleModule: GameModule<
   // 試験管の絵文字。収録6本のアイコンと重ならないものを選ぶ（14のロビーの記述子）
   icon: "\u{1F9EA}",
   playerCount: [2, 8],
+  tags: ["coop"],
   contentLabelJa: "規則パックを選ぶ",
   settingsFields: [
     {
