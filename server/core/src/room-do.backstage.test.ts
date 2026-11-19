@@ -21,7 +21,7 @@ const captureModule: GameModule<unknown, unknown, unknown, unknown> = {
   ...(stubGameModule as unknown as GameModule<unknown, unknown, unknown, unknown>),
   acceptsPinnedPairs: true,
   start: (input) => {
-    capturedPinnedPairs.push(input.pinnedPairs);
+    capturedPinnedPairs.push(input.pinnedPairs ?? []);
     return (stubGameModule as unknown as GameModule<unknown, unknown, unknown, unknown>).start(input);
   },
 };

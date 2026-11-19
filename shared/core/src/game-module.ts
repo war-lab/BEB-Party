@@ -43,14 +43,16 @@ export interface GameModule<TPublic, TSecret, TResult, TGameSecret = unknown> {
   /**
    * 開始。`pinnedPairs` は裏画面で指定された「同じペアに入れる2人」の組である。
    * 共通コアは各組の2人が参加者で、組どうしが人を共有しないことだけを保証する。
-   * 使わないゲームは無視してよい（ADR-0035）
+   * 使わないゲームは無視してよい（ADR-0035）。
+   * 省略可とするのは、指定を使わない既存のゲームとそのテストが、渡さずに start を呼べるようにするため。
+   * 共通コアは常に渡す。使うゲームは省略を指定なしとして扱う
    */
   start(input: {
     players: Player[];
     contentId: string;
     settings: unknown;
     seed: number;
-    pinnedPairs: PinnedPair[];
+    pinnedPairs?: PinnedPair[];
   }): {
     stage: string;
     deadlineSeconds: number;
