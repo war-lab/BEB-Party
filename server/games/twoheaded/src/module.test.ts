@@ -3,13 +3,14 @@
 // GameModule は純粋関数のため、Durable Objectなしで全項目を確かめる。
 // 山札が尽きる経路には小さいセットが要るため、お題セットの引き先をフィクスチャへ差し替える。
 import { describe, expect, it, vi } from "vitest";
-import type { Level } from "@beb/shared-core";
+import { pairTeamSizes, type Level } from "@beb/shared-core";
 import {
   ACTIONS,
   ERROR_CODES,
   MAX_CARDS_PER_TURN,
   MIN_CARDS,
   STAGES,
+  TEAM_SIZES,
   TURN_SECONDS,
   placesOf,
   type ExplainerSecret,
@@ -184,6 +185,13 @@ describe("start", () => {
   // ペアの指定（ADR-0035）。指定が効かないこと、指定が無いときの編成が変わることの両方を検出する
   it("ペアの指定: acceptsPinnedPairs を宣言する", () => {
     expect(twoHeadedModule.acceptsPinnedPairs).toBe(true);
+  });
+
+  // 裏画面は共通コアの pairTeamSizes で指定の自然さを判定する。表がずれると警告が外れる（ADR-0035）
+  it("ペアの指定: 人数構成の表が共通コアの pairTeamSizes と一致する", () => {
+    for (const count of [6, 7, 8]) {
+      expect([...(TEAM_SIZES[count] ?? [])].sort()).toEqual(pairTeamSizes(count).sort());
+    }
   });
 
   it.each([6, 7, 8])("ペアの指定: %i人で、指定した組がどのseedでも同じペアに入る", (count) => {
@@ -439,7 +447,9 @@ describe("消費上限", () => {
     expect(live.publicState.turns).toEqual([{ teamId, solved: 3, passed: 2, skipped: false }]);
     expect(live.publicState.solvedThisTurn).toBe(0);
     expect(live.publicState.passedThisTurn).toBe(0);
-    expect(live.publicState.lastCard).toBeNull();
+    // 上限で手番を終えた5枚目の答えは、交代の間も全員に出す（16の「言えない語」）
+    const fifth = live.gameSecret.usedCards.at(-1);
+    expect(live.publicState.lastCard).toMatchObject({ outcome: "solved", answer: cardOf(fifth?.cardId ?? null)?.answer });
   });
 });
 
@@ -491,7 +501,7 @@ describe("話す順", () => {
 });
 
 describe("締切", () => {
-  it("explaining の締切で表示中のお題が timeout として記録され、3つのカウンタが戻る", () => {
+  it("explaining の締切で表示中のお題が timeout として記録され、正解と送りのカウンタが戻る", () => {
     let live = startTurn(twoHeadedModule, toFirstHandoff(6));
     live = claim(twoHeadedModule, live);
     const timeoutCardId = live.gameSecret.currentCardId;
@@ -505,7 +515,9 @@ describe("締切", () => {
     });
     expect(live.publicState.solvedThisTurn).toBe(0);
     expect(live.publicState.passedThisTurn).toBe(0);
-    expect(live.publicState.lastCard).toBeNull();
+    // 締切で捨てたお題は lastCard に載せない。直前に終えた1枚（正解）が交代の間も残る
+    expect(live.publicState.lastCard?.outcome).toBe("solved");
+    expect(live.publicState.lastCard?.answer).not.toBe(cardOf(timeoutCardId)?.answer);
     // 次の手番は新しいお題から始める
     expect(live.gameSecret.currentCardId).not.toBe(timeoutCardId);
   });
@@ -554,7 +566,7 @@ describe("締切", () => {
 });
 
 describe("lastCard", () => {
-  it("正解と送りで更新され、手番が変わると null に戻る", () => {
+  it("正解と送りで更新され、交代の間は残り、次の説明タイムに入ると null に戻る", () => {
     let live = startTurn(twoHeadedModule, toFirstHandoff(6));
     expect(live.publicState.lastCard).toBeNull();
     live = claim(twoHeadedModule, live);
@@ -562,6 +574,21 @@ describe("lastCard", () => {
     live = pass(twoHeadedModule, live);
     expect(live.publicState.lastCard?.outcome).toBe("passed");
     live = expire(twoHeadedModule, live);
+    expect(live.stage).toBe(STAGES.handoff);
+    expect(live.publicState.lastCard?.outcome).toBe("passed");
+    live = startTurn(twoHeadedModule, live);
+    expect(live.stage).toBe(STAGES.explaining);
+    expect(live.publicState.lastCard).toBeNull();
+  });
+
+  it("交代の締切で説明タイムが自動で始まったときも null に戻る", () => {
+    let live = startTurn(twoHeadedModule, toFirstHandoff(6));
+    live = claim(twoHeadedModule, live);
+    live = expire(twoHeadedModule, live);
+    expect(live.stage).toBe(STAGES.handoff);
+    expect(live.publicState.lastCard).not.toBeNull();
+    live = expire(twoHeadedModule, live);
+    expect(live.stage).toBe(STAGES.explaining);
     expect(live.publicState.lastCard).toBeNull();
   });
 });

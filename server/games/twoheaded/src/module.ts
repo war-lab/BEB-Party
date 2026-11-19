@@ -229,6 +229,18 @@ function finish(publicState: TwoHeadedPublic, gameSecret: TwoHeadedGameSecret): 
  * 1枚目を start ではなくここで送るのは、start で送ると最初の説明役のペアだけが briefing の間にお題を読めるためである。
  * 山札が尽きていれば、残りの手番があっても結果へ進む（16のステージ）。
  */
+/**
+ * 説明タイムに入る。前の手番の直前のお題（lastCard）はここで消す。
+ * 交代の間は残し、当てる側が手番を終えた1枚の答えを確かめられるようにする（16の「言えない語」）
+ */
+function enterExplaining(publicState: TwoHeadedPublic): Transition {
+  return {
+    publicState: { ...publicState, lastCard: null },
+    stage: STAGES.explaining,
+    deadlineSeconds: publicState.turnSeconds,
+  };
+}
+
 function beginTurn(room: Room, publicState: TwoHeadedPublic, gameSecret: TwoHeadedGameSecret, turnIndex: number): Transition {
   const target = resolveSet(publicState.setId);
   const cardId = gameSecret.deck[gameSecret.cursor];
@@ -243,7 +255,7 @@ function beginTurn(room: Room, publicState: TwoHeadedPublic, gameSecret: TwoHead
     speakingOrder: speakingOrderOf(team?.members ?? [], gameSecret.cardsExplained[teamId] ?? 0),
     solvedThisTurn: 0,
     passedThisTurn: 0,
-    lastCard: null,
+    // lastCard は交代の間も残す。手番を終えた1枚の答えを、当てる側が交代の画面で確かめられるように（16の「言えない語」）
   };
   const nextSecret: TwoHeadedGameSecret = { ...gameSecret, cursor: gameSecret.cursor + 1, currentCardId: cardId };
   return {
@@ -287,7 +299,8 @@ function endTurn(
       cardsExplained: { ...gameSecret.cardsExplained, [teamId]: (gameSecret.cardsExplained[teamId] ?? 0) + 1 },
     };
   }
-  // 3つのカウンタ（正解・送り・直前のお題）を戻す。turns と足し合わせて集計する画面が最後の手番を二重に数えないため
+  // 正解と送りのカウンタを戻す。turns と足し合わせて集計する画面が最後の手番を二重に数えないため。
+  // 直前のお題（lastCard）は戻さない。上限で手番を終えた5枚目の答えも全員に出すため（16の「言えない語」）
   const nextPublic: TwoHeadedPublic = {
     ...publicState,
     turns: [
@@ -296,7 +309,6 @@ function endTurn(
     ],
     solvedThisTurn: 0,
     passedThisTurn: 0,
-    lastCard: null,
   };
   const nextIndex = publicState.turnIndex + 1;
   if (nextIndex >= publicState.turnOrder.length) {
@@ -393,7 +405,7 @@ function handleStartTurn(room: Room, publicState: TwoHeadedPublic, playerId: str
     return { reject: { code: ERROR_CODES.notExplainer } };
   }
   // ペアのどちらが送ってもよい。後から届いた1件はステージ違いで invalid_stage になる（16の startTurn）
-  return { stage: STAGES.explaining, deadlineSeconds: publicState.turnSeconds };
+  return enterExplaining(publicState);
 }
 
 function handleClaimCorrect(
@@ -624,7 +636,7 @@ export const twoHeadedModule: GameModule<TwoHeadedPublic, TwoHeadedSecret, TwoHe
         if (connected < 2) {
           return endTurn(room, publicState, gameSecret, "skipped");
         }
-        return { stage: STAGES.explaining, deadlineSeconds: publicState.turnSeconds };
+        return enterExplaining(publicState);
       }
       case STAGES.explaining:
         return endTurn(room, publicState, gameSecret, "timeout");

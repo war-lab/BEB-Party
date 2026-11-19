@@ -259,7 +259,7 @@ interface TwoHeadedPublic {
   turns: TurnSummary[];              // 終了した手番の記録
   solvedThisTurn: number;
   passedThisTurn: number;
-  lastCard: RevealedCard | null;     // 直前に終えたお題。手番が変わると null に戻す
+  lastCard: RevealedCard | null;     // 直前に終えたお題。交代の間も残し、次の explaining に入ると null に戻す
   starters: KeyExpression[];         // お題セットの書き出しの例。説明役のペアの画面に出す
   turnSeconds: number;
   laps: number;
@@ -297,7 +297,10 @@ interface RevealedCard {
 終えたお題は説明が済んでおり、答えを公開しても当てる側の得にならない。
 公開するのは、言えない語の違反に当てる側が気付けるようにするためと、聞いた説明と答えを結び付けて覚えられるようにするためである。
 
-`lastCard` は次のお題を終えるまで残し、手番が変わると `null` に戻す。
+`lastCard` は次のお題を終えるまで残す。
+手番を終えても `null` に戻さず、交代（`handoff`）の間も残し、次の `explaining` に入るときに `null` に戻す。
+上限（`MAX_CARDS_PER_TURN`）や山札切れで手番を終えた1枚も、交代の画面で全員が答えを確かめられるようにするためである。
+当初は手番が変わると `null` に戻しており、手番を終えた1枚の答えだけが当てる側に出なかった（2026-11-19のレビューで修正）。
 `explaining` の締切で捨てたお題は `lastCard` に載せず、結果で開示する（「結果」）。
 
 `speakingOrder` を公開状態に置くのは、当てる側も話す順を知っていないと、交互の違反を指摘できないためである。
@@ -465,8 +468,8 @@ payloadは `{ cardId: string }` とする。
 | ステージ | 処理 |
 | --- | --- |
 | `briefing` | 最初の `handoff` へ進む |
-| `handoff` | 説明役のペアの接続中の人数が2人以上なら `explaining` へ進む。2人未満ならその手番を飛ばす |
-| `explaining` | 現在のお題を `usedCards` へ `timeout` として加え、`turns` に集計を足して3つのカウンタ（`solvedThisTurn`、`passedThisTurn`、`lastCard`）を戻す。最後の手番なら `result` を返して `debrief` へ、そうでなければ次の `handoff` へ進む |
+| `handoff` | 説明役のペアの接続中の人数が2人以上なら `explaining` へ進み、`lastCard` を `null` に戻す（`startTurn` と同じ）。2人未満ならその手番を飛ばす |
+| `explaining` | 現在のお題を `usedCards` へ `timeout` として加え、`turns` に集計を足して正解と送りのカウンタ（`solvedThisTurn`、`passedThisTurn`）を戻す。`lastCard` は戻さない（直前に終えたお題が残る）。最後の手番なら `result` を返して `debrief` へ、そうでなければ次の `handoff` へ進む |
 | `debrief` | 締切を置かない |
 
 `explaining` の締切で終えた手番のお題は捨て札にし、次の手番は新しいお題から始める。
@@ -628,7 +631,7 @@ interface TwoHeadedSetSummary extends ContentSummary {
 * 話す順は、最初に話す人を大きく出す。自分が最初なら「あなたから」と出す。1語ごとに表示を切り替えない（「交互の手番は画面に話す順を示すだけにする」）
 * 「だれが当てた？」のシートには、説明役以外のペアをペア単位のボタンで並べ、各ボタンにペアの全員のアイコンと名前を添える
 * 説明役のペアの画面を当てる側に見せない約束を `briefing` で示す。守られているかは機械で検出せず、場に委ねる（[13](./13_ESCAPECALLゲームモジュール.md) の「自分の画面を見せない約束」と同じ扱い）
-* 当てる側の画面には、直前に終えたお題の答えと、当てたペアを出す（公開状態の `lastCard`）
+* 当てる側の画面には、直前に終えたお題の答えと、当てたペアを出す（公開状態の `lastCard`）。交代の画面にも出す
 * 自分のペアは、色だけでなく「あなたのペア」の文字で示す
 
 当てる側の言い回し（`Is it a ...?` / `Say it again, please.` / `One more word!` など）はモジュールの定数とし、コンテンツに持たせない（[09](./09_DONTSAYITゲームモジュール.md) の「表示文言の定数」と同じ判断）。
@@ -768,7 +771,7 @@ interface TwoHeadedSetSummary extends ContentSummary {
 * 山札: 8人で2周の8手番で毎手番上限まで消費しても、下限枚数の山札が尽きないこと
 * 未接続: `handoff` の締切で説明役のペアの接続中が2人未満なら手番が飛ばされ、そのお題が `usedCards` に入らないこと。3人組は2人で進むこと
 * 締切: `explaining` の締切で表示中のお題が `timeout` として記録され、3つのカウンタが戻ること
-* `lastCard`: 正解と送りで更新され、手番が変わると `null` に戻ること
+* `lastCard`: 正解と送りで更新され、交代の間は残り、次の `explaining` に入ると（`startTurn` でも交代の締切でも）`null` に戻ること。上限で手番を終えた5枚目が載ること
 * 結果: 得点の降順に並び、同点が同じ順位になること。`usedCards` に飛ばした手番のお題が含まれないこと
 * 作り直し: 遷移が返した秘密を `playerId` ごとに上書きで溜めた値と `rebuildSecret` の戻り値が、各遷移の直後に全員について一致すること。消費上限、送り、締切、未接続での手番の飛ばし、山札切れ、1周と2周、6人、7人、8人を通す
 * 作り直し: `finished` で全員に `undefined` を返すこと。お題セットが無い場合、表示中のお題がセットに無い場合、`gameSecret` が無い場合に例外を投げること

@@ -19,6 +19,7 @@
     type TwoHeadedSecret,
   } from "@beb/shared-twoheaded";
   import ExplainerCutIn from "./ExplainerCutIn.svelte";
+  import LastCard from "./LastCard.svelte";
   import PairChip from "./PairChip.svelte";
   import PairScores from "./PairScores.svelte";
   import SpeakingOrder from "./SpeakingOrder.svelte";
@@ -60,6 +61,9 @@
           : "次の説明役のペアを待ってください。始まったら声を聞いて、分かったら英語で答えます。"}
       </span>
     </p>
+
+    <!-- 前の手番を終えた1枚の答え。上限や締切で手番が終わっても、言えない語の違反に気付けるように出す（16の「言えない語」） -->
+    <LastCard card={publicState.lastCard} teams={publicState.teams} />
 
     <h1 class="title">つぎの説明役</h1>
     {#if explainerTeam}

@@ -200,6 +200,19 @@ describe("rebuildSecret（例外）", () => {
     ).toThrow();
   });
 
+  // 設計16の「再接続での作り直し」が例外とする2つ。検査を消すと、参加者でない人に当てる側の秘密が返る
+  it("参加者でない playerId には例外を投げる", () => {
+    const live = verified(readyAll(twoHeadedModule, begin(6)));
+    expect(() => rebuild(live, "not-a-player")).toThrow();
+  });
+
+  it("handoff・explaining で表示中のお題が無い場合は例外を投げる", () => {
+    const live = verified(readyAll(twoHeadedModule, begin(6)));
+    const broken = { ...live, gameSecret: { ...live.gameSecret, currentCardId: null } };
+    const explainer = explainersOf(live)[0] ?? "";
+    expect(() => rebuild(broken, explainer)).toThrow();
+  });
+
   it("finished では gameSecret が無くても undefined を返す", () => {
     const live = { ...begin(6), lifecycle: "finished" as const };
     expect(
