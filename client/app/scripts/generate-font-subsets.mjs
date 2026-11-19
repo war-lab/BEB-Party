@@ -76,11 +76,15 @@ async function collectCatalogText() {
  * `STAGE_LABELS_JA` の値に当たる `key: "日本語"` の形だけを抜く。
  */
 async function collectSharedJapanese() {
-  const dir = path.join(rootDir, "shared", "games");
-  if (!existsSync(dir)) {
+  // shared/core も走査する。遊び方の形のタグ（game-tags.ts）や周回数の選択肢（laps.ts）の文言を
+  // 共通コアが持つため。走査しないとタグ「陣営戦」の「陣」が欠け、別の書体で描かれた（基本設計/07）
+  const dirs = [path.join(rootDir, "shared", "games"), path.join(rootDir, "shared", "core", "src")].filter((dir) =>
+    existsSync(dir),
+  );
+  if (dirs.length === 0) {
     return "";
   }
-  const source = await walk(dir);
+  const source = (await Promise.all(dirs.map((dir) => walk(dir)))).join("\n");
   const matches = source.matchAll(/\b\w+:\s*"([^"]*[\u3040-\u30ff\u4e00-\u9fff][^"]*)"/g);
   return [...matches].map((match) => match[1]).join("");
 }
