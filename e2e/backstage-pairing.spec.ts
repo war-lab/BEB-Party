@@ -152,6 +152,10 @@ test("6人で一部だけ指定し外す操作も通すと、TWO-HEADED SPEAKER�
     );
 
     await pin(backstage.page, "Player1", "Player2");
+    // Lv.5とLv.4の組は、レベルを揃える自動編成では出ない。参加者に見抜かれうるため警告する（ADR-0035）
+    await expect(backstage.page.locator("[data-testid='backstage-unnatural']")).toHaveCount(1);
+    await expect(backstage.page.locator("[data-testid='backstage-warning']")).toBeVisible();
+    await expect(backstage.page.getByText("次のゲーム以降も外すまで残ります")).toBeVisible();
     await pin(backstage.page, "Player3", "Player6");
     await pin(backstage.page, "Player4", "Player5");
     // 1組目（Player1とPlayer2）を外す。外した2人は再び選べる
