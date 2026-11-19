@@ -23,6 +23,14 @@ export async function openSeat(page: Page): Promise<Seat> {
   await page.click("[data-testid='word-cover']");
   await expect(page.locator("[data-testid='word-card']")).toBeVisible({ timeout: 10_000 });
   await page.click("[data-testid='word-confirm']");
+  return readSeat(page);
+}
+
+/**
+ * カットインを閉じた後の画面から、自分のid・テーマ・単語を読む。
+ * 伏せ面を自分で開いて閉じた端末（遊び方ムービーの撮影）からも使う。
+ */
+export async function readSeat(page: Page): Promise<Seat> {
   const card = page.locator("[data-testid='my-card']");
   await expect(card).toBeVisible({ timeout: 10_000 });
   const self = page.locator("[data-testid='speaker-order'] li[data-self='true']");

@@ -1,12 +1,15 @@
-// 7ゲームの全ステージの素材を撮る。
+// 10ゲームの全ステージの素材を撮る。
 //
 // 実アプリを実際にプレイして撮る（モックを描かない）。素材は movies/assets/shots/ へ出す。
 // 各ゲームを1テストにするのは、途中で失敗しても他のゲームの素材が残るようにするためである。
 //
 // 卓を立てるところは検証用のE2Eヘルパー（e2e/support/room.ts）を再利用する。
-// 「5〜6人で入室してロビーに並ぶ」は撮影でも検証でも同じ手順であり、二重に持つ理由がない。
-import { expect, test } from "@playwright/test";
+// 「人数分で入室してロビーに並ぶ」は撮影でも検証でも同じ手順であり、二重に持つ理由がない。
+import { expect, test, type Page } from "@playwright/test";
 import { collectPieces, enterCode, solve, waitForLock, wrongCodeFor } from "../../e2e/support/escapecall";
+import * as mindmeld from "../../e2e/support/mindmeld";
+import * as secretteams from "../../e2e/support/secretteams";
+import * as twoheaded from "../../e2e/support/twoheaded";
 import { openTable, startGame, voteAll } from "../../e2e/support/room";
 import {
   BANK,
@@ -466,6 +469,353 @@ test("SECRET RULE ENGLISH", async ({ browser, baseURL }) => {
     // debrief: 成否とランク、秘密の規則、全ラウンドの英文
     await expect(host.locator("[data-testid='outcome']")).toBeVisible({ timeout: 30_000 });
     await shoot(host, "secretrule-debrief");
+  } finally {
+    await table.close();
+  }
+});
+
+/**
+ * MIND MELDは4人（2ペア）で撮る。
+ *
+ * 撮りたい画面（一致・近い語の申告と異議・前の2語・そろったペアの待ち）は2ペアで全部出る。
+ * 4人では判定者が相手ペアの2人だけになり、1人の異議では退けられない（15の「近い語の申告と異議」）ため、
+ * 申告が認められてラウンドが進み、撮影の手順が分岐しない。
+ * ホストをレベル1にするのは、お題の日本語が開いた状態を語を出す画面で写すためである。
+ */
+const MIND_MELD_LEVELS = [1, 3, 4, 2];
+
+/**
+ * 撮影で出す語。お題の英文の語と開示済みの語は出せない（15の「使用済みの語」）ため、
+ * 出せるものを先頭から選び、選んだ語は在庫から外す（同じゲームで二度出さない）。
+ * お題はseedで決まり指定できないため、どのお題でも語として読める一般の名詞にしてある。
+ */
+const MIND_MELD_WORDS = [
+  "water",
+  "music",
+  "coffee",
+  "family",
+  "summer",
+  "garden",
+  "friend",
+  "window",
+  "pizza",
+  "river",
+  "school",
+  "money",
+  "paper",
+  "dream",
+  "train",
+  "sugar",
+  "doctor",
+  "forest",
+  "camera",
+  "island",
+];
+
+/** 近い語の組。照合キーは一致しないが申告できる（15の「近い語」の条件を満たす） */
+const MIND_MELD_NEAR = [
+  ["apple", "apples"],
+  ["color", "colour"],
+  ["tomato", "tomatoes"],
+];
+
+/** 入力欄に語を書き、送信ボタンが押せるか（表示形の条件と使用済みの語をクライアントが確かめる） */
+async function canSendWord(page: Page, word: string): Promise<boolean> {
+  await page.fill("[data-testid='word-input']", word);
+  await page.waitForTimeout(100);
+  return page.locator("[data-testid='submit-word']").isEnabled();
+}
+
+/** 在庫から出せる語を1つ選んで在庫から外す。入力欄には選んだ語が書かれたまま残る */
+async function takeWord(page: Page, stock: string[]): Promise<string> {
+  for (const [index, word] of stock.entries()) {
+    if (await canSendWord(page, word)) {
+      stock.splice(index, 1);
+      return word;
+    }
+  }
+  throw new Error("出せる語が在庫にない");
+}
+
+test("MIND MELD", async ({ browser, baseURL }) => {
+  const table = await openTable(browser, baseURL!, MIND_MELD_LEVELS, { testTitle: "mindmeld" });
+  try {
+    const pages = table.pages;
+    const host = pages[0]!;
+    await startWith(host, "MIND MELD", "はじめてのお題");
+
+    // briefing: チームの一覧、申告の基準、口頭の約束
+    await mindmeld.waitForStage(pages, "遊び方の確認");
+    const teamOfPage = await Promise.all(pages.map((page) => mindmeld.readMyTeam(page)));
+    await shoot(host, "mindmeld-briefing");
+    await mindmeld.clickReady(pages);
+
+    const hostTeam = teamOfPage[0]!;
+    const otherTeam = teamOfPage.find((teamId) => teamId !== hostTeam)!;
+    const membersOf = (teamId: string) => pages.filter((_, index) => teamOfPage[index] === teamId);
+    const [hostSelf, hostPartner] = membersOf(hostTeam) as [Page, Page];
+    const [nearFirst, nearSecond] = membersOf(otherTeam) as [Page, Page];
+    const stock = [...MIND_MELD_WORDS];
+    const ready = async () => {
+      for (const page of pages) {
+        await mindmeld.isActive(page);
+      }
+    };
+
+    // お題1・1回目: ホストのペアはそろえ、もう一方のペアは近い語を出して申告する
+    await mindmeld.waitForStage(pages, "語を出す お題1/4・1回目");
+    await ready();
+    const first = await takeWord(hostSelf, stock);
+    // 語を出す画面。お題と、入力欄に語を書いた状態
+    await shoot(hostSelf, "mindmeld-input");
+    await mindmeld.submitWord(hostSelf, first);
+    await mindmeld.submitWord(hostPartner, first);
+    let near: string[] | undefined;
+    for (const pair of MIND_MELD_NEAR) {
+      if ((await canSendWord(nearFirst, pair[0]!)) && (await canSendWord(nearSecond, pair[1]!))) {
+        near = pair;
+        break;
+      }
+    }
+    if (near === undefined) {
+      throw new Error("出せる近い語の組がない");
+    }
+    await mindmeld.submitWord(nearFirst, near[0]!);
+    await mindmeld.submitWord(nearSecond, near[1]!);
+
+    // reveal: カウントダウンが消えて全ペアの語が出てから撮る。申告する側の画面（申告のボタンが出ている）
+    await mindmeld.waitForReveal(pages);
+    await shoot(nearFirst, "mindmeld-reveal");
+    await nearFirst.click("[data-testid='claim']");
+    // 判定する側が異議を出した後の画面。異議の数と「このままなら認められる」が出る
+    const claimRow = hostSelf.locator(`[data-testid='reveal-row'][data-team-id='${otherTeam}']`);
+    await claimRow.locator("[data-testid='object']").click();
+    await expect(claimRow.locator("[data-testid='objectors'] .face")).toHaveCount(1, { timeout: 10_000 });
+    await shoot(hostSelf, "mindmeld-reveal-claim");
+    await mindmeld.clickReady(pages);
+
+    // お題2・1回目: ホストのペアはそろわず、もう一方のペアはそろう
+    await mindmeld.waitForStage(pages, "語を出す お題2/4・1回目");
+    await ready();
+    await mindmeld.submitWord(hostSelf, await takeWord(hostSelf, stock));
+    await mindmeld.submitWord(hostPartner, await takeWord(hostPartner, stock));
+    const matched = await takeWord(nearFirst, stock);
+    await mindmeld.submitWord(nearFirst, matched);
+    await mindmeld.submitWord(nearSecond, matched);
+    await mindmeld.waitForReveal(pages);
+    await mindmeld.clickReady(pages);
+
+    // お題2・2回目: ホストのペアには前の2語が出て、そろったペアは待つ
+    await mindmeld.waitForStage(pages, "語を出す お題2/4・2回目");
+    await ready();
+    const linked = await takeWord(hostSelf, stock);
+    await shoot(hostSelf, "mindmeld-input-previous");
+    await shoot(nearFirst, "mindmeld-input-waiting");
+    await mindmeld.submitWord(hostSelf, linked);
+    await mindmeld.submitWord(hostPartner, linked);
+    await mindmeld.waitForReveal(pages);
+    await mindmeld.clickReady(pages);
+
+    // お題3・4: 両ペアとも1回目でそろえて結果へ進む
+    for (const round of [3, 4]) {
+      await mindmeld.waitForStage(pages, `語を出す お題${round}/4・1回目`);
+      await ready();
+      for (const [self, partner] of [
+        [hostSelf, hostPartner],
+        [nearFirst, nearSecond],
+      ] as const) {
+        const word = await takeWord(self, stock);
+        await mindmeld.submitWord(self, word);
+        await mindmeld.submitWord(partner, word);
+      }
+      await mindmeld.waitForReveal(pages);
+      await mindmeld.clickReady(pages);
+    }
+
+    // debrief: ペアの順位と点、お題ごとの語の流れ
+    await mindmeld.waitForStage(pages, "結果");
+    await expect(host.locator("[data-testid='standing']")).toHaveCount(2, { timeout: 30_000 });
+    await shoot(host, "mindmeld-debrief");
+  } finally {
+    await table.close();
+  }
+});
+
+/**
+ * TWO-HEADED SPEAKERは6人（3ペア）で撮る。対応人数の下限であり、説明役のペア・当てる側の2ペアがそろう。
+ * 「だれが当てた？」のシートに当てる側のペアが複数並ぶのも、3ペアからである。
+ *
+ * 周回数は既定（2周）のまま撮る。1手番は消費上限（5枚）まで正解と送りを申告して終える（E2Eと同じ進め方）。
+ */
+const TWO_HEADED_LEVELS = [5, 4, 3, 3, 2, 1];
+
+test("TWO-HEADED SPEAKER", async ({ browser, baseURL }) => {
+  const table = await openTable(browser, baseURL!, TWO_HEADED_LEVELS, { testTitle: "twoheaded" });
+  try {
+    const pages = table.pages;
+    const host = pages[0]!;
+    await startWith(host, "TWO-HEADED SPEAKER", "Everyday Things");
+
+    // briefing: ペアの一覧と説明の順、交互の違反と言えない語の規則
+    await twoheaded.waitForStage(pages, "遊び方の確認");
+    const teamOfPage = await Promise.all(pages.map((page) => twoheaded.readMyTeam(page)));
+    const teamIds = await twoheaded.readTeamOrder(host);
+    await shoot(host, "twoheaded-briefing");
+    await twoheaded.readyAll(pages);
+
+    const turns = teamIds.length * 2;
+    for (let turn = 0; turn < turns; turn += 1) {
+      await twoheaded.waitForStage(pages, `交代 ${turn + 1} / ${turns}`);
+      const explainerTeamId = teamIds[turn % teamIds.length]!;
+      const explainers = pages.filter((_, index) => teamOfPage[index] === explainerTeamId);
+      const guessers = pages.filter((page) => !explainers.includes(page));
+      const others = teamIds.filter((teamId) => teamId !== explainerTeamId);
+      // レベルの低い方の説明役で撮る。書き出しの例が開いた状態（レベル1〜2）が写る
+      const opener = explainers.reduce((low, page) =>
+        TWO_HEADED_LEVELS[pages.indexOf(page)]! < TWO_HEADED_LEVELS[pages.indexOf(low)]! ? page : low,
+      );
+
+      if (turn === 0) {
+        // handoff: 説明役だけに伏せ面が出る。開く前と開いた後、当てる側の画面を撮る
+        await expect(opener.locator("[data-testid='explainer-cover']")).toBeVisible({ timeout: 10_000 });
+        await shoot(opener, "twoheaded-handoff-cover");
+        await shoot(guessers[0]!, "twoheaded-handoff-guesser");
+      }
+      await twoheaded.openCutIn(opener);
+      if (turn === 0) {
+        await shoot(opener, "twoheaded-handoff-card");
+      }
+      await opener.click("[data-testid='start-turn']");
+      await twoheaded.waitForStage(pages, "説明タイム");
+
+      for (let card = 0; card < 5; card += 1) {
+        const operator = turn === 0 && card === 0 ? opener : explainers[card % explainers.length]!;
+        const answer = await twoheaded.readAnswer(operator);
+        if (turn === 0 && card === 0) {
+          // explaining: 説明役の画面（お題・言えない語・話す順・書き出しの例）と、「正解」のシート
+          await shoot(operator, "twoheaded-explaining-explainer");
+          await operator.click("[data-testid='claim-open']");
+          await expect(operator.locator("[data-testid='claim-sheet']")).toBeVisible({ timeout: 10_000 });
+          await shoot(operator, "twoheaded-claim-sheet");
+          await operator.click(`[data-testid='claim-sheet'] [data-testid='claim-team'][data-team-id='${others[0]}']`);
+          await expect(operator.locator("[data-testid='claim-sheet']")).toHaveCount(0, { timeout: 10_000 });
+          // 当てる側の画面。終えたお題の答えと、当てたペアが出る
+          await expect(guessers[0]!.locator("[data-testid='last-card']")).toBeVisible({ timeout: 10_000 });
+          await shoot(guessers[0]!, "twoheaded-explaining-guesser");
+        } else if (card % 2 === 0) {
+          // 当てたペアは毎回、当てる側の先頭のペアにする。E2Eのように順に散らすと全ペアが同点になり、
+          // 結果の画面に順位の差が写らない（実測で DRAW! を撮った）
+          await twoheaded.claimCorrect(operator, others[0]!);
+        } else {
+          await operator.click("[data-testid='pass-card']");
+        }
+        // 申告の受理を待ってから次のお題を読む。待たないと申告する前のお題を読み、同じお題へ二度申告する。
+        // 受理は当てる側の画面の「直前のお題」で確かめる（E2Eと同じ確かめ方）。5枚目は次の交代を待つ
+        if (card < 4) {
+          await expect(guessers[0]!.locator("[data-testid='last-card']")).toContainText(answer, { timeout: 10_000 });
+        }
+      }
+    }
+
+    // debrief: ペアの順位と点、使ったお題と結果
+    await twoheaded.waitForStage(pages, "結果");
+    await expect(host.locator("[data-testid='standing']")).toHaveCount(teamIds.length, { timeout: 30_000 });
+    await shoot(host, "twoheaded-debrief");
+  } finally {
+    await table.close();
+  }
+});
+
+/**
+ * SECRET TEAMSは6人（3対3）で撮る。
+ *
+ * 4人（2対2）では選べる味方が1人だけになり、味方を複数選ぶ回答の画面が写らない。
+ * 6人なら味方を2人まで選べ、人数構成も「3人 対 3人」で揃う（奇数人数の差し引きの説明が要らない）。
+ * ホストをレベル1にするのは、単語とテーマ・選択肢の日本語が開いた状態を写すためである。
+ */
+const SECRET_TEAMS_LEVELS = [1, 3, 5, 2, 4, 3];
+
+test("SECRET TEAMS", async ({ browser, baseURL }) => {
+  const table = await openTable(browser, baseURL!, SECRET_TEAMS_LEVELS, { testTitle: "secretteams" });
+  try {
+    const pages = table.pages;
+    const host = pages[0]!;
+    await startWith(host, "SECRET TEAMS", "はじめてのテーマ");
+
+    // briefing: 単語とテーマの伏せ面 → カットイン → 閉じた後の本体
+    await secretteams.waitForStage(pages, "遊び方の確認");
+    await expect(host.locator("[data-testid='word-cover']")).toBeVisible({ timeout: 20_000 });
+    await shoot(host, "secretteams-word-cover");
+    await host.click("[data-testid='word-cover']");
+    await expect(host.locator("[data-testid='word-card']")).toBeVisible({ timeout: 10_000 });
+    await shoot(host, "secretteams-word-card");
+    await host.click("[data-testid='word-confirm']");
+    const seats = [await secretteams.readSeat(host)];
+    await shoot(host, "secretteams-briefing");
+    for (const page of pages.slice(1)) {
+      seats.push(await secretteams.openSeat(page));
+    }
+    await secretteams.clickReady(pages);
+
+    // clue: 手番の人の画面と、聞いている人の画面。最初の手番で撮り、あとは説明を終えて進める
+    const totalTurns = seats.length * 2;
+    for (let turnIndex = 0; turnIndex < totalTurns; turnIndex += 1) {
+      const speakerId = await secretteams.waitForTurn(host, turnIndex);
+      const speaker = seats.find((seat) => seat.playerId === speakerId)!;
+      if (turnIndex === 0) {
+        await expect(speaker.page.locator("[data-testid='done']")).toBeVisible({ timeout: 10_000 });
+        // briefing の「読んだ」を押した位置（画面の下の方）のまま残るため、上端へ戻してから撮る。
+        // 戻さないと「いま説明している人」と自分の番までの人数が写らない（実測）
+        await speaker.page.evaluate(() => window.scrollTo(0, 0));
+        await shoot(speaker.page, "secretteams-clue-speaker");
+        // 聞く側はホスト（レベル1で言い回しが開いている）。ホストが手番なら次の人
+        const listener = speaker.page === host ? pages[1]! : host;
+        await listener.evaluate(() => window.scrollTo(0, 0));
+        await shoot(listener, "secretteams-clue-listener");
+      }
+      await speaker.page.click("[data-testid='done']");
+    }
+
+    // answering: ホストが味方と相手のテーマを選んだ状態を撮る。
+    // ホストのチームは全員が正しく答え、相手のチームは1人だけテーマを外す（結果に勝敗が付く）
+    await secretteams.waitForStage(pages, "回答");
+    const hostSeat = seats[0]!;
+    const opponentThemeId = seats.find((seat) => seat.themeId !== hostSeat.themeId)!.themeId;
+    const otherThemeId = await host
+      .locator("[data-testid='theme-option']")
+      .evaluateAll(
+        (nodes, used) => nodes.map((node) => node.getAttribute("data-theme-id") ?? "").find((id) => !used.includes(id)) ?? "",
+        [hostSeat.themeId, opponentThemeId],
+      );
+    const alliesOf = (seat: secretteams.Seat) =>
+      seats.filter((other) => other !== seat && other.themeId === seat.themeId).map((other) => other.playerId);
+
+    for (const allyId of alliesOf(hostSeat)) {
+      await host.click(`[data-testid='ally-option'][data-player-id='${allyId}']`);
+    }
+    await host.click(`[data-testid='theme-option'][data-theme-id='${opponentThemeId}']`);
+    // 味方の選択肢から相手のテーマ・送信ボタンまでが1画面に入る位置へ送る。
+    // 上端に固定のタイマーバーがあり、選択肢の見出しが隠れるため、送った後に戻す（実測で見出しが隠れた）
+    await host.locator("[data-testid='ally-option']").first().evaluate((element) => {
+      element.scrollIntoView({ block: "start" });
+      window.scrollBy(0, -140);
+    });
+    await shoot(host, "secretteams-answering");
+    await host.click("[data-testid='submit-answer']");
+    await expect(host.locator("[data-testid='submitted-hint']")).toBeVisible({ timeout: 10_000 });
+
+    let missed = false;
+    for (const seat of seats.slice(1)) {
+      const enemyTheme = seats.find((other) => other.themeId !== seat.themeId)!.themeId;
+      const wrongOnce: boolean = seat.themeId === opponentThemeId && !missed;
+      missed ||= wrongOnce;
+      await secretteams.submitAnswer(seat.page, alliesOf(seat), wrongOnce ? otherThemeId : enemyTheme);
+    }
+
+    // reveal: 勝敗と両チームの得点、チームごとのテーマとメンバーと単語
+    await secretteams.waitForStage(pages, "結果");
+    await expect(host.locator("[data-testid='team-result']")).toHaveCount(2, { timeout: 30_000 });
+    await shoot(host, "secretteams-reveal");
   } finally {
     await table.close();
   }

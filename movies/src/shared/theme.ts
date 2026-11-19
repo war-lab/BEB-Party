@@ -45,6 +45,14 @@ export const GAME_ACCENT = {
   escapecall: COLOR.redDeep,
   // 残りの色のうち、どのゲームにも当たっていない濃い青。blue（WHO WROTE THIS?）とは明度で分かれる
   secretrule: COLOR.blueDeep,
+  // 以下のチーム戦3本で、トークンの明るい色（帯の上に濃い字を載せられる色）は使い切る。
+  // 薄い紫がかった灰。どの原色とも色相で分かれる
+  mindmeld: COLOR.mist,
+  // 白。字幕の帯の上端の線と札の輪郭が最も明るく出る
+  twoheaded: COLOR.panel,
+  // 明るい色が残っていないため黄を共有する。黄のENGLISH RANKINGとは「秘密の目標を抱える」主題が近く、
+  // 動画は1本ずつ見るものであり、題名が並んで出る場面が無い
+  secretteams: COLOR.yellow,
 } as const;
 
 export type GameId = keyof typeof GAME_ACCENT;

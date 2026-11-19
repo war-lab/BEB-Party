@@ -1,4 +1,4 @@
-// 7本の台本。数値はすべて各ゲームのshared定数を出典とし、ここでは写しを持つ。
+// 10本の台本。数値はすべて各ゲームのshared定数を出典とし、ここでは写しを持つ。
 //
 // 写しを持つ理由は、動画が「収録時点の仕様」を映すものであり、定数を変えたときに
 // 動画が自動で追従してはまずいからである（古い動画と新しいアプリの食い違いに気づけない）。
@@ -8,7 +8,7 @@
 // 改行位置は意味の区切り（読点・文の終わり・主語と述語の境目）に置く。
 // 1行は全角16文字を目安とし、超える行は表示側が自動で縮める（shared/parts.tsx の fitWithin）。
 //
-// 部屋に入ってロビーで集まるまでの導線は4本とも同じであり、各動画には入れない。
+// 部屋に入ってロビーで集まるまでの導線は全本で同じであり、各動画には入れない。
 // 撮った素材（common-home / common-lobby）は残してあるが本編では使わない（docs/ムービー.md）。
 import type { Lines } from "./parts";
 import type { GameId } from "./theme";
@@ -462,5 +462,190 @@ export const SCRIPTS: MovieScript[] = [
     promises: [["自分の画面を他の人に見せない"], ["通ったかどうかは英語で伝える"]],
     // 余韻を多めに取る（2026-10-14の依頼）。最後の札を長く残し、ゆっくり消し、消えた後も間を置く
     outro: { extraHold: 1.6, fade: 1.1, tail: 1.8 },
+  },
+  {
+    // 数値の出典: shared/games/mindmeld/src/game.ts（BRIEFING_SECONDS・INPUT_SECONDS・REVEAL_SECONDS・
+    // MAX_ROUNDS・MAX_ATTEMPTS・pointsFor）。4〜8人のゲームであり、素材は4人（2ペア）の卓で撮る
+    id: "mindmeld",
+    icon: "\u{1F9E0}",
+    title: ["MIND", "MELD"],
+    tagline: ["ペアで同時に英単語を出し、", "同じ語にそろえる"],
+    purpose: ["2人1組のペアで点を競う", "お題に合う英単語を2人が同時に出し、", "同じ語がそろえば成功"],
+    beats: [
+      {
+        shot: "mindmeld-briefing",
+        stage: "遊び方の確認（90秒）",
+        caption: ["ペアは開始時に決まり、", "全員に公開される"],
+        hold: 3.2,
+      },
+      {
+        shot: "mindmeld-input",
+        stage: "語を出す（既定30秒）",
+        caption: ["お題を見て、英単語を1語だけ出す", "出すまで口に出さない"],
+        hold: 3.4,
+      },
+      {
+        shot: "mindmeld-reveal",
+        stage: "開示（30秒）",
+        caption: ["全員で Three, two, one! と数え、", "全ペアの語が一斉に出る"],
+        hold: 3.6,
+      },
+      {
+        shot: "mindmeld-reveal-claim",
+        stage: "開示",
+        caption: ["複数形やつづりの違いは", "「同じ語」と申告できる", "他のペアは異議を出せる"],
+        hold: 3.8,
+      },
+      {
+        shot: "mindmeld-input-previous",
+        stage: "語を出す 2回目から",
+        caption: ["そろわなければ、前の2語の", "両方につながる1語を出す"],
+        hold: 3.6,
+      },
+      {
+        shot: "mindmeld-input-waiting",
+        stage: "語を出す",
+        caption: ["そろったペアは", "そのお題では待つ"],
+        hold: 3.0,
+      },
+      {
+        shot: "mindmeld-debrief",
+        stage: "結果",
+        caption: ["ペアの順位と、", "お題ごとの語の流れが出る"],
+        hold: 3.2,
+      },
+    ],
+    scoring: [
+      ["1回目でそろえば4点", "4回目なら1点"],
+      ["4回でそろわなければ0点"],
+      ["お題4つの合計で競う"],
+    ],
+    promises: [
+      ["語を出す間は、出す語も", "その手がかりも口に出さない"],
+      ["開示では自分の語を声に出す"],
+      ["意味の違う語は「同じ語」にしない"],
+    ],
+  },
+  {
+    // 数値の出典: shared/games/twoheaded/src/game.ts（STAGE_DEADLINE_SECONDS・TURN_SECONDS・
+    // MAX_CARDS_PER_TURN・DEFAULT_LAPS_ID）。6〜8人のゲームであり、素材は6人（3ペア）の卓で撮る
+    id: "twoheaded",
+    icon: "\u{1F465}",
+    title: ["TWO-HEADED", "SPEAKER"],
+    tagline: ["ペアで1語ずつ交互に話し、", "お題を英語で説明する"],
+    purpose: ["説明役のペアは1語ずつ交互に", "英語を言って文を作る", "他のペアは声で答えを当てる"],
+    beats: [
+      {
+        shot: "twoheaded-briefing",
+        stage: "遊び方の確認（90秒）",
+        caption: ["ペアと説明の順番が出る", "全ペアが2周ずつ説明役を回る"],
+        hold: 3.4,
+      },
+      {
+        shot: "twoheaded-handoff-cover",
+        stage: "交代（30秒）",
+        caption: ["お題は説明役のペアにだけ", "伏せ面で届く"],
+        hold: 3.0,
+      },
+      {
+        shot: "twoheaded-handoff-card",
+        stage: "交代",
+        caption: ["2人に同じお題と", "言えない語が届く"],
+        hold: 3.2,
+      },
+      {
+        shot: "twoheaded-explaining-explainer",
+        stage: "説明タイム（既定90秒）",
+        caption: ["1人1語ずつ交互に言う", "最初に話す人はお題ごとに替わる"],
+        hold: 3.6,
+      },
+      {
+        shot: "twoheaded-claim-sheet",
+        stage: "説明タイム",
+        caption: ["最初に当てたペアを", "説明役が選んで申告する"],
+        hold: 3.4,
+      },
+      {
+        shot: "twoheaded-explaining-guesser",
+        stage: "説明タイム",
+        caption: ["当てる側は答えを声で言う", "終えたお題の答えは全員に出る"],
+        hold: 3.6,
+      },
+      {
+        shot: "twoheaded-debrief",
+        stage: "結果",
+        caption: ["ペアの順位と、", "使ったお題の結果が出る"],
+        hold: 3.2,
+      },
+    ],
+    scoring: [
+      ["当てたペアと説明役のペアに", "1点ずつ入る"],
+      ["送り・時間切れは0点", "減点はない"],
+      ["1手番で進めるお題は5枚まで"],
+    ],
+    promises: [
+      ["説明役の画面を", "当てる側に見せない"],
+      ["2語続けて言ったら", "最初の人から言い直す"],
+      ["お題の名前と別名は言えない", "言ってしまったら送る"],
+    ],
+  },
+  {
+    // 数値の出典: shared/games/secretteams/src/game.ts（BRIEFING_SECONDS・CLUE_SECONDS・ANSWERING_SECONDS・
+    // LAPS・THEME_CHOICE_COUNT・SCORE_WEIGHTS）。4〜8人のゲームであり、素材は6人（3対3）の卓で撮る
+    id: "secretteams",
+    icon: "\u{1F3AD}",
+    title: ["SECRET", "TEAMS"],
+    tagline: ["自分の単語を英語で遠回しに説明し、", "誰が味方かを見抜く"],
+    purpose: ["2チームに分かれるが、", "誰が味方かは知らされない", "味方と相手のテーマを当てる"],
+    beats: [
+      {
+        shot: "secretteams-word-cover",
+        stage: "遊び方の確認（90秒）",
+        caption: ["単語とテーマは伏せ面で届く", "まわりを確認してから開く"],
+        hold: 3.2,
+      },
+      {
+        shot: "secretteams-word-card",
+        stage: "遊び方の確認",
+        caption: ["自分の単語と、", "自分のチームのテーマ"],
+        hold: 3.0,
+      },
+      {
+        shot: "secretteams-briefing",
+        stage: "遊び方の確認",
+        caption: ["テーマの候補は6つ", "本物の2つに似たテーマが混ざる"],
+        hold: 3.6,
+      },
+      {
+        shot: "secretteams-clue-speaker",
+        stage: "説明（既定30秒）",
+        caption: ["順番に、自分の単語を", "英語で遠回しに説明する"],
+        hold: 3.4,
+      },
+      {
+        shot: "secretteams-clue-listener",
+        stage: "説明",
+        caption: ["聞く側は英語で質問してよい", "全員が2周する"],
+        hold: 3.4,
+      },
+      {
+        shot: "secretteams-answering",
+        stage: "回答（120秒）",
+        caption: ["味方だと思う人と、", "相手チームのテーマを選ぶ", "締切までは相談して直せる"],
+        hold: 3.8,
+      },
+      {
+        shot: "secretteams-reveal",
+        stage: "結果",
+        caption: ["チームと単語、", "誰が誰を味方に選んだかが出る"],
+        hold: 3.4,
+      },
+    ],
+    scoring: [
+      ["味方を当てた度合いで50点", "相手を選ぶと差し引かれる"],
+      ["相手のテーマを当てた割合で50点"],
+      ["点の高いチームの勝ち"],
+    ],
+    promises: [["自分の単語とテーマ名を", "そのまま言わない"], ["自分の画面を他の人に見せない"]],
   },
 ];

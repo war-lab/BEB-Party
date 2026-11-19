@@ -21,7 +21,18 @@ const ROOT = path.join(import.meta.dirname, "..");
 const OUTPUT = path.join(ROOT, "output");
 
 /** src/projects/*.ts のファイル名。プロジェクトのURLもこの名前で決まる */
-const ALL_PROJECTS = ["detectives", "dontsayit", "ranking", "whowrotethis", "blindroom", "escapecall", "secretrule"];
+const ALL_PROJECTS = [
+  "detectives",
+  "dontsayit",
+  "ranking",
+  "whowrotethis",
+  "blindroom",
+  "escapecall",
+  "secretrule",
+  "mindmeld",
+  "twoheaded",
+  "secretteams",
+];
 
 /**
  * 引数で本数を絞れる（例: `node scripts/render.mjs detectives`）。
